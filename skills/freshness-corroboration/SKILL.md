@@ -15,17 +15,18 @@ Use when auditing structured metadata, schema.org markup, entity consistency, an
 ## Procedure
 
 1. **JSON-LD & Structured Data Validation**:
-   - Parse HTML for embedded JSON-LD (`<script type="application/ld+json">`).
-   - Validate schema types (`Organization`, `Product`, `Article`, `FAQPage`, `BreadcrumbList`).
-   - Check for missing critical fields (e.g. `name`, `description`, `url`, `logo`, `sameAs`, `offers`, `price`).
+   - Extract `<script type="application/ld+json">` elements from page HTML.
+   - Validate core schemas (`Organization`, `Product`, `Article`, `FAQPage`, `BreadcrumbList`).
+   - Check for required schema attributes (`@context`, `@type`, `name`, `url`, `description`, `logo`).
+   - Flag invalid JSON or missing key schema blocks as `Medium` severity findings.
 
-2. **Entity Disambiguation & `sameAs` Links**:
-   - Check if `Organization` schema includes authoritative `sameAs` entity links (Wikipedia, Wikidata, official social profiles, Crunchbase).
-   - Identify entity ambiguity risks where brand name overlaps with common nouns or third-party products.
+2. **Entity Disambiguation & `sameAs` Coverage**:
+   - Verify `Organization` or `Brand` schema contains authoritative `sameAs` links (Wikipedia, Wikidata, official social channels, LinkedIn, Crunchbase).
+   - Assess entity ambiguity risks where brand names overlap with generic terms or third-party products.
 
 3. **Cross-Page Fact Corroboration & Consistency**:
-   - Compare key facts (pricing, product names, contact information, release dates) across different site pages.
-   - Detect conflicting or stale information that degrades AI confidence during retrieval-augmented generation (RAG).
+   - Cross-check critical brand facts (pricing tiers, contact emails, product names, key features) across home, product, and documentation pages.
+   - Flag conflicting or outdated facts that risk causing RAG (Retrieval-Augmented Generation) hallucinations.
 
 ## Output
 Emits findings regarding missing structured data, uncorroborated facts, and entity ambiguity along with JSON-LD remediation snippets.

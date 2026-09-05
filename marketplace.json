@@ -8,6 +8,10 @@
       "entrypoint": true
     },
     {
+      "id": "crawl-access-audit",
+      "path": "skills/crawl-access-audit"
+    },
+    {
       "id": "crawl-render-audit",
       "path": "skills/crawl-render-audit"
     },

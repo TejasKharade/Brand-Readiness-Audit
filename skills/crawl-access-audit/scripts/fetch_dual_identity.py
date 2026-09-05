@@ -38,6 +38,14 @@ LOGIN_WALL_SIGNALS = [
     "password"
 ]
 
+GENERIC_BLOCK_SIGNALS = [
+    "access denied",
+    "403 forbidden",
+    "access forbidden",
+    "request blocked",
+    "blocked by security policy"
+]
+
 class TextExtractor(html.parser.HTMLParser):
     def __init__(self):
         super().__init__()
@@ -85,6 +93,9 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
         
         # 2. CAPTCHA
         captcha_matches = [s for s in CAPTCHA_SIGNALS if s in html_lower]
+
+        # 3. Generic Block
+        generic_block_matches = [s for s in GENERIC_BLOCK_SIGNALS if s in html_lower]
         
         # Parse HTML for login wall and thin content
         parser = TextExtractor()
@@ -97,10 +108,10 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
         visible_text = parser.get_text()
         visible_text_len = len(visible_text)
         
-        # 3. Thin content
+        # 4. Thin content
         is_thin = visible_text_len < thin_threshold
         
-        # 4. Login wall
+        # 5. Login wall
         login_wall = False
         if parser.has_form and parser.has_password_input and is_thin:
             login_wall = True
@@ -110,6 +121,8 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "cloudflare_signals": cf_matches,
             "captcha": bool(captcha_matches),
             "captcha_signals": captcha_matches,
+            "generic_block": bool(generic_block_matches),
+            "generic_block_signals": generic_block_matches,
             "login_wall": login_wall,
             "thin_content": is_thin,
             "visible_text_length": visible_text_len,
@@ -122,6 +135,8 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "cloudflare_signals": [],
             "captcha": False,
             "captcha_signals": [],
+            "generic_block": False,
+            "generic_block_signals": [],
             "login_wall": False,
             "thin_content": False,
             "visible_text_length": 0,
@@ -132,6 +147,7 @@ def fetch_url(url, user_agent, timeout=10):
     start_time = time.time()
     default_fingerprints = {
         "cloudflare_challenge": False, "cloudflare_signals": [], "captcha": False, "captcha_signals": [], 
+        "generic_block": False, "generic_block_signals": [],
         "login_wall": False, "thin_content": False, "visible_text_length": 0, "_fingerprint_error": None
     }
     
@@ -196,7 +212,7 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
         bot_fp = bot_result.get("content_fingerprints", {})
         divergence = any(
             br_fp.get(k) != bot_fp.get(k) 
-            for k in ["cloudflare_challenge", "captcha", "login_wall", "thin_content"]
+            for k in ["cloudflare_challenge", "captcha", "generic_block", "login_wall", "thin_content"]
         )
         comparison["fingerprint_divergence"] = divergence
     

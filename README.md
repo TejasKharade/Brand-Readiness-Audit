@@ -17,6 +17,10 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
       "entrypoint": true
     },
     {
+      "id": "crawl-access-audit",
+      "path": "skills/crawl-access-audit"
+    },
+    {
       "id": "crawl-render-audit",
       "path": "skills/crawl-render-audit"
     },
@@ -34,7 +38,8 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
 
 ## Skills Overview
 
-1. **`audit-orchestrator`** (Entrypoint): Receives the website audit request, invokes sub-skills, synthesizes findings, and emits the final JSON audit report.
-2. **`crawl-render-audit`**: Checks crawler accessibility (`robots.txt`), JavaScript rendering dependencies, and text extraction capability.
-3. **`freshness-corroboration`**: Audits JSON-LD structured data (`schema.org`), entity clarity, and cross-page fact corroboration.
-4. **`engagement-audit`**: Evaluates on-site visitor orientation, context retention, and content clarity.
+1. **`audit-orchestrator`** (Entrypoint): Receives the website audit request, invokes data gathering & diagnostic sub-skills, synthesizes findings, and emits the final JSON audit report.
+2. **`crawl-access-audit`**: Gathers raw technical accessibility facts (robots.txt permissions, dual-identity browser vs. bot HTTP responses, page indexing signals, sitemaps, crawl depth).
+3. **`crawl-render-audit`**: Diagnoses crawler accessibility (`robots.txt`), WAF bot blocks, JavaScript rendering dependencies, and non-text locked content.
+4. **`freshness-corroboration`**: Audits JSON-LD structured data (`schema.org`), entity clarity, and cross-page fact corroboration.
+5. **`engagement-audit`**: Evaluates on-site visitor orientation, context retention, and content clarity.

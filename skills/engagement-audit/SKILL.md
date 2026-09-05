@@ -16,15 +16,15 @@ Use when auditing on-site user experience, orientation clarity, context retentio
 
 1. **First-Screen Orientation & Value Proposition**:
    - Evaluate hero section readability, clear `<h1>` headline, and value proposition statement.
-   - Detect if visitor landing on a deep page receives immediate context on what the brand/product offers.
+   - Detect if visitors landing on deep URLs receive immediate orientation context on brand identity and offerings.
 
 2. **Context Retention & Navigation Flow**:
    - Verify breadcrumb navigation, clear category links, and contextual next-step call-to-actions (CTAs).
-   - Check if visitors arriving from AI referrals are given immediate pathways to explore related topics without dead ends.
+   - Check if visitors arriving from AI referrals have clear pathways to explore related topics without dead ends.
 
-3. **Content Density & Noise Ratio**:
-   - Measure high-value informative text versus low-value marketing filler, intrusive popups, or banner clutter.
-   - Flag pages where key substance is obscured or requires excessive scrolling/clicks to discover.
+3. **Content Density & Signal-to-Noise Ratio**:
+   - Analyze high-value informative text vs. marketing fluff or popup clutter.
+   - Identify pages where key information requires excessive scrolling or interaction to uncover.
 
 ## Output
 Emits prioritized findings and actionable recommendations to improve visitor retention, clarity, and engagement.

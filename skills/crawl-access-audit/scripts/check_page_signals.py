@@ -27,8 +27,11 @@ def normalize_url(url):
         if not url:
             return ""
         parsed = urllib.parse.urlparse(url)
+        netloc = parsed.netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
         path = parsed.path.rstrip('/')
-        return f"{parsed.netloc}{path}".lower()
+        return f"{netloc}{path}".lower()
     except Exception:
         return ""
 
@@ -44,7 +47,12 @@ def check_signals(url, headers, content):
         # Check headers
         noindex_header = False
         try:
-            x_robots = headers.get("X-Robots-Tag", "")
+            x_robots = ""
+            if isinstance(headers, dict):
+                for k, v in headers.items():
+                    if k.lower() == "x-robots-tag":
+                        x_robots = str(v)
+                        break
             if x_robots and "noindex" in x_robots.lower():
                 noindex_header = True
         except Exception:

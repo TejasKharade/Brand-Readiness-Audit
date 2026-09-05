@@ -35,6 +35,19 @@ class LinkExtractor(HTMLParser):
         except Exception:
             pass
 
+def normalize_for_match(url):
+    try:
+        if not url:
+            return ""
+        parsed = urllib.parse.urlparse(url)
+        netloc = parsed.netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        path = parsed.path.rstrip('/')
+        return f"{netloc}{path}".lower()
+    except Exception:
+        return ""
+
 def get_robots_parser(domain):
     try:
         parsed = urllib.parse.urlparse(domain)
@@ -47,14 +60,16 @@ def get_robots_parser(domain):
             with urllib.request.urlopen(req, timeout=5) as response:
                 if response.status == 200:
                     rp.parse(response.read().decode('utf-8', errors='replace').splitlines())
+                    return rp
         except Exception:
-            pass 
-        return rp
+            pass
+        return None
     except Exception:
-        return urllib.robotparser.RobotFileParser() # Empty fallback
+        return None
 
-def check_crawl_depth(start_url, target_url):
+def check_crawl_depth(start_url, target_url, robots_parser=None):
     start_time = time.time()
+    robots_check_unavailable = False
     
     try:
         target_url = urllib.parse.urlunparse(urllib.parse.urlparse(target_url)._replace(fragment=""))
@@ -62,33 +77,55 @@ def check_crawl_depth(start_url, target_url):
     except Exception as e:
         return {"depth": None, "path": [], "error": f"Invalid target URL: {str(e)}", "pages_crawled": 0}
     
-    rp = get_robots_parser(start_url)
+    if robots_parser is not None:
+        rp = robots_parser
+    else:
+        rp = get_robots_parser(start_url)
+        if rp is None:
+            robots_check_unavailable = True
+
     user_agent = "GPTBot" 
     
     queue = [(start_url, 0, [start_url])]
     visited = set([start_url])
     pages_crawled = 0
     
+    target_normalized = normalize_for_match(target_url)
+
+    def build_result(depth, path, error):
+        res = {
+            "depth": depth,
+            "path": path,
+            "error": error,
+            "pages_crawled": pages_crawled
+        }
+        if robots_check_unavailable:
+            res["robots_check_unavailable"] = True
+        return res
+
     while queue:
         if time.time() - start_time > TIMEOUT_SECONDS:
-            return {"depth": None, "path": [], "error": "Timeout exceeded", "pages_crawled": pages_crawled}
+            return build_result(None, [], "Timeout exceeded")
             
         if pages_crawled >= MAX_PAGES:
-            return {"depth": None, "path": [], "error": "Max pages limit reached", "pages_crawled": pages_crawled}
+            return build_result(None, [], "Max pages limit reached")
             
         current_url, depth, path = queue.pop(0)
         
-        if current_url == target_url:
-            return {"depth": depth, "path": path, "error": None, "pages_crawled": pages_crawled}
+        if normalize_for_match(current_url) == target_normalized:
+            return build_result(depth, path, None)
             
         if depth >= MAX_DEPTH:
             continue
             
-        try:
-            if not rp.can_fetch(user_agent, current_url):
+        if rp is None:
+            continue
+        else:
+            try:
+                if not rp.can_fetch(user_agent, current_url):
+                    continue
+            except Exception:
                 continue
-        except Exception:
-            pass # Default to allow if parser fails
             
         pages_crawled += 1
         
@@ -115,7 +152,7 @@ def check_crawl_depth(start_url, target_url):
         except Exception:
             pass # Ignore fetch errors and continue
             
-    return {"depth": None, "path": [], "error": "Target not found within bounds", "pages_crawled": pages_crawled}
+    return build_result(None, [], "Target not found within bounds")
 
 if __name__ == "__main__":
     try:

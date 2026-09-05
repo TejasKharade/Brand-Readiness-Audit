@@ -14,23 +14,36 @@ Use as the main entrypoint when requested to conduct an end-to-end Brand AI-Read
 
 ## Procedure
 
-1. **Initialization & Dispatch**:
+1. **Initialization & Data Gathering (`crawl-access-audit`)**:
    - Parse input website URL.
-   - Invoke `crawl-render-audit` to evaluate off-site crawlability, AI bot blocking (`robots.txt`), and JavaScript rendering dependencies.
-   - Invoke `freshness-corroboration` to inspect JSON-LD structured data (`schema.org`), fact consistency, and entity clarity across pages.
-   - Invoke `engagement-audit` to assess on-site orientation, visitor retention signals, and content density.
+   - Run `check_robots.py` to extract `resolved_url` and determine AI bot permissions.
+   - **Robots Compliance Rule**: If a URL path is disallowed for an AI bot in `robots.txt`, DO NOT perform a bot HTTP fetch on that path; record a blockage finding directly.
+   - Run `fetch_dual_identity.py` for reachable pages, `check_page_signals.py`, `check_sitemap.py`, and `check_crawl_depth.py`.
 
-2. **Synthesis & Deduplication**:
-   - Merge findings from all three audit modules.
-   - Assign unique identifiers (`F-001`, `F-002`, etc.) to each distinct issue.
-   - Map severity levels (`critical`, `high`, `medium`, `low`) based on empirical impact on AI discovery and visitor engagement.
+2. **Off-Site & Technical Discovery Diagnosis (`crawl-render-audit`)**:
+   - Synthesize results from `crawl-access-audit`.
+   - **Sitemap Multi-Field Evaluation**:
+     - If `is_sitemap_index: true`, `child_sitemaps_checked: 0`, and `child_sitemap_errors` is non-empty, classify as a *Sitemap Traversal/Fetch Failure*, NOT an empty site.
+     - If `child_sitemaps_total > 3`, report `url_count` as a *Sampled URL Count across initial sub-sitemaps*.
+   - Identify WAF / Cloudflare bot blocking, dynamic JS rendering dependency, and missing page indexing signals.
 
-3. **Action & Prioritization Generation**:
-   - Formulate concrete, mechanism-sound `suggested_action` recommendations for each finding.
-   - Generate proactive recommendations for areas where discoverability or engagement can be strengthened even without explicit defects.
+3. **Freshness & Entity Clarity Diagnosis (`freshness-corroboration`)**:
+   - Validate JSON-LD (`Organization`, `Product`, `FAQPage`, etc.).
+   - Check `sameAs` entity link coverage (Wikipedia, Wikidata, official socials).
+   - Detect cross-page fact contradictions (pricing, product specs, contact info).
 
-4. **Report Emission**:
-   - Format and output the final audit report JSON according to the mandatory schema definition in `references/audit_report_schema.json`.
+4. **On-Site Engagement & Conversion Diagnosis (`engagement-audit`)**:
+   - Assess hero section orientation and value proposition for deep-linked visitors.
+   - Evaluate context retention (breadcrumbs, internal navigation pathways).
+   - Measure informative content density vs. marketing fluff or popup noise.
+
+5. **Synthesis, Severity Ranking & Deduplication**:
+   - Merge findings across all 4 modules. Assign unique IDs (`F-001`, `F-002`, etc.).
+   - Map severity levels (`critical`, `high`, `medium`, `low`) based on empirical impact on AI retrieval confidence and visitor conversion.
+   - Generate actionable `suggested_action` fixes (including concrete code/JSON-LD snippets).
+
+6. **Report Emission**:
+   - Format and output the final audit report JSON according to `references/audit_report_schema.json`.
 
 ## Output
 Emits a validated JSON report adhering to the standard Audit Report schema.
