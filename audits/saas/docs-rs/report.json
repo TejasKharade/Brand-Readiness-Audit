@@ -1,0 +1,23 @@
+{
+  "site": "docs.rs",
+  "audited_at": "2026-09-06T08:55:00Z",
+  "summary": {
+    "total_findings": 1,
+    "critical": 0,
+    "high": 0,
+    "medium": 1,
+    "low": 0
+  },
+  "findings": [
+    {
+      "id": "ACC-001",
+      "title": "Missing /llms.txt or /ai.txt AI context manifest",
+      "severity": "medium",
+      "evidence": "GET https://docs.rs/llms.txt returned HTTP 400 and /ai.txt returned HTTP 400.",
+      "suggested_action": {
+        "summary": "Optimization Opportunity: Intercept root-level manifest paths in routing before dynamic crate regex validation to serve a clean markdown /llms.txt.",
+        "priority": "medium"
+      }
+    }
+  ]
+}

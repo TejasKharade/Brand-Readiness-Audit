@@ -29,4 +29,5 @@ Each audited company folder follows this standard structure:
 
 | Date | Company | Vertical | Pages Audited | Critical | High | Medium | Key Failure Mode Identified |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 2026-09-06 | [Garage S3 (Deuxfleurs)](saas/garage/) | SaaS / DevTools | 84 | 0 | 3 | 1 | Zero JSON-LD, duplicate meta descriptions across 82% of docs, missing llms.txt, missing sameAs entity links |
+| 2026-09-06 | [Garage S3 (Deuxfleurs)](saas/garage/) | SaaS / DevTools | 84 | 0 | 3 | 1 | Zero JSON-LD, duplicate meta descriptions across 82% of docs, missing llms.txt, client-side JS redirects on /documentation/ |
+| 2026-09-06 | [Docs.rs](saas/docs-rs/) | DevTools / Docs | 5 | 0 | 0 | 1 | 100% pre-rendered crate docs (Pass B parity: 100%), missing /llms.txt due to dynamic crate route regex collision |

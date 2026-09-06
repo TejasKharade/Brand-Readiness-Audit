@@ -14,6 +14,7 @@ Based on empirical crawl data across all 84 pages, the exact causal chain is:
 2. **Identical Meta Descriptions Across Docs**: Over 30% of the site's pages share the exact same generic homepage description (`'An S3 object store so reliable...'`), confusing AI retrieval crawlers trying to find discrete API/CLI instructions.
 3. **Missing Entity Disambiguation (`sameAs`)**: The official site fails to link its identity to the crate (`crates.io/crates/garage_api`) or GitHub repository. Consequently, LLM citation indexers treat `docs.rs` as the primary authoritative source for code and usage queries.
 4. **Missing `llms.txt`**: No curated AI context manifest exists to guide conversational retrieval engines.
+5. **Client-Side JS Redirect on Documentation Root (0% Render Parity)**: The primary entrypoint `/documentation/` is an inline `<script>window.location.replace</script>`. Search crawlers that do not execute client JS receive an empty 481-byte shell with 0 words and 0 H1 tags, blinding AI assistants from the Quick Start guide. In contrast, `docs.rs` serves 100% pre-rendered static HTML across all crate subpages.
 
 ## Detailed Findings
 

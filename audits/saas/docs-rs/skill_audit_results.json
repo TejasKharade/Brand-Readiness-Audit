@@ -1,0 +1,135 @@
+{
+  "skill_1": {
+    "site": "docs.rs",
+    "audited_at": "2026-09-06T08:55:11Z",
+    "summary": {
+      "total_findings": 1,
+      "critical": 0,
+      "high": 0,
+      "medium": 1
+    },
+    "findings": [
+      {
+        "id": "ACC-001",
+        "code": "LLMS_TXT_MISSING",
+        "title": "Missing /llms.txt or /ai.txt AI context manifest",
+        "severity": "medium",
+        "evidence": "GET https://docs.rs/llms.txt returned HTTP 400 and /ai.txt returned HTTP 400.",
+        "suggested_action": {
+          "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+          "priority": "medium"
+        }
+      }
+    ],
+    "sampled_pages": {
+      "homepage": "https://docs.rs",
+      "total_discovered": 38662,
+      "doc_pages": [
+        "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+        "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+        "https://docs.rs/api/latest/api/",
+        "https://docs.rs/api/latest/api/all.html"
+      ],
+      "blog_pages": [],
+      "curated_sample": [
+        "https://docs.rs",
+        "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+        "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+        "https://docs.rs/api/latest/api/",
+        "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/"
+      ]
+    }
+  },
+  "skill_2": {
+    "site": "docs.rs",
+    "audited_at": "2026-09-06T08:55:47Z",
+    "summary": {
+      "total_findings": 0,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "findings": [],
+    "render_profile": {
+      "browser_engine": "chrome.exe",
+      "pages_audited": 5,
+      "per_page_metrics": [
+        {
+          "url": "https://docs.rs",
+          "metrics": {
+            "pass_a_status": 200,
+            "pass_b_status": 200,
+            "pass_a_latency_ms": 2211.0,
+            "pass_b_latency_ms": 6587.7,
+            "parity_pct": 81.2,
+            "sentences_pass_a": 16,
+            "sentences_pass_b": 16,
+            "missing_sentences_count": 3,
+            "missing_snippets_sample": [
+              "Deployment manifest schema and actor identity management for Confium",
+              "Command-line interface for the Confium threshold cryptography framework",
+              "Run Cargo build, check, and run commands with Zig cross-compilation toolchains"
+            ]
+          }
+        },
+        {
+          "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+          "metrics": {
+            "pass_a_status": 200,
+            "pass_b_status": 200,
+            "pass_a_latency_ms": 2190.5,
+            "pass_b_latency_ms": 7448.7,
+            "parity_pct": 100.0,
+            "sentences_pass_a": 19,
+            "sentences_pass_b": 19,
+            "missing_sentences_count": 0,
+            "missing_snippets_sample": []
+          }
+        },
+        {
+          "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+          "metrics": {
+            "pass_a_status": 200,
+            "pass_b_status": 200,
+            "pass_a_latency_ms": 290.9,
+            "pass_b_latency_ms": 1850.3,
+            "parity_pct": 100.0,
+            "sentences_pass_a": 0,
+            "sentences_pass_b": 0,
+            "missing_sentences_count": 0,
+            "missing_snippets_sample": []
+          }
+        },
+        {
+          "url": "https://docs.rs/api/latest/api/",
+          "metrics": {
+            "pass_a_status": 200,
+            "pass_b_status": 200,
+            "pass_a_latency_ms": 1083.0,
+            "pass_b_latency_ms": 5403.4,
+            "parity_pct": 100.0,
+            "sentences_pass_a": 8,
+            "sentences_pass_b": 8,
+            "missing_sentences_count": 0,
+            "missing_snippets_sample": []
+          }
+        },
+        {
+          "url": "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/",
+          "metrics": {
+            "pass_a_status": 200,
+            "pass_b_status": 200,
+            "pass_a_latency_ms": 2392.6,
+            "pass_b_latency_ms": 6150.1,
+            "parity_pct": 100.0,
+            "sentences_pass_a": 25,
+            "sentences_pass_b": 25,
+            "missing_sentences_count": 0,
+            "missing_snippets_sample": []
+          }
+        }
+      ]
+    }
+  }
+}
