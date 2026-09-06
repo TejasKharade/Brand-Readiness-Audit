@@ -18,13 +18,47 @@ def sanitize_json_ld_string(raw_str):
     return s.strip()
 
 def extract_json_ld_blocks(html_content):
+    if not html_content:
+        return []
     blocks = []
-    pattern = re.compile(r'<script\b[^>]*\btype\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>', re.IGNORECASE | re.DOTALL)
-    for match in pattern.finditer(html_content or ''):
-        raw_inner = match.group(1)
-        cleaned = sanitize_json_ld_string(raw_inner)
-        if cleaned:
-            blocks.append(cleaned)
+    for m in re.finditer(r'<script\b[^>]*\btype\s*=\s*["\']application/ld\+json["\'][^>]*>', html_content, re.IGNORECASE):
+        start_idx = m.end()
+        obj_start = -1
+        for i in range(start_idx, len(html_content)):
+            if html_content[i] in '{[':
+                obj_start = i
+                break
+        if obj_start == -1:
+            continue
+        
+        stack = []
+        in_string = False
+        escape = False
+        obj_end = -1
+        for i in range(obj_start, len(html_content)):
+            ch = html_content[i]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == '\\':
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+            else:
+                if ch == '"':
+                    in_string = True
+                elif ch in '{[':
+                    stack.append(ch)
+                elif ch in '}]':
+                    if stack:
+                        stack.pop()
+                        if not stack:
+                            obj_end = i + 1
+                            break
+        if obj_end != -1:
+            cleaned = sanitize_json_ld_string(html_content[obj_start:obj_end])
+            if cleaned:
+                blocks.append(cleaned)
     return blocks
 
 def normalize_type(raw):

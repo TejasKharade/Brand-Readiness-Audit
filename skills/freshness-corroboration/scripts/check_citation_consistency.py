@@ -1,85 +1,122 @@
 import sys
 import json
 import re
+import os
+import urllib.parse
 
-AUTHORITATIVE_PLATFORMS = [
-    'wikipedia.org', 'wikidata.org', 'linkedin.com', 'crunchbase.com',
-    'twitter.com', 'x.com', 'github.com', 'facebook.com', 'youtube.com',
-    'instagram.com', 'bloomberg.com', 'reuters.com'
-]
+MAX_SEARCHES_PER_SCRIPT = 3
 
-def check_citation_consistency(onsite_facts, offsite_claims=None, same_as_urls=None):
-    if not isinstance(onsite_facts, dict):
-        onsite_facts = {}
-    if not isinstance(offsite_claims, list):
-        offsite_claims = []
-    if not isinstance(same_as_urls, list):
-        same_as_urls = []
+def load_patterns():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    ref_path = os.path.join(script_dir, "..", "references", "date_patterns.json")
+    
+    default_founding = [r"\b(?:founded|established|started|launched|created)\s+(?:in\s+)?(20\d{2}|19\d{2})\b"]
+    default_hq = [r"\b(?:headquartered|headquarters|based|located|hq)\s+in\s+([A-Za-z\s,\.]+?)(?=\.|\;|\,|$|\s+and)"]
+    default_general_year = r"\b(20\d{2}|19\d{2})\b"
 
-    # 1. Evaluate sameAs coverage
-    authoritative_sources = []
-    generic_sources = []
-    for url in same_as_urls:
-        if not isinstance(url, str): continue
-        u_lower = url.lower()
-        if any(plat in u_lower for plat in AUTHORITATIVE_PLATFORMS):
-            authoritative_sources.append(url)
-        else:
-            generic_sources.append(url)
+    try:
+        if os.path.exists(ref_path):
+            with open(ref_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return (
+                    data.get("founding_year_patterns", default_founding),
+                    data.get("headquarters_patterns", default_hq),
+                    data.get("general_year_pattern", default_general_year)
+                )
+    except Exception:
+        pass
+    return default_founding, default_hq, default_general_year
 
-    same_as_score = len(authoritative_sources)
-    has_wikipedia_or_wikidata = any('wikipedia.org' in u.lower() or 'wikidata.org' in u.lower() for u in same_as_urls)
+def extract_domain(url_str):
+    if not url_str:
+        return ""
+    try:
+        parsed = urllib.parse.urlparse(url_str)
+        netloc = parsed.netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        return netloc
+    except Exception:
+        return ""
 
-    # 2. Fact Contradictions & Claims Analysis
-    contradictions = []
-    verified_facts = []
+def parse_fact_from_snippet(snippet, title, fact_type):
+    founding_pats, hq_pats, general_year_pat = load_patterns()
+    combined_text = f"{title or ''} {snippet or ''}".strip()
+    if not combined_text:
+        return None
 
-    for claim in offsite_claims:
-        if not isinstance(claim, dict): continue
-        fact_key = claim.get('fact_key')
-        expected_value = claim.get('expected_value')
-        source = claim.get('source', 'external_reference')
+    if fact_type == "founding_year":
+        for pat in founding_pats:
+            m = re.search(pat, combined_text, re.IGNORECASE)
+            if m:
+                return m.group(1)
+        m_gen = re.search(general_year_pat, combined_text)
+        if m_gen:
+            return m_gen.group(1)
+    elif fact_type == "headquarters":
+        for pat in hq_pats:
+            m = re.search(pat, combined_text, re.IGNORECASE)
+            if m:
+                return m.group(1).strip()
+    else: # custom
+        # Fallback year extraction or generic string match
+        m_gen = re.search(general_year_pat, combined_text)
+        if m_gen:
+            return m_gen.group(1)
 
-        if fact_key in onsite_facts:
-            actual_value = str(onsite_facts[fact_key]).strip()
-            expected_str = str(expected_value).strip()
+    return None
 
-            # Compare normalized values
-            norm_actual = re.sub(r'[^\w\s]', '', actual_value.lower())
-            norm_expected = re.sub(r'[^\w\s]', '', expected_str.lower())
+def check_citation_consistency(params):
+    brand_name = params.get("brand_name", "")
+    fact_type = params.get("fact_type", "custom")
+    fact_value_on_site = params.get("fact_value_on_site", "")
+    search_results = params.get("search_results", [])
+    search_error = params.get("search_error")
 
-            if norm_actual == norm_expected or norm_expected in norm_actual or norm_actual in norm_expected:
-                verified_facts.append({
-                    "fact_key": fact_key,
-                    "onsite_value": actual_value,
-                    "offsite_value": expected_str,
-                    "source": source
-                })
-            else:
-                contradictions.append({
-                    "fact_key": fact_key,
-                    "onsite_value": actual_value,
-                    "offsite_value": expected_str,
-                    "source": source,
-                    "conflict_type": "value_mismatch"
-                })
+    external_mentions = []
+    distinct_domains = set()
+    contains_contradiction = False
+
+    if not isinstance(search_results, list):
+        search_results = []
+
+    # Enforce search result limit
+    for item in search_results[:10]:
+        if not isinstance(item, dict): continue
+        url = item.get("url", "")
+        title = item.get("title", "")
+        snippet = item.get("snippet", "")
+        domain = extract_domain(url) or item.get("domain", "")
+
+        extracted_val = parse_fact_from_snippet(snippet, title, fact_type)
+        if extracted_val:
+            excerpt = (snippet[:150] + "...") if len(snippet) > 150 else snippet
+            external_mentions.append({
+                "source_domain": domain,
+                "snippet_excerpt": excerpt,
+                "extracted_value": extracted_val
+            })
+            if domain:
+                distinct_domains.add(domain)
+
+            # Check for contradiction
+            norm_on_site = re.sub(r'[^\w\s]', '', str(fact_value_on_site).lower().strip())
+            norm_ext = re.sub(r'[^\w\s]', '', str(extracted_val).lower().strip())
+            
+            if norm_on_site and norm_ext and norm_on_site != norm_ext and norm_ext not in norm_on_site and norm_on_site not in norm_ext:
+                contains_contradiction = True
+
+    # Cap external mentions at 5
+    external_mentions = external_mentions[:5]
 
     return {
-        "entity_disambiguation": {
-            "total_same_as_links": len(same_as_urls),
-            "authoritative_same_as_links": authoritative_sources,
-            "generic_same_as_links": generic_sources,
-            "has_wikipedia_or_wikidata": has_wikipedia_or_wikidata,
-            "entity_disambiguation_risk": "High" if len(authoritative_sources) == 0 else ("Medium" if not has_wikipedia_or_wikidata else "Low")
-        },
-        "fact_corroboration": {
-            "total_claims_checked": len(offsite_claims),
-            "verified_facts_count": len(verified_facts),
-            "verified_facts": verified_facts,
-            "contradictions_count": len(contradictions),
-            "contradictions": contradictions,
-            "corroboration_status": "Contradictions Found" if len(contradictions) > 0 else ("Verified" if len(verified_facts) > 0 else "Unverified/No External Benchmark")
-        }
+        "brand_name": brand_name,
+        "fact_type": fact_type,
+        "fact_value_on_site": fact_value_on_site,
+        "external_mentions_found": external_mentions,
+        "corroboration_count": len(distinct_domains),
+        "contains_contradiction": contains_contradiction,
+        "search_error": search_error
     }
 
 if __name__ == "__main__":
@@ -90,11 +127,15 @@ if __name__ == "__main__":
         except json.JSONDecodeError:
             params = {}
 
-        onsite_facts = params.get('onsite_facts', {})
-        offsite_claims = params.get('offsite_claims', [])
-        same_as_urls = params.get('same_as_urls', [])
-
-        result = check_citation_consistency(onsite_facts, offsite_claims, same_as_urls)
+        result = check_citation_consistency(params)
         print(json.dumps(result, indent=2))
     except Exception as e:
-        print(json.dumps({'error': f'Script execution failed: {str(e)}'}))
+        print(json.dumps({
+            "brand_name": None,
+            "fact_type": None,
+            "fact_value_on_site": None,
+            "external_mentions_found": [],
+            "corroboration_count": 0,
+            "contains_contradiction": False,
+            "search_error": str(e)
+        }))

@@ -1,0 +1,19 @@
+{
+  "explicit_temporal_anchors": [
+    "as of (?:20\\d{2}|19\\d{2})",
+    "updated (?:in|on|as of)?\\s*(?:20\\d{2}|19\\d{2}|[a-zA-Z]+\\s+20\\d{2})",
+    "current as of\\s*(?:20\\d{2}|19\\d{2}|[a-zA-Z]+\\s+20\\d{2})?",
+    "last updated (?:on|in)?\\s*(?:20\\d{2}|19\\d{2}|[a-zA-Z]+\\s+20\\d{2})?",
+    "published (?:on|in)?\\s*(?:20\\d{2}|19\\d{2}|[a-zA-Z]+\\s+20\\d{2})?"
+  ],
+  "copyright_patterns": [
+    "(?:copyright|©|\\bcopr\\b|\\&copy\\;)\\s*([\\s\\S]{1,120}?)(?=\\.|\\;|$|<|\\n)"
+  ],
+  "founding_year_patterns": [
+    "\\b(?:founded|established|started|launched|created)\\s+(?:in\\s+)?(20\\d{2}|19\\d{2})\\b"
+  ],
+  "headquarters_patterns": [
+    "\\b(?:headquartered|headquarters|based|located|hq)\\s+in\\s+([A-Za-z\\s,\\.]+?)(?=\\.|\\;|\\,|$|\\s+and)"
+  ],
+  "general_year_pattern": "\\b(20\\d{2}|19\\d{2})\\b"
+}

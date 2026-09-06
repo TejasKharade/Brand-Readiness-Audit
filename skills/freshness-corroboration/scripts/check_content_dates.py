@@ -1,137 +1,158 @@
 import sys
 import json
 import re
-from datetime import datetime, timezone
-import html.parser
+import os
+from datetime import datetime
 
-DATE_META_NAMES = {
-    'article:published_time', 'article:modified_time', 'og:updated_time',
-    'datepublished', 'datemodified', 'dc.date', 'dc.date.issued',
-    'dc.date.modified', 'pubdate', 'lastmod', 'date'
-}
-
-class DateParser(html.parser.HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.published_dates = []
-        self.modified_dates = []
-        self.time_tags = []
-        
-    def handle_starttag(self, tag, attrs):
-        try:
-            attrs_dict = {k.lower(): str(v) for k, v in attrs if k and v}
-            if tag == "meta":
-                prop = attrs_dict.get("property", "").lower() or attrs_dict.get("name", "").lower()
-                content = attrs_dict.get("content", "").strip()
-                if prop in DATE_META_NAMES and content:
-                    if "modified" in prop or "updated" in prop or "lastmod" in prop:
-                        self.modified_dates.append(content)
-                    else:
-                        self.published_dates.append(content)
-            elif tag == "time":
-                dt = attrs_dict.get("datetime", "").strip()
-                if dt:
-                    self.time_tags.append(dt)
-        except Exception:
-            pass
-
-def parse_iso_date(date_str):
-    if not date_str:
-        return None
-    s = str(date_str).strip()
-    # Match YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS
-    match = re.search(r'(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}:\d{2}))?', s)
-    if not match:
-        return None
+def load_patterns():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    ref_path = os.path.join(script_dir, "..", "references", "date_patterns.json")
     
-    date_part = match.group(1)
-    time_part = match.group(2) or "00:00:00"
-    iso_clean = f"{date_part}T{time_part}Z"
-    
+    default_anchors = [
+        r"as of (?:20\d{2}|19\d{2})",
+        r"updated (?:in|on|as of)?\s*(?:20\d{2}|19\d{2}|[a-zA-Z]+\s+20\d{2})",
+        r"current as of\s*(?:20\d{2}|19\d{2}|[a-zA-Z]+\s+20\d{2})?",
+        r"last updated (?:on|in)?\s*(?:20\d{2}|19\d{2}|[a-zA-Z]+\s+20\d{2})?",
+        r"published (?:on|in)?\s*(?:20\d{2}|19\d{2}|[a-zA-Z]+\s+20\d{2})?"
+    ]
+    default_copyright = [
+        r"(?:copyright|©|\bcopr\b|\&copy\;)\s*([\s\S]{1,120}?)(?=\.|\;|$|<|\n)"
+    ]
+
     try:
-        dt = datetime.strptime(iso_clean, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-        return dt
+        if os.path.exists(ref_path):
+            with open(ref_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("explicit_temporal_anchors", default_anchors), data.get("copyright_patterns", default_copyright)
     except Exception:
-        return None
+        pass
+    return default_anchors, default_copyright
+
+def extract_json_ld_blocks(html_text):
+    if not html_text:
+        return []
+    blocks = []
+    for m in re.finditer(r'<script\b[^>]*\btype\s*=\s*["\']application/ld\+json["\'][^>]*>', html_text, re.IGNORECASE):
+        start_idx = m.end()
+        obj_start = -1
+        for i in range(start_idx, len(html_text)):
+            if html_text[i] in '{[':
+                obj_start = i
+                break
+        if obj_start == -1:
+            continue
+        
+        stack = []
+        in_string = False
+        escape = False
+        obj_end = -1
+        for i in range(obj_start, len(html_text)):
+            ch = html_text[i]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == '\\':
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+            else:
+                if ch == '"':
+                    in_string = True
+                elif ch in '{[':
+                    stack.append(ch)
+                elif ch in '}]':
+                    if stack:
+                        stack.pop()
+                        if not stack:
+                            obj_end = i + 1
+                            break
+        if obj_end != -1:
+            blocks.append(html_text[obj_start:obj_end])
+    return blocks
 
 def extract_json_ld_dates(html_content):
-    pub_dates = []
-    mod_dates = []
-    pattern = re.compile(r'<script\b[^>]*\btype\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>', re.IGNORECASE | re.DOTALL)
+    date_pub = None
+    date_mod = None
+    if not html_content:
+        return date_pub, date_mod
+
+    json_blocks = extract_json_ld_blocks(html_content)
     
     def search_obj(obj):
+        nonlocal date_pub, date_mod
         if isinstance(obj, dict):
             for k, v in obj.items():
-                k_lower = k.lower()
-                if k_lower in ['datepublished', 'uploaddate']:
-                    if isinstance(v, str): pub_dates.append(v)
-                elif k_lower in ['datemodified', 'dateupdated']:
-                    if isinstance(v, str): mod_dates.append(v)
-                search_obj(v)
+                k_lower = str(k).lower()
+                if k_lower in ['datepublished', 'uploaddate'] and isinstance(v, str) and not date_pub:
+                    v_str = v.strip()
+                    if v_str: date_pub = v_str
+                elif k_lower in ['datemodified', 'dateupdated'] and isinstance(v, str) and not date_mod:
+                    v_str = v.strip()
+                    if v_str: date_mod = v_str
+                if isinstance(v, (dict, list)):
+                    search_obj(v)
         elif isinstance(obj, list):
             for item in obj:
-                search_obj(item)
+                if isinstance(item, (dict, list)):
+                    search_obj(item)
 
-    for match in pattern.finditer(html_content or ''):
+    for block_str in json_blocks:
         try:
-            data = json.loads(match.group(1))
+            data = json.loads(block_str)
             search_obj(data)
         except Exception:
             pass
             
-    return pub_dates, mod_dates
+    return date_pub, date_mod
 
-def check_content_dates(html_content, url, reference_date_str=None):
-    parser = DateParser()
-    try:
-        if html_content:
-            parser.feed(html_content)
-    except Exception:
-        pass
+def check_content_dates(html_content, url):
+    if not html_content:
+        html_content = ""
 
-    json_pub, json_mod = extract_json_ld_dates(html_content)
-    
-    all_published_raw = parser.published_dates + json_pub
-    all_modified_raw = parser.modified_dates + json_mod
-    all_time_raw = parser.time_tags
+    anchor_patterns, copyright_patterns = load_patterns()
+    current_year = datetime.now().year
 
-    parsed_published = [parse_iso_date(d) for d in all_published_raw if parse_iso_date(d)]
-    parsed_modified = [parse_iso_date(d) for d in all_modified_raw if parse_iso_date(d)]
-    parsed_time = [parse_iso_date(d) for d in all_time_raw if parse_iso_date(d)]
+    # 1. JSON-LD Dates
+    date_published, date_modified = extract_json_ld_dates(html_content)
 
-    # Determine reference date
-    ref_dt = parse_iso_date(reference_date_str) if reference_date_str else datetime.now(timezone.utc)
-    if not ref_dt:
-        ref_dt = datetime.now(timezone.utc)
+    # 2. Temporal Anchor Phrases in visible text across full document
+    matched_anchors = []
+    for pat in anchor_patterns:
+        try:
+            matches = re.findall(pat, html_content, re.IGNORECASE)
+            for m in matches:
+                m_str = m if isinstance(m, str) else " ".join(m)
+                if m_str and m_str not in matched_anchors:
+                    matched_anchors.append(m_str)
+        except Exception:
+            pass
 
-    # Pick latest modified and earliest/latest published
-    latest_modified = max(parsed_modified) if parsed_modified else None
-    latest_published = max(parsed_published) if parsed_published else None
-    
-    # Calculate age in days
-    modified_age_days = (ref_dt - latest_modified).days if latest_modified else None
-    published_age_days = (ref_dt - latest_published).days if latest_published else None
+    # 3. Copyright Footer Year: Search full html_content to avoid tail-slice omissions
+    copyright_years = []
+    for pat in copyright_patterns:
+        try:
+            matches = re.finditer(pat, html_content, re.IGNORECASE)
+            for match in matches:
+                block_text = match.group(0)
+                # Find all 4-digit years inside the copyright block (handles ranges like "2019-2026")
+                years_in_block = re.findall(r'\b(20\d{2}|19\d{2})\b', block_text)
+                for y_str in years_in_block:
+                    y_int = int(y_str)
+                    if 1990 <= y_int <= current_year + 1:
+                        copyright_years.append(y_int)
+        except Exception:
+            pass
 
-    effective_age_days = modified_age_days if modified_age_days is not None else published_age_days
-    is_outdated = effective_age_days > 730 if effective_age_days is not None else False
-    is_stale = effective_age_days > 365 if effective_age_days is not None else False
+    copyright_year = max(copyright_years) if copyright_years else None
+    copyright_age_years = (current_year - copyright_year) if copyright_year is not None else None
 
     return {
         "url": url,
-        "has_published_date": bool(parsed_published or parsed_time),
-        "has_modified_date": bool(parsed_modified),
-        "latest_published_date": latest_published.strftime("%Y-%m-%d") if latest_published else None,
-        "latest_modified_date": latest_modified.strftime("%Y-%m-%d") if latest_modified else None,
-        "effective_age_days": effective_age_days,
-        "is_stale_content_gt_1yr": is_stale,
-        "is_outdated_content_gt_2yr": is_outdated,
-        "raw_signals": {
-            "meta_published": parser.published_dates,
-            "meta_modified": parser.modified_dates,
-            "json_ld_published": json_pub,
-            "json_ld_modified": json_mod,
-            "time_tags": parser.time_tags
-        }
+        "date_published": date_published,
+        "date_modified": date_modified,
+        "explicit_temporal_anchors_found": matched_anchors,
+        "copyright_year": copyright_year,
+        "copyright_year_age_years": copyright_age_years
     }
 
 if __name__ == "__main__":
@@ -144,9 +165,16 @@ if __name__ == "__main__":
 
         html_content = params.get('html', '')
         url = params.get('url', '')
-        ref_date = params.get('reference_date')
 
-        result = check_content_dates(html_content, url, ref_date)
+        result = check_content_dates(html_content, url)
         print(json.dumps(result, indent=2))
     except Exception as e:
-        print(json.dumps({'error': f'Script execution failed: {str(e)}'}))
+        print(json.dumps({
+            "url": None,
+            "date_published": None,
+            "date_modified": None,
+            "explicit_temporal_anchors_found": [],
+            "copyright_year": None,
+            "copyright_year_age_years": None,
+            "script_error": str(e)
+        }))

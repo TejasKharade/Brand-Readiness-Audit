@@ -26,7 +26,10 @@ def normalize_url(url):
     try:
         if not url:
             return ""
-        parsed = urllib.parse.urlparse(url)
+        s = str(url).strip()
+        if "://" not in s:
+            s = "https://" + s
+        parsed = urllib.parse.urlparse(s)
         netloc = parsed.netloc.lower()
         if netloc.startswith("www."):
             netloc = netloc[4:]

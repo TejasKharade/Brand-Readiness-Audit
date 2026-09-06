@@ -39,7 +39,10 @@ def normalize_for_match(url):
     try:
         if not url:
             return ""
-        parsed = urllib.parse.urlparse(url)
+        s = str(url).strip()
+        if "://" not in s:
+            s = "https://" + s
+        parsed = urllib.parse.urlparse(s)
         netloc = parsed.netloc.lower()
         if netloc.startswith("www."):
             netloc = netloc[4:]
@@ -50,6 +53,8 @@ def normalize_for_match(url):
 
 def get_robots_parser(domain):
     try:
+        if "://" not in domain:
+            domain = "https://" + domain
         parsed = urllib.parse.urlparse(domain)
         base_domain = f"{parsed.scheme}://{parsed.netloc}"
         robots_url = f"{base_domain}/robots.txt"
