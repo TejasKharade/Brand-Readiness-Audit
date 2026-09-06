@@ -22,6 +22,10 @@
     {
       "id": "engagement-audit",
       "path": "skills/engagement-audit"
+    },
+    {
+      "id": "readability-audit",
+      "path": "skills/readability-audit"
     }
   ]
 }

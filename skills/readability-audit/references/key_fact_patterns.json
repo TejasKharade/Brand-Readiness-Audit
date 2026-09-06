@@ -1,0 +1,37 @@
+{
+  "price_patterns": [
+    "[\\$\u20ac\u00a3]\\s*([0-9]+(?:\\.[0-9]{2})?)",
+    "([0-9]+(?:\\.[0-9]{2})?)\\s*(?:USD|EUR|GBP|INR)"
+  ],
+  "availability_patterns": [
+    "\\b(in\\s*stock|out\\s*of\\s*stock|pre\\s*order|backorder|available|discontinued)\\b"
+  ],
+  "availability_mapping": {
+    "http://schema.org/instock": "in_stock",
+    "https://schema.org/instock": "in_stock",
+    "instock": "in_stock",
+    "in stock": "in_stock",
+    "available": "in_stock",
+    "http://schema.org/outofstock": "out_of_stock",
+    "https://schema.org/outofstock": "out_of_stock",
+    "outofstock": "out_of_stock",
+    "out of stock": "out_of_stock",
+    "http://schema.org/preorder": "pre_order",
+    "https://schema.org/preorder": "pre_order",
+    "preorder": "pre_order",
+    "pre order": "pre_order"
+  },
+  "generic_alt_values": [
+    "image",
+    "photo",
+    "picture",
+    "banner",
+    "logo",
+    "icon",
+    "graphic",
+    "img",
+    "placeholder",
+    "untitled",
+    "thumbnail"
+  ]
+}
