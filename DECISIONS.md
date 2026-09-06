@@ -47,3 +47,18 @@ The following optimizations are deferred to the final polish phase to avoid mult
 3. **Smart Triage Pass (Skip Pass B on Verified Static Pages)**:
    * *Status*: Under evaluation.
    * *Trade-off*: Skipping Pass B saves time, but risks missing client-injected JSON-LD (`STRUCTURED_DATA_TIMING`) or dynamic navigation links (`INTERNAL_LINK_DISCOVERY_GAP`).
+
+---
+
+## 5. Pruned Schema Suite vs. Legacy SEO Dogma (Skill 3)
+
+* **Decision**: Refused to implement legacy SEO mandates for interior pages (e.g. flagging missing `TechArticle` or `BreadcrumbList` as high-severity errors). Instead, pruned the check suite to **4 high-leverage checks**:
+  1. `SCHEMA_SYNTAX_AND_TIMING` (Syntax errors & client-JS deferral via Skill 2 handoff)
+  2. `ENTITY_ROOT_GROUNDING` (Brand/Org/SoftwareApp on homepage + `sameAs` authority links)
+  3. `SCHEMA_FACT_CONTRADICTION` (Price, stock availability, software version vs on-page text)
+  4. `SCHEMA_DESCRIPTION_VACUOUS` (Zero-entropy corporate marketing buzzwords)
+* **Rationale**:
+  * An empirical probe of top AI-cited sites (`stripe.com/docs`, `docs.rs`, `linear.app`) revealed they have **0 JSON-LD tags**. Modern LLM RAG engines vectorize raw HTML directly and derive hierarchy from URL paths. Flagging clean documentation sites for missing schema produces false positives and discredits the tool.
+  * Conversely, the probe confirmed that entity ambiguity (the Garage problem) is real: small/niche tools without `sameAs` grounding lose citations to third-party mirrors (`docs.rs`).
+* **Final Optimization Plan**:
+  * Evaluate potential light `INFO` suggestions for `SoftwareApplication` or `FAQPage` on interior pages where structured data can provide instant answers without making it a blocking penalty.

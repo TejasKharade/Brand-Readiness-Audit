@@ -131,5 +131,35 @@
         }
       ]
     }
+  },
+  "skill_3": {
+    "site": "docs.rs",
+    "summary": {
+      "total_findings": 1,
+      "critical": 0,
+      "high": 1,
+      "medium": 0,
+      "low": 0,
+      "info": 0
+    },
+    "findings": [
+      {
+        "id": "ENT-001",
+        "code": "ENTITY_ROOT_GROUNDING_MISSING",
+        "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+        "severity": "HIGH",
+        "url": "https://docs.rs/",
+        "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+        "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+      }
+    ],
+    "entity_profile": {
+      "root_entity_detected": false,
+      "root_entity_types": [],
+      "same_as_authorities": [],
+      "pages_audited": 5,
+      "pages_with_schema": 0,
+      "schema_coverage_pct": 0.0
+    }
   }
 }

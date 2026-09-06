@@ -1,0 +1,200 @@
+{
+  "target": "https://frontdeskreview.com/",
+  "domain": "frontdeskreview.com",
+  "audited_at": "2026-09-06T10:09:41Z",
+  "total_runtime_seconds": 49.84,
+  "summary": {
+    "total_findings": 4,
+    "critical": 0,
+    "high": 0,
+    "medium": 4,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "frontdeskreview.com",
+      "audited_at": "2026-09-06T10:09:10Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0
+      },
+      "findings": [],
+      "sampled_pages": {
+        "homepage": "https://frontdeskreview.com",
+        "total_discovered": 9068,
+        "doc_pages": [
+          "https://frontdeskreview.com/guides/",
+          "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+          "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+          "https://frontdeskreview.com/guides/ai-call-summaries-transcription-texting-platform-cost/",
+          "https://frontdeskreview.com/guides/ai-features-cost-booking-tools/"
+        ],
+        "blog_pages": [],
+        "curated_sample": [
+          "https://frontdeskreview.com",
+          "https://frontdeskreview.com/guides/",
+          "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+          "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+          "https://frontdeskreview.com/ai-receptionists/cost/100/"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "frontdeskreview.com",
+      "audited_at": "2026-09-06T10:09:33Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 5,
+        "per_page_metrics": [
+          {
+            "url": "https://frontdeskreview.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3119.8,
+              "pass_b_latency_ms": 3371.2,
+              "parity_pct": 99.0,
+              "sentences_pass_a": 95,
+              "sentences_pass_b": 96,
+              "missing_sentences_count": 1,
+              "missing_snippets_sample": [
+                "The best-specced product isn't the most expensive in 86% of categories."
+              ]
+            }
+          },
+          {
+            "url": "https://frontdeskreview.com/guides/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1206.2,
+              "pass_b_latency_ms": 2660.3,
+              "parity_pct": 85.6,
+              "sentences_pass_a": 67,
+              "sentences_pass_b": 132,
+              "missing_sentences_count": 19,
+              "missing_snippets_sample": [
+                "Here's what 200 calls actually costs, vendor by vendor.",
+                "Phonely's 33\u201334% annual discount is the biggest published in AI receptionists \u2014 most vendors publish none Pay-annually savings range from a third off at Phonely down to nothing at all, and the headline percentage matters less than what it does to the actual monthly number you pay.",
+                "Goodcall's 'unlimited minutes' has a meter \u2014 and it runs on unique callers, not time Goodcall is the only vendor in this market that bills by how many distinct people call you, so a busy month can quietly double your Starter bill before you notice the cap exists."
+              ]
+            }
+          },
+          {
+            "url": "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2089.6,
+              "pass_b_latency_ms": 2094.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 29,
+              "sentences_pass_b": 29,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 915.7,
+              "pass_b_latency_ms": 2283.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 20,
+              "sentences_pass_b": 20,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://frontdeskreview.com/ai-receptionists/cost/100/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 828.0,
+              "pass_b_latency_ms": 3625.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 9,
+              "sentences_pass_b": 9,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "frontdeskreview.com",
+      "summary": {
+        "total_findings": 4,
+        "critical": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('The Front Desk Review')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/",
+          "evidence": "The WebSite ('The Front Desk Review') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /guides/10dlc-registration-fees-business-texting-compared/",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+          "evidence": "2 instances of Organization (The Front Desk Review, The Front Desk Review...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /guides/acuity-vs-square-appointments-head-to-head/",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+          "evidence": "2 instances of Organization (The Front Desk Review, The Front Desk Review...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-004",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /ai-receptionists/cost/100/",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/ai-receptionists/cost/100/",
+          "evidence": "2 instances of Organization (The Front Desk Review, The Front Desk Review...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Organization"
+        ],
+        "same_as_authorities": [
+          "https://github.com/AlexandDunk/frontdesk-data"
+        ],
+        "pages_audited": 5,
+        "pages_with_schema": 5,
+        "schema_coverage_pct": 100.0
+      }
+    }
+  }
+}

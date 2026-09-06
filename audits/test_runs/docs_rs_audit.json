@@ -1,0 +1,176 @@
+{
+  "target": "https://docs.rs/",
+  "domain": "docs.rs",
+  "audited_at": "2026-09-06T10:10:55Z",
+  "total_runtime_seconds": 23.92,
+  "summary": {
+    "total_findings": 2,
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "docs.rs",
+      "audited_at": "2026-09-06T10:10:42Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://docs.rs/llms.txt returned HTTP 400 and /ai.txt returned HTTP 400.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://docs.rs",
+        "total_discovered": 38676,
+        "doc_pages": [
+          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+          "https://docs.rs/api/latest/api/",
+          "https://docs.rs/api/latest/api/all.html"
+        ],
+        "blog_pages": [],
+        "curated_sample": [
+          "https://docs.rs",
+          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+          "https://docs.rs/api/latest/api/",
+          "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "docs.rs",
+      "audited_at": "2026-09-06T10:10:54Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 5,
+        "per_page_metrics": [
+          {
+            "url": "https://docs.rs",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 354.1,
+              "pass_b_latency_ms": 1869.2,
+              "parity_pct": 90.0,
+              "sentences_pass_a": 10,
+              "sentences_pass_b": 10,
+              "missing_sentences_count": 1,
+              "missing_snippets_sample": [
+                "Matter device control CLI \u2014 drives a native Rust Matter controller in-process and emits pure structured JSON"
+              ]
+            }
+          },
+          {
+            "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 304.6,
+              "pass_b_latency_ms": 1996.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 19,
+              "sentences_pass_b": 19,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 321.4,
+              "pass_b_latency_ms": 2119.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 0,
+              "sentences_pass_b": 0,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://docs.rs/api/latest/api/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 292.9,
+              "pass_b_latency_ms": 2247.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 8,
+              "sentences_pass_b": 8,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 286.3,
+              "pass_b_latency_ms": 1669.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 25,
+              "sentences_pass_b": 25,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "docs.rs",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+          "severity": "HIGH",
+          "url": "https://docs.rs/",
+          "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+          "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 5,
+        "pages_with_schema": 0,
+        "schema_coverage_pct": 0.0
+      }
+    }
+  }
+}

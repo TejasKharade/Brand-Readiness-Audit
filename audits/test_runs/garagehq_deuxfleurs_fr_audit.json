@@ -1,0 +1,312 @@
+{
+  "target": "https://garagehq.deuxfleurs.fr/",
+  "domain": "garagehq.deuxfleurs.fr",
+  "audited_at": "2026-09-06T10:12:50Z",
+  "total_runtime_seconds": 46.79,
+  "summary": {
+    "total_findings": 10,
+    "critical": 0,
+    "high": 5,
+    "medium": 5,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "garagehq.deuxfleurs.fr",
+      "audited_at": "2026-09-06T10:12:15Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://garagehq.deuxfleurs.fr/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://garagehq.deuxfleurs.fr",
+        "total_discovered": 84,
+        "doc_pages": [
+          "https://garagehq.deuxfleurs.fr/documentation/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/javascript/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/others/"
+        ],
+        "blog_pages": [
+          "https://garagehq.deuxfleurs.fr/blog/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-perf/"
+        ],
+        "curated_sample": [
+          "https://garagehq.deuxfleurs.fr",
+          "https://garagehq.deuxfleurs.fr/documentation/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/",
+          "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
+          "https://garagehq.deuxfleurs.fr/blog/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+          "https://garagehq.deuxfleurs.fr/blog/page/1/"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "garagehq.deuxfleurs.fr",
+      "audited_at": "2026-09-06T10:12:42Z",
+      "summary": {
+        "total_findings": 8,
+        "critical": 0,
+        "high": 4,
+        "medium": 4,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (7 URLs) are locked inside client JavaScript on /",
+          "severity": "medium",
+          "evidence": "7 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/documentation/connect/websites, https://garagehq.deuxfleurs.fr/documentation/connect/backup).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (0.0% parity) on /documentation/",
+          "severity": "high",
+          "evidence": "Pass B rendered 152 sentences, but Pass A only contained 0 (152 missing). Example missing: \"Let's start your Garage journey!\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "HEADING_RENDER_GAP",
+          "title": "Primary <h1> is injected via client JavaScript on /documentation/",
+          "severity": "high",
+          "evidence": "Rendered DOM contains <h1> 'Quick Start', but raw HTML has 0 <h1> tags.",
+          "suggested_action": {
+            "summary": "Render primary <h1> tags in static HTML to ensure AI crawlers immediately identify the topic.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (67 URLs) are locked inside client JavaScript on /documentation/",
+          "severity": "medium",
+          "evidence": "67 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/documentation/working-documents/load-balancing, https://garagehq.deuxfleurs.fr/documentation/cookbook/kubernetes, https://garagehq.deuxfleurs.fr/documentation/working-documents/migration-06).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (12 URLs) are locked inside client JavaScript on /blog/",
+          "severity": "medium",
+          "evidence": "12 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/blog/page/2, https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/blog/2026-04-performance-reliability).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (0.0% parity) on /blog/page/1/",
+          "severity": "high",
+          "evidence": "Pass B rendered 5 sentences, but Pass A only contained 0 (5 missing). Example missing: \"Garage receives NLNet grant to work on reliability and performance\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "HEADING_RENDER_GAP",
+          "title": "Primary <h1> is injected via client JavaScript on /blog/page/1/",
+          "severity": "high",
+          "evidence": "Rendered DOM contains <h1> 'Blog', but raw HTML has 0 <h1> tags.",
+          "suggested_action": {
+            "summary": "Render primary <h1> tags in static HTML to ensure AI crawlers immediately identify the topic.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (11 URLs) are locked inside client JavaScript on /blog/page/1/",
+          "severity": "medium",
+          "evidence": "11 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/blog/page/2, https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/blog/2026-04-performance-reliability).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 7,
+        "per_page_metrics": [
+          {
+            "url": "https://garagehq.deuxfleurs.fr",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1137.9,
+              "pass_b_latency_ms": 2385.3,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 40,
+              "sentences_pass_b": 40,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 861.5,
+              "pass_b_latency_ms": 3073.0,
+              "parity_pct": 0.0,
+              "sentences_pass_a": 1,
+              "sentences_pass_b": 152,
+              "missing_sentences_count": 152,
+              "missing_snippets_sample": [
+                "Let's start your Garage journey!",
+                "In this chapter, we explain how to deploy Garage as a single-node server",
+                "and how to interact with it."
+              ]
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/build/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1175.4,
+              "pass_b_latency_ms": 2522.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 18,
+              "sentences_pass_b": 18,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1270.4,
+              "pass_b_latency_ms": 2630.2,
+              "parity_pct": 80.0,
+              "sentences_pass_a": 4,
+              "sentences_pass_b": 5,
+              "missing_sentences_count": 1,
+              "missing_snippets_sample": [
+                "garage \" git.deuxfleurs.fr/garage-sdk/garage-admin-sdk-golang \""
+              ]
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1083.2,
+              "pass_b_latency_ms": 2819.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 5,
+              "sentences_pass_b": 5,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1130.4,
+              "pass_b_latency_ms": 2375.6,
+              "parity_pct": 96.3,
+              "sentences_pass_a": 26,
+              "sentences_pass_b": 27,
+              "missing_sentences_count": 1,
+              "missing_snippets_sample": [
+                "Garage will be at FOSDEM'22"
+              ]
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/page/1/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 840.0,
+              "pass_b_latency_ms": 3265.4,
+              "parity_pct": 0.0,
+              "sentences_pass_a": 1,
+              "sentences_pass_b": 5,
+              "missing_sentences_count": 5,
+              "missing_snippets_sample": [
+                "Garage receives NLNet grant to work on reliability and performance",
+                "We are happy to announce that Garage just received a new NLNet grant, to",
+                "fund work on reliability and performance."
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "garagehq.deuxfleurs.fr",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+          "severity": "HIGH",
+          "url": "https://garagehq.deuxfleurs.fr/",
+          "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+          "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 6,
+        "pages_with_schema": 0,
+        "schema_coverage_pct": 0.0
+      }
+    }
+  }
+}
