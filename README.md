@@ -1,6 +1,8 @@
 # Brand AI-Readiness Audit Skill Marketplace
 
-This marketplace contains a modular suite of agent skills built according to the **agentskills.io** specification for auditing websites on **AI Discoverability** and **On-Site Engagement**.
+This repository contains an **Agent Skill Marketplace** built according to the **agentskills.io** specification for automated website auditing across **AI Discoverability** and **On-Site Engagement**.
+
+---
 
 ## Marketplace Manifest (`marketplace.json`)
 
@@ -25,6 +27,10 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
       "path": "skills/crawl-render-audit"
     },
     {
+      "id": "readability-audit",
+      "path": "skills/readability-audit"
+    },
+    {
       "id": "freshness-corroboration",
       "path": "skills/freshness-corroboration"
     },
@@ -36,10 +42,64 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
 }
 ```
 
-## Skills Overview
+---
 
-1. **`audit-orchestrator`** (Entrypoint): Receives the website audit request, invokes data gathering & diagnostic sub-skills, synthesizes findings, and emits the final JSON audit report.
-2. **`crawl-access-audit`**: Gathers raw technical accessibility facts (robots.txt permissions, dual-identity browser vs. bot HTTP responses, page indexing signals, sitemaps, crawl depth).
-3. **`crawl-render-audit`**: Diagnoses crawler accessibility (`robots.txt`), WAF bot blocks, JavaScript rendering dependencies, and non-text locked content.
-4. **`freshness-corroboration`**: Audits JSON-LD structured data (`schema.org`), entity clarity, and cross-page fact corroboration.
-5. **`engagement-audit`**: Evaluates on-site visitor orientation, context retention, and content clarity.
+## Marketplace Skills Overview
+
+1. **`audit-orchestrator`** *(Entrypoint Master Skill)*: Coordinates the sequential execution of all 5 specialized sub-skills, aggregates findings, calculates category readiness scores and the overall **Brand AI Readiness Score** (0-100), and emits the final JSON audit report.
+2. **`crawl-access-audit`**: Gathers raw technical accessibility facts (`robots.txt` AI crawler permissions, dual-identity browser vs. bot HTTP fetches, indexing meta tags, XML sitemap health, crawl depth).
+3. **`crawl-render-audit`**: Evaluates client-side JavaScript rendering barriers, DOM hydration gaps, trapped JSON-LD structured data, and client-side redirects.
+4. **`readability-audit`**: Audits Schema.org JSON-LD completeness across 9 schema types, semantic heading hierarchy (`<h1>`-`<h6>`), non-text machine-readable facts, and tabular data consistency.
+5. **`freshness-corroboration`**: Audits content publication/modification dates, copyright year ranges, blog temporal decay, off-site web search citation consistency, and Wikipedia/Wikidata `sameAs` entity links.
+6. **`engagement-audit`**: Audits human visitor orientation, 1-level homepage navigation reachability, content depth vs. reference ranges, mobile responsiveness viewport tags, cross-page brand phrase consistency, and page weight resource signals.
+
+---
+
+## Output Report Schema
+
+The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON audit report conforming to Adobe's Round 3 problem statement specification:
+
+```json
+{
+  "site": "https://example.com",
+  "audited_at": "2026-09-06T21:28:45Z",
+  "brand_ai_readiness_score": 75.0,
+  "category_scores": {
+    "crawl_access": 80.0,
+    "crawl_render": 90.0,
+    "readability": 85.0,
+    "freshness_corroboration": 95.0,
+    "engagement": 85.0
+  },
+  "summary": {
+    "total_findings": 3,
+    "critical": 1,
+    "high": 0,
+    "medium": 1,
+    "low": 1
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "category": "crawl_access",
+      "title": "AI Crawler 'GPTBot' is completely blocked by robots.txt",
+      "severity": "critical",
+      "evidence": "robots.txt contains Disallow: / for User-agent: GPTBot.",
+      "suggested_action": {
+        "summary": "Update robots.txt to allow GPTBot access to public brand content.",
+        "priority": "critical"
+      }
+    }
+  ],
+  "proactive_recommendations": [
+    "Ensure robots.txt allows access to AI crawler user-agents (GPTBot, PerplexityBot, ClaudeBot).",
+    "Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.",
+    "Add authoritative sameAs references (Wikidata, Wikipedia, LinkedIn) to Organization schema markup."
+  ],
+  "audit_metadata": {
+    "audited_pages_count": 5,
+    "skills_invoked_count": 5,
+    "marketplace_version": "1.0.0"
+  }
+}
+```
