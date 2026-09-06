@@ -27,6 +27,7 @@ class SemanticStructureParser(HTMLParser):
         
         self.visible_words = []
         self.skip_tags = {'script', 'style', 'noscript', 'iframe'}
+        self.void_tags = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
         self.in_skip = False
         self.current_skip_tag = None
         self.tag_index = 0
@@ -44,8 +45,9 @@ class SemanticStructureParser(HTMLParser):
                      'display:none' in style_attr.replace(' ', '') or
                      'visibility:hidden' in style_attr.replace(' ', ''))
         
-        if is_hidden or self.hidden_depth > 0:
-            self.hidden_depth += 1
+        if tag_lower not in self.void_tags:
+            if is_hidden or self.hidden_depth > 0:
+                self.hidden_depth += 1
 
         if tag_lower in self.skip_tags and not self.in_skip:
             self.in_skip = True
@@ -117,13 +119,13 @@ class SemanticStructureParser(HTMLParser):
             self.current_heading_is_aria = False
             self.current_heading_text = []
 
-        if self.hidden_depth > 0:
+        if tag_lower not in self.void_tags and self.hidden_depth > 0:
             self.hidden_depth -= 1
 
     def handle_data(self, data):
         if self.in_title:
             self.title_text.append(data)
-        if self.current_heading_level is not None:
+        if self.current_heading_level is not None and self.hidden_depth == 0:
             self.current_heading_text.append(data)
         if not self.in_skip and self.hidden_depth == 0 and data.strip():
             words = re.findall(r'\w+', data)

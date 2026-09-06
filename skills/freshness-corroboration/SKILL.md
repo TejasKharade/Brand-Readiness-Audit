@@ -1,32 +1,42 @@
 ---
 name: freshness-corroboration
-description: Audits website structured data (schema.org JSON-LD), brand entity disambiguation, and fact freshness/corroboration across pages to prevent AI hallucinations and misrepresentations.
+description: Audits content freshness, publication/modification dates, entity disambiguation (sameAs), off-site brand citation consistency, and temporal decay across web pages.
 license: MIT
 ---
 
 # Freshness & Corroboration Audit Skill
 
 ## When to use
-Use when auditing structured metadata, schema.org markup, entity consistency, and fact corroboration across pages to ensure AI assistants can confidently extract, verify, and cite brand claims.
+Use when auditing publication/modification timestamps, entity disambiguation links (`sameAs`), cross-site brand claim consistency, and temporal freshness to ensure AI crawlers and RAG systems possess accurate, up-to-date brand information.
 
 ## Inputs
-- `url` or `domain`: Target site URL or hostname.
+- `html`: Page HTML string.
+- `url`: Page URL string.
+- `onsite_facts` (optional): Dictionary of key brand facts found on site (e.g. `{"founding_year": "2015", "headquarters": "San Jose, CA"}`).
+- `offsite_claims` (optional): List of external benchmark claims to corroborate.
+- `same_as_urls` (optional): List of `sameAs` entity URLs from JSON-LD schema.
 
-## Procedure
+## Procedure & Script Execution Flow
 
-1. **JSON-LD & Structured Data Validation**:
-   - Extract `<script type="application/ld+json">` elements from page HTML.
-   - Validate core schemas (`Organization`, `Product`, `Article`, `FAQPage`, `BreadcrumbList`).
-   - Check for required schema attributes (`@context`, `@type`, `name`, `url`, `description`, `logo`).
-   - Flag invalid JSON or missing key schema blocks as `Medium` severity findings.
+1. **Content Dates Analysis (`scripts/check_content_dates.py`)**
+   ```bash
+   echo '{"html": "...", "url": "https://example.com"}' | python skills/freshness-corroboration/scripts/check_content_dates.py
+   ```
+   - Parses `<meta>` tags (`article:published_time`, `article:modified_time`, `og:updated_time`, `datePublished`, `dateModified`) and Schema JSON-LD dates.
+   - Calculates age in days and flags stale (>1yr) or outdated (>2yr) content.
 
-2. **Entity Disambiguation & `sameAs` Coverage**:
-   - Verify `Organization` or `Brand` schema contains authoritative `sameAs` links (Wikipedia, Wikidata, official social channels, LinkedIn, Crunchbase).
-   - Assess entity ambiguity risks where brand names overlap with generic terms or third-party products.
+2. **Citation & Entity Disambiguation (`scripts/check_citation_consistency.py`)**
+   ```bash
+   echo '{"same_as_urls": ["https://en.wikipedia.org/wiki/Brand"], "onsite_facts": {"hq": "San Jose"}, "offsite_claims": [{"fact_key": "hq", "expected_value": "San Jose"}]}' | python skills/freshness-corroboration/scripts/check_citation_consistency.py
+   ```
+   - Evaluates `sameAs` links against authoritative entity databases (Wikipedia, Wikidata, Crunchbase, official social platforms).
+   - Cross-checks on-site brand claims against external benchmark references to detect RAG hallucination risks.
 
-3. **Cross-Page Fact Corroboration & Consistency**:
-   - Cross-check critical brand facts (pricing tiers, contact emails, product names, key features) across home, product, and documentation pages.
-   - Flag conflicting or outdated facts that risk causing RAG (Retrieval-Augmented Generation) hallucinations.
+3. **Temporal Decay Detection (`scripts/check_temporal_decay.py`)**
+   ```bash
+   echo '{"html": "..."}' | python skills/freshness-corroboration/scripts/check_temporal_decay.py
+   ```
+   - Scans HTML for outdated copyright footers, stale future event announcements (e.g. "launching in 2021"), and deprecated tech/brand markers.
 
-## Output
-Emits findings regarding missing structured data, uncorroborated facts, and entity ambiguity along with JSON-LD remediation snippets.
+## Output Schema
+Emits a combined JSON object containing content date metrics, entity disambiguation status, fact corroboration results, and temporal health status.

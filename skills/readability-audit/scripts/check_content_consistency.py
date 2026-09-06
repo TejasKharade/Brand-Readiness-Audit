@@ -34,6 +34,7 @@ class TextExtractor(HTMLParser):
         super().__init__()
         self.text_fragments = []
         self.skip_tags = {'script', 'style', 'noscript', 'iframe', 'svg'}
+        self.void_tags = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
         self.in_skip = False
         self.current_skip_tag = None
         self.hidden_depth = 0
@@ -48,8 +49,9 @@ class TextExtractor(HTMLParser):
                      'display:none' in style_attr.replace(' ', '') or
                      'visibility:hidden' in style_attr.replace(' ', ''))
         
-        if is_hidden or self.hidden_depth > 0:
-            self.hidden_depth += 1
+        if tag_lower not in self.void_tags:
+            if is_hidden or self.hidden_depth > 0:
+                self.hidden_depth += 1
 
         if tag_lower in self.skip_tags and not self.in_skip:
             self.in_skip = True
@@ -61,7 +63,7 @@ class TextExtractor(HTMLParser):
             self.in_skip = False
             self.current_skip_tag = None
             
-        if self.hidden_depth > 0:
+        if tag_lower not in self.void_tags and self.hidden_depth > 0:
             self.hidden_depth -= 1
 
     def handle_data(self, data):

@@ -1,30 +1,37 @@
 ---
 name: engagement-audit
-description: Audits on-site visitor engagement, orientation hierarchy, context retention, and signal-to-noise ratio to prevent high visitor bounce rates once referred by AI assistants.
+description: Audits on-site visitor engagement, orientation hierarchy, layout friction, page speed indicators, and navigation clarity for visitors referred by AI search engines.
 license: MIT
 ---
 
 # On-Site Engagement Audit Skill
 
 ## When to use
-Use when auditing on-site user experience, orientation clarity, context retention, and content density for visitors arriving from AI assistant referrals or search engines.
+Use when auditing on-site user experience, orientation clarity, page speed friction, intrusive popups, and navigation structure for visitors arriving from AI assistant referrals.
 
 ## Inputs
-- `url` or `domain`: Target site URL or page path.
+- `html`: Page HTML string.
+- `url`: Page URL string.
 
-## Procedure
+## Procedure & Script Execution Flow
 
-1. **First-Screen Orientation & Value Proposition**:
-   - Evaluate hero section readability, clear `<h1>` headline, and value proposition statement.
-   - Detect if visitors landing on deep URLs receive immediate orientation context on brand identity and offerings.
+1. **Page Speed & Resource Bloat Signals (`scripts/check_page_speed_signals.py`)**
+   ```bash
+   echo '{"html": "...", "url": "https://example.com"}' | python skills/engagement-audit/scripts/check_page_speed_signals.py
+   ```
+   - Measures HTML payload size (KB), DOM node density, script/stylesheet counts, and unoptimized image lazy loading.
 
-2. **Context Retention & Navigation Flow**:
-   - Verify breadcrumb navigation, clear category links, and contextual next-step call-to-actions (CTAs).
-   - Check if visitors arriving from AI referrals have clear pathways to explore related topics without dead ends.
+2. **Layout Friction & Intrusive Overlays (`scripts/check_layout_friction.py`)**
+   ```bash
+   echo '{"html": "...", "url": "https://example.com"}' | python skills/engagement-audit/scripts/check_layout_friction.py
+   ```
+   - Scans for cookie banners, newsletter subscription popups, fixed overlays, and ad container clutter obscuring main content.
 
-3. **Content Density & Signal-to-Noise Ratio**:
-   - Analyze high-value informative text vs. marketing fluff or popup clutter.
-   - Identify pages where key information requires excessive scrolling or interaction to uncover.
+3. **Navigation Clarity & Orientation (`scripts/check_navigation_clarity.py`)**
+   ```bash
+   echo '{"html": "...", "url": "https://example.com"}' | python skills/engagement-audit/scripts/check_navigation_clarity.py
+   ```
+   - Audits primary `<nav>` headers, footer links, breadcrumbs (`BreadcrumbList`), search input presence, and contact/about links.
 
-## Output
-Emits prioritized findings and actionable recommendations to improve visitor retention, clarity, and engagement.
+## Output Schema
+Emits a structured JSON object containing performance friction metrics, overlay/popup friction levels, navigation clarity scores (0-100), and orientation quality ratings.

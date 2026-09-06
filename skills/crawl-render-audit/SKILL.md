@@ -1,39 +1,61 @@
 ---
 name: crawl-render-audit
-description: Audits website off-site discoverability by checking robots.txt rules for AI crawlers, client-side JavaScript rendering barriers, non-text locked facts, and machine extractability of core page content.
+description: Audits website client-side rendering (CSR) barriers, DOM hydration gaps, JS-trapped structured data, and client-side redirects that prevent non-JS AI crawlers (GPTBot, ClaudeBot, PerplexityBot) from discovering key page content.
 license: MIT
 ---
 
 # Crawl & Render Audit Skill
 
 ## When to use
-Use when auditing a website's technical discoverability for AI search engines, LLM scrapers (GPTBot, ClaudeBot, PerplexityBot), and automated web indexers.
+Use during an AI discoverability audit to identify JavaScript rendering barriers, DOM hydration content gaps, and client-side redirects between raw initial HTML HTTP payloads and fully rendered DOM payloads.
 
 ## Inputs
-- `url` or `domain`: Target site URL or hostname.
+- `raw_html`: Initial raw HTML HTTP response string (string, required).
+- `rendered_html`: Fully rendered DOM HTML string (string, optional).
+- `url`: Target page URL (string, optional).
 
-## Procedure
+## Adaptive Tool Execution Guidance for the Orchestrator
+To execute the `crawl-render-audit` skill, the orchestrating LLM must supply page HTML:
 
-1. **AI Crawler Access Verification (`robots.txt` & WAF Detection)**:
-   - Analyze `check_robots.py` output across major AI crawlers (`GPTBot`, `ClaudeBot`, `PerplexityBot`, `CCBot`, `Bytespider`).
-   - Flag explicit `Disallow` directives on key brand pages as `Critical` discoverability blockers.
-   - Inspect fingerprint evidence array from `fetch_dual_identity.py` (Cloudflare, AWS WAF, Akamai, PerimeterX). Flag active bot challenges or HTTP 403/503 blocks as `High` severity findings.
+1. **Check Available Environment Tools**:
+   - **If you possess a Headless Browser tool** (e.g. capable of executing JavaScript and waiting for DOM hydration):
+     - Fetch the page via your browser tool and pass the hydrated DOM as `rendered_html`.
+     - Fetch the initial HTTP payload via a basic HTTP GET tool (no JS execution) and pass it as `raw_html`.
+   - **If you do NOT possess a Headless Browser tool**:
+     - Fetch the page using your standard HTTP GET tool, pass the payload as `raw_html`, and leave `rendered_html` completely blank/omitted.
+     - The Python scripts will dynamically adapt by inspecting `raw_html` for client-side SPA mount points (`div#root`, `div#app`), JS framework signatures, and `<script>` bundles.
 
-2. **JavaScript Rendering & DOM Hydration Audit**:
-   - Compare raw HTML HTTP response vs. rendered DOM.
-   - Compare `content_length_ratio` and `thin_content_detected` flag between browser and bot fetches.
-   - Flag facts (pricing, specs, brand claims) requiring client-side JS execution to render as discoverability risks for non-JS AI scrapers.
+## Procedure & Hybrid Execution Flow
 
-3. **Page Indexing Directives & Canonical Health**:
-   - Inspect meta tags (`noindex`, `noai`, `noimageindex`) and `X-Robots-Tag` headers from `check_page_signals.py`.
-   - Flag any `noindex` or `noai` directives on public marketing/product pages.
-   - Verify `canonical` link consistency.
+1. **Rendering Barriers & Hydration Gap Check (`check_rendering_barriers.py`)**:
+   - Run `scripts/check_rendering_barriers.py` to compare word counts, heading sequences (`<h1>`-`<h6>`), and detect SPA framework signatures (`React`, `Vue`, `Angular`, `<div id="root">`).
+   - **LLM Semantic Fallback:** If `thin_initial_content_detected: true` or `hydration_ratio < 0.30`, the LLM inspects the rendered DOM to identify high-value brand facts (pricing, specs, brand claims) trapped behind client-side JavaScript.
 
-4. **Sitemap Health & Crawl Depth Analysis**:
-   - Evaluate `check_sitemap.py` results:
-     - Distinguish between genuinely empty sitemaps vs. traversal failures (`is_sitemap_index: true`, `child_sitemaps_checked: 0`, and `child_sitemap_errors` present).
-     - Check `ssl_verification_bypassed` flags on sitemap or sampled URLs to identify misconfigured SSL certificates.
-   - Inspect `check_crawl_depth.py` outputs. Flag key target pages requiring >3 clicks to reach from root.
+2. **Structured Data Hydration Check (`check_structured_data_hydration.py`)**:
+   - Run `scripts/check_structured_data_hydration.py` to identify JSON-LD Schema entities (`Product`, `Organization`, `Article`, `FAQPage`) present in the rendered DOM but missing from the raw initial HTML payload.
+   - **LLM Semantic Fallback:** If `structured_data_hydration_barrier_detected: true`, the LLM evaluates the severity of the hidden metadata for search engine indexing.
+
+3. **Client-Side Redirect Audit (`check_client_side_redirects.py`)**:
+   - Run `scripts/check_client_side_redirects.py` to detect `<meta http-equiv="refresh">` tags and `window.location` JS redirects that confuse non-JS indexers.
+   - **LLM Semantic Fallback:** If client-side redirects are detected, the LLM evaluates whether non-JS AI crawlers will hit a discovery dead-end.
 
 ## Output
-Emits a list of evidence-backed findings focused on technical crawlability and machine rendering accessibility.
+Emits a structured JSON evidence payload:
+
+```json
+{
+  "rendering_barriers": { ... },
+  "structured_data_hydration": { ... },
+  "client_side_redirects": { ... },
+  "llm_semantic_fallbacks": {
+    "trapped_fact_observations": "...",
+    "indexing_risk_assessment": "..."
+  }
+}
+```
+
+## Guardrails & Constraints
+- Read-Only: Never modifies any website.
+- Zero External Dependencies: All scripts run locally using standard Python libraries only. No Playwright/Selenium or external API services.
+- Bounded Execution: Millisecond script execution time.
+- Evidence Only: Provides structured evidence; leaves severity scoring and remediation to the audit-orchestrator.

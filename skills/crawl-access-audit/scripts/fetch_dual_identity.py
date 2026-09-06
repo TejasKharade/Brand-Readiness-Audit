@@ -2,14 +2,10 @@ import sys
 import json
 import time
 import html.parser
-
-# Handle requests import safely
-try:
-    import requests
-    from requests.exceptions import RequestException, Timeout
-    REQUESTS_AVAILABLE = True
-except ImportError:
-    REQUESTS_AVAILABLE = False
+import urllib.request
+import urllib.error
+import socket
+import ssl
 
 # Default starting threshold for thin content. 
 THIN_CONTENT_THRESHOLD = 300 
@@ -129,7 +125,6 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "_fingerprint_error": parser_error
         }
     except Exception as e:
-        # Fallback to safe defaults on catastrophic failure, but surface the error for debugging
         return {
             "cloudflare_challenge": False,
             "cloudflare_signals": [],
@@ -143,6 +138,16 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "_fingerprint_error": f"Fatal analysis error: {str(e)}"
         }
 
+class RedirectTracker(urllib.request.HTTPRedirectHandler):
+    def __init__(self):
+        super().__init__()
+        self.redirect_count = 0
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        self.redirect_count += 1
+        if self.redirect_count > 10:
+            raise urllib.error.HTTPError(newurl, code, "Too many redirects", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
 def fetch_url(url, user_agent, timeout=10):
     start_time = time.time()
     default_fingerprints = {
@@ -151,38 +156,72 @@ def fetch_url(url, user_agent, timeout=10):
         "login_wall": False, "thin_content": False, "visible_text_length": 0, "_fingerprint_error": None
     }
     
+    tracker = RedirectTracker()
+    opener = urllib.request.build_opener(tracker)
+    req = urllib.request.Request(url, headers={"User-Agent": user_agent})
+    
     try:
-        resp = requests.get(url, headers={"User-Agent": user_agent}, timeout=timeout, allow_redirects=True)
-        response_time = time.time() - start_time
-        
-        content = resp.text if resp.text else ""
-        fingerprints = analyze_fingerprints(content)
-        
-        # Cap size AFTER analysis.
-        MAX_CONTENT_LEN = 500 * 1024
-        if len(content) > MAX_CONTENT_LEN:
-            content = content[:MAX_CONTENT_LEN] + "\n...[TRUNCATED]"
+        with opener.open(req, timeout=timeout) as resp:
+            response_time = time.time() - start_time
+            status_code = resp.getcode()
+            final_url = resp.geturl()
+            headers_dict = dict(resp.info())
             
+            MAX_BYTES = 500 * 1024
+            chunks = []
+            bytes_read = 0
+            while True:
+                chunk = resp.read(65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                bytes_read += len(chunk)
+                if bytes_read >= MAX_BYTES:
+                    break
+            
+            raw_bytes = b"".join(chunks)
+            try:
+                content = raw_bytes.decode("utf-8", errors="replace")
+            except Exception:
+                content = raw_bytes.decode("latin-1", errors="replace")
+                
+            fingerprints = analyze_fingerprints(content)
+            
+            if bytes_read >= MAX_BYTES:
+                content = content[:MAX_BYTES] + "\n...[TRUNCATED]"
+                
+            return {
+                "status": status_code,
+                "final_url": final_url,
+                "redirect_count": tracker.redirect_count,
+                "response_time": round(response_time, 3),
+                "response_headers": headers_dict,
+                "content": content,
+                "content_fingerprints": fingerprints,
+                "error": None
+            }
+    except urllib.error.HTTPError as e:
+        response_time = time.time() - start_time
+        try:
+            body_bytes = e.read(500 * 1024)
+            content = body_bytes.decode("utf-8", errors="replace")
+        except Exception:
+            content = ""
+        fingerprints = analyze_fingerprints(content) if content else default_fingerprints
         return {
-            "status": resp.status_code,
-            "final_url": resp.url,
-            "redirect_count": len(resp.history),
+            "status": e.code,
+            "final_url": e.url or url,
+            "redirect_count": tracker.redirect_count,
             "response_time": round(response_time, 3),
-            "response_headers": dict(resp.headers),
+            "response_headers": dict(e.headers) if e.headers else {},
             "content": content,
             "content_fingerprints": fingerprints,
             "error": None
         }
-    except Timeout:
+    except (urllib.error.URLError, socket.timeout, TimeoutError) as e:
         return {
-            "status": "timeout", "final_url": None, "redirect_count": 0,
-            "response_time": round(time.time() - start_time, 3),
-            "response_headers": {}, "content": "",
-            "content_fingerprints": default_fingerprints, "error": "Request timed out"
-        }
-    except RequestException as e:
-        return {
-            "status": None, "final_url": None, "redirect_count": 0,
+            "status": "timeout" if isinstance(e, (socket.timeout, TimeoutError)) or "timed out" in str(e).lower() else None,
+            "final_url": None, "redirect_count": 0,
             "response_time": round(time.time() - start_time, 3),
             "response_headers": {}, "content": "",
             "content_fingerprints": default_fingerprints, "error": str(e)
@@ -225,10 +264,6 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
 
 if __name__ == "__main__":
     try:
-        if not REQUESTS_AVAILABLE:
-            print(json.dumps({"error": "could not verify — tool unavailable (requests library missing)"}))
-            sys.exit(0)
-            
         if len(sys.argv) < 2:
             print(json.dumps({"error": "Missing URL argument"}))
             sys.exit(0)
