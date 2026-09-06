@@ -186,17 +186,56 @@ def check_descriptor_consistency(pages_data):
         "pages": results
     }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        raw_input = sys.stdin.read() if not sys.stdin.isatty() else '{}'
-        try:
-            params = json.loads(raw_input) if raw_input.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
+        pages_data = []
+        params = {}
 
-        pages_data = params.get("pages", [])
-        if not pages_data and ("url" in params or "html" in params):
-            pages_data = [params]
+        # 1. Parse command line arguments if present
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{") or raw_arg.startswith("["):
+                try:
+                    parsed = json.loads(raw_arg)
+                    if isinstance(parsed, dict):
+                        params.update(parsed)
+                    elif isinstance(parsed, list):
+                        pages_data = parsed
+                except json.JSONDecodeError:
+                    pass
+
+        # 2. Read stdin safely with non-blocking 0.2s timeout
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+                elif isinstance(stdin_params, list):
+                    pages_data = stdin_params
+            except json.JSONDecodeError:
+                pass
+
+        if not pages_data:
+            pages_data = params.get("pages", [])
+            if not pages_data and ("url" in params or "html" in params):
+                pages_data = [params]
 
         result = check_descriptor_consistency(pages_data)
         print(json.dumps(result, indent=2))

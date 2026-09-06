@@ -217,13 +217,56 @@ def check_sitemap(sitemap_url, max_samples=5):
     return result
 
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        if len(sys.argv) < 2:
-            print(json.dumps({"error": "Missing sitemap URL argument"}))
-            sys.exit(0)
+        sitemap_url = None
+        params = {}
 
-        sitemap_url = sys.argv[1].strip()
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain")
+                except json.JSONDecodeError:
+                    sitemap_url = raw_arg
+            else:
+                sitemap_url = raw_arg
+
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not sitemap_url:
+            sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain") or "https://example.com/sitemap.xml"
+
+        if not sitemap_url.startswith("http://") and not sitemap_url.startswith("https://"):
+            sitemap_url = "https://" + sitemap_url
+
+        if not sitemap_url.endswith(".xml") and not sitemap_url.endswith(".gz") and "/sitemap" not in sitemap_url.lower():
+            sitemap_url = sitemap_url.rstrip("/") + "/sitemap.xml"
+
         output = check_sitemap(sitemap_url)
         print(json.dumps(output, indent=2))
     except Exception as e:

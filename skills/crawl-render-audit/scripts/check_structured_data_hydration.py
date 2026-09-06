@@ -129,18 +129,58 @@ def check_structured_data_hydration(raw_html, rendered_html, url):
         }
     }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == '__main__':
     try:
-        raw_input = sys.stdin.read() if not sys.stdin.isatty() else '{}'
-        try:
-            params = json.loads(raw_input) if raw_input.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
-            
-        raw_html = params.get('raw_html', '') or params.get('html', '')
-        rendered_html = params.get('rendered_html', '')
-        url = params.get('url', '')
-        
+        raw_html = ""
+        rendered_html = ""
+        url = ""
+        params = {}
+
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    raw_html = params.get("raw_html", "") or params.get("html", "")
+                    rendered_html = params.get("rendered_html", "")
+                    url = params.get("url", "")
+                except json.JSONDecodeError:
+                    url = raw_arg
+            else:
+                url = raw_arg
+
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not raw_html:
+            raw_html = params.get('raw_html', '') or params.get('html', '')
+        if not rendered_html:
+            rendered_html = params.get('rendered_html', '')
+        if not url:
+            url = params.get('url', '')
+
         result = check_structured_data_hydration(raw_html, rendered_html, url)
         print(json.dumps(result, indent=2))
     except Exception as e:

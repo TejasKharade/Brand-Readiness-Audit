@@ -262,24 +262,57 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
         "comparison_metrics": comparison
     }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        if len(sys.argv) < 2:
-            print(json.dumps({"error": "Missing URL argument"}))
-            sys.exit(0)
-            
-        url = sys.argv[1]
-        
-        input_data = sys.stdin.read() if not sys.stdin.isatty() else "{}"
-        try:
-            params = json.loads(input_data) if input_data.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
-            
+        target_url = None
+        params = {}
+
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    target_url = params.get("url") or params.get("domain")
+                except json.JSONDecodeError:
+                    target_url = raw_arg
+            else:
+                target_url = raw_arg
+
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not target_url:
+            target_url = params.get("url") or params.get("domain") or "https://example.com"
+
+        if not target_url.startswith("http://") and not target_url.startswith("https://"):
+            target_url = "https://" + target_url
+
         browser_ua = params.get("browser_user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         bot_ua = params.get("bot_user_agent", "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)")
-        
-        result = dual_fetch(url, browser_ua, bot_ua)
+
+        result = dual_fetch(target_url, browser_ua, bot_ua)
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

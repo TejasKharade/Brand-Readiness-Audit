@@ -87,22 +87,58 @@ def check_signals(url, headers, content):
             "error": f"Signal check failed: {str(e)}"
         }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        input_data = sys.stdin.read() if not sys.stdin.isatty() else "{}"
-        try:
-            params = json.loads(input_data)
-            if not params:
-                print(json.dumps({"error": "Missing input data"}))
-                sys.exit(0)
-        except json.JSONDecodeError:
-            print(json.dumps({"error": "Invalid JSON input"}))
-            sys.exit(0)
-            
-        url = params.get("url", "")
-        headers = params.get("headers", {})
-        content = params.get("content", "")
-        
+        url = ""
+        headers = {}
+        content = ""
+        params = {}
+
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    url = params.get("url", "")
+                    headers = params.get("headers", {})
+                    content = params.get("content", "")
+                except json.JSONDecodeError:
+                    url = raw_arg
+            else:
+                url = raw_arg
+
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not url:
+            url = params.get("url", "")
+        if not headers:
+            headers = params.get("headers", {})
+        if not content:
+            content = params.get("content", "")
+
         result = check_signals(url, headers, content)
         print(json.dumps(result, indent=2))
     except Exception as e:

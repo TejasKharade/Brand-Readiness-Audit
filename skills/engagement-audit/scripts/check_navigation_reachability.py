@@ -80,13 +80,46 @@ def check_navigation_reachability(params):
         "key_content_reachability": reachability_results
     }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        raw_input = sys.stdin.read() if not sys.stdin.isatty() else '{}'
-        try:
-            params = json.loads(raw_input) if raw_input.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
+        params = {}
+
+        # 1. Parse command line arguments if present
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                except json.JSONDecodeError:
+                    params["homepage_url"] = raw_arg
+            else:
+                params["homepage_url"] = raw_arg
+
+        # 2. Read stdin safely with non-blocking 0.2s timeout
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
 
         result = check_navigation_reachability(params)
         print(json.dumps(result, indent=2))

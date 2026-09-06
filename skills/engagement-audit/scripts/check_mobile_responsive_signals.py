@@ -63,15 +63,51 @@ def check_mobile_responsive_signals(html_content):
         "note": "Inline @media query check is a weak, incomplete signal because most external stylesheets are uninspected."
     }
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        raw_input = sys.stdin.read() if not sys.stdin.isatty() else '{}'
-        try:
-            params = json.loads(raw_input) if raw_input.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
+        params = {}
+        html_content = ""
 
-        html_content = params.get('html', '')
+        # 1. Parse command line arguments if present
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    html_content = params.get("html", "")
+                except json.JSONDecodeError:
+                    html_content = raw_arg
+            else:
+                html_content = raw_arg
+
+        # 2. Read stdin safely with non-blocking 0.2s timeout
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+                    if not html_content:
+                        html_content = params.get("html", "")
+            except json.JSONDecodeError:
+                if not html_content:
+                    html_content = input_data
 
         result = check_mobile_responsive_signals(html_content)
         print(json.dumps(result, indent=2))

@@ -130,25 +130,56 @@ def check_robots(domain, bot_user_agents, test_paths=None):
 
     return result
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        if len(sys.argv) < 2:
-            print(json.dumps({"error": "Missing domain argument"}))
-            sys.exit(0)
-            
-        domain_arg = sys.argv[1]
-        
-        input_data = sys.stdin.read() if not sys.stdin.isatty() else "{}"
-        try:
-            params = json.loads(input_data) if input_data.strip() else {}
-        except json.JSONDecodeError:
-            params = {}
-            
+        domain_arg = None
+        params = {}
+
+        # 1. Parse command line arguments if present
+        if len(sys.argv) > 1:
+            raw_arg = sys.argv[1].strip()
+            if raw_arg.startswith("{"):
+                try:
+                    params = json.loads(raw_arg)
+                    domain_arg = params.get("domain") or params.get("url")
+                except json.JSONDecodeError:
+                    domain_arg = raw_arg
+            else:
+                domain_arg = raw_arg
+
+        # 2. Read stdin safely with non-blocking 0.2s timeout
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not domain_arg:
+            domain_arg = params.get("domain") or params.get("url") or "example.com"
+
         bot_agents = params.get("bot_user_agents", ["GPTBot", "ClaudeBot", "Google-Extended", "CCBot", "*"])
         test_paths = params.get("test_paths", ["/"])
-        
+
         output = check_robots(domain_arg, bot_agents, test_paths)
         print(json.dumps(output, indent=2))
     except Exception as e:
-        # Strict JSON stdout
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

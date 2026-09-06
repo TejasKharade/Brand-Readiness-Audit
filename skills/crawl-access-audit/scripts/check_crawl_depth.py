@@ -159,15 +159,62 @@ def check_crawl_depth(start_url, target_url, robots_parser=None):
             
     return build_result(None, [], "Target not found within bounds")
 
+import threading
+
+def read_stdin_safe(timeout=0.2):
+    if sys.stdin.isatty():
+        return ""
+    res = []
+    def target():
+        try:
+            res.append(sys.stdin.read())
+        except Exception:
+            pass
+    t = threading.Thread(target=target, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return res[0] if res else ""
+
 if __name__ == "__main__":
     try:
-        if len(sys.argv) < 3:
-            print(json.dumps({"error": "Missing start_url or target_url arguments"}))
-            sys.exit(0)
-            
-        start_url = sys.argv[1]
-        target_url = sys.argv[2]
-        
+        start_url = None
+        target_url = None
+        params = {}
+
+        if len(sys.argv) > 1:
+            raw1 = sys.argv[1].strip()
+            if raw1.startswith("{"):
+                try:
+                    params = json.loads(raw1)
+                    start_url = params.get("start_url") or params.get("url") or params.get("domain")
+                    target_url = params.get("target_url") or params.get("target_page")
+                except json.JSONDecodeError:
+                    start_url = raw1
+            else:
+                start_url = raw1
+
+        if len(sys.argv) > 2:
+            target_url = sys.argv[2].strip()
+
+        input_data = read_stdin_safe(timeout=0.2)
+        if input_data.strip():
+            try:
+                stdin_params = json.loads(input_data)
+                if isinstance(stdin_params, dict):
+                    params.update(stdin_params)
+            except json.JSONDecodeError:
+                pass
+
+        if not start_url:
+            start_url = params.get("start_url") or params.get("url") or params.get("domain") or "https://example.com"
+        if not target_url:
+            target_url = params.get("target_url") or params.get("target_page") or start_url
+
+        if not start_url.startswith("http://") and not start_url.startswith("https://"):
+            start_url = "https://" + start_url
+        if not target_url.startswith("http://") and not target_url.startswith("https://"):
+            target_url = "https://" + target_url
+
         output = check_crawl_depth(start_url, target_url)
         print(json.dumps(output, indent=2))
     except Exception as e:
