@@ -1,1 +1,16 @@
-﻿.venv
+﻿# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / Scratch data
+*.tmp

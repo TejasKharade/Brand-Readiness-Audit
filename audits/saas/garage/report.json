@@ -1,0 +1,52 @@
+{
+  "site": "garagehq.deuxfleurs.fr",
+  "audited_at": "2026-09-06T05:09:07.464557+00:00",
+  "summary": {
+    "total_findings": 4,
+    "critical": 0,
+    "high": 3,
+    "medium": 1
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Missing llms.txt AI context manifest",
+      "severity": "medium",
+      "evidence": "GET /llms.txt returned HTTP 404.",
+      "suggested_action": {
+        "summary": "Provide a /llms.txt markdown manifest at domain root summarizing the product, core architecture, and links to primary documentation.",
+        "priority": "medium"
+      }
+    },
+    {
+      "id": "F-002",
+      "title": "Identical meta description reused across site pages",
+      "severity": "high",
+      "evidence": "The meta description 'An S3 object store so reliable you can run it outside datacenters...' is duplicated verbatim across 69/84 pages (82.1% of entire site), including technical documentation.",
+      "suggested_action": {
+        "summary": "Generate unique, page-specific meta descriptions for each documentation chapter so AI indexers can discern discrete topic boundaries.",
+        "priority": "high"
+      }
+    },
+    {
+      "id": "F-003",
+      "title": "Zero Schema.org JSON-LD structured data on site",
+      "severity": "high",
+      "evidence": "Crawled 84 pages; 0/84 contain JSON-LD markup. No SoftwareApplication, TechArticle, Organization, or BreadcrumbList schema found.",
+      "suggested_action": {
+        "summary": "Implement JSON-LD structured data: add 'SoftwareApplication' on homepage and 'TechArticle' / 'BreadcrumbList' across all documentation pages.",
+        "priority": "high"
+      }
+    },
+    {
+      "id": "F-004",
+      "title": "Missing entity disambiguation (sameAs links)",
+      "severity": "high",
+      "evidence": "No Organization or SoftwareApplication schema contains 'sameAs' links pointing to authoritative repositories (e.g. crates.io, GitHub, Wikidata).",
+      "suggested_action": {
+        "summary": "Add 'sameAs' array to homepage Organization schema linking to https://crates.io/crates/garage_api and https://github.com/deuxfleurs/garage to establish direct authority over third-party mirrors.",
+        "priority": "high"
+      }
+    }
+  ]
+}

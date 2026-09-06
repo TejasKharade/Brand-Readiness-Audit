@@ -29,4 +29,4 @@ Each audited company folder follows this standard structure:
 
 | Date | Company | Vertical | Pages Audited | Critical | High | Medium | Key Failure Mode Identified |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| *Pending* | | | | | | | |
+| 2026-09-06 | [Garage S3 (Deuxfleurs)](saas/garage/) | SaaS / DevTools | 84 | 0 | 3 | 1 | Zero JSON-LD, duplicate meta descriptions across 82% of docs, missing llms.txt, missing sameAs entity links |
