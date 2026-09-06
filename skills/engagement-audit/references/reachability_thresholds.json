@@ -1,0 +1,18 @@
+{
+  "product": {
+    "min_word_count": 200,
+    "recommended_word_count": 500
+  },
+  "service": {
+    "min_word_count": 300,
+    "recommended_word_count": 800
+  },
+  "article": {
+    "min_word_count": 600,
+    "recommended_word_count": 1500
+  },
+  "unknown": {
+    "min_word_count": null,
+    "recommended_word_count": null
+  }
+}

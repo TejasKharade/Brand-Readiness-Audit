@@ -1,0 +1,209 @@
+import sys
+import json
+import re
+from html.parser import HTMLParser
+
+class PageHeaderParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.title_text = []
+        self.h1_text = []
+        self.jsonld_scripts = []
+        
+        self.in_title = False
+        self.in_h1 = False
+        self.in_jsonld = False
+        self.current_jsonld = []
+
+    def handle_starttag(self, tag, attrs):
+        tag_lower = tag.lower()
+        attrs_dict = {k.lower(): str(v) for k, v in attrs if k and v}
+
+        if tag_lower == "title":
+            self.in_title = True
+        elif tag_lower == "h1":
+            self.in_h1 = True
+        elif tag_lower == "script":
+            type_attr = attrs_dict.get("type", "").lower()
+            if type_attr == "application/ld+json":
+                self.in_jsonld = True
+                self.current_jsonld = []
+
+    def handle_data(self, data):
+        if not data:
+            return
+        if self.in_title:
+            self.title_text.append(data)
+        elif self.in_h1:
+            self.h1_text.append(data)
+        elif self.in_jsonld:
+            self.current_jsonld.append(data)
+
+    def handle_endtag(self, tag):
+        tag_lower = tag.lower()
+        if tag_lower == "title":
+            self.in_title = False
+        elif tag_lower == "h1":
+            self.in_h1 = False
+        elif tag_lower == "script" and self.in_jsonld:
+            self.in_jsonld = False
+            raw_script = "".join(self.current_jsonld).strip()
+            if raw_script:
+                self.jsonld_scripts.append(raw_script)
+            self.current_jsonld = []
+
+def extract_brand_from_jsonld(jsonld_scripts):
+    for raw_json in jsonld_scripts:
+        try:
+            data = json.loads(raw_json)
+            nodes = data if isinstance(data, list) else [data]
+            if isinstance(data, dict) and "@graph" in data and isinstance(data["@graph"], list):
+                nodes = data["@graph"]
+
+            for node in nodes:
+                if not isinstance(node, dict):
+                    continue
+                type_val = node.get("@type", "")
+                if isinstance(type_val, list):
+                    type_strs = [str(t).lower() for t in type_val]
+                else:
+                    type_strs = [str(type_val).lower()]
+
+                if any(t in ["organization", "brand", "corporation", "localbusiness"] for t in type_strs):
+                    name = node.get("name")
+                    if isinstance(name, str) and name.strip():
+                        return name.strip()
+        except Exception:
+            pass
+    return None
+
+def find_candidate_brand_phrase(parsed_pages):
+    # 1. Try JSON-LD first
+    for page in parsed_pages:
+        brand = extract_brand_from_jsonld(page["jsonld_scripts"])
+        if brand:
+            return brand
+
+    # 2. Extract repeated multi-word phrase or common segment from titles/H1s
+    segments = []
+    for page in parsed_pages:
+        title = page["title"]
+        h1 = page["h1"]
+        for text in [title, h1]:
+            if not text:
+                continue
+            # Split on common delimiters like |, -, :, —, •
+            parts = re.split(r'[\|\-\:—•]', text)
+            for p in parts:
+                cleaned = p.strip()
+                if len(cleaned.split()) >= 1 and len(cleaned) >= 2:
+                    segments.append(cleaned)
+
+    # Count occurrences of segments
+    counts = {}
+    for seg in segments:
+        seg_lower = seg.lower()
+        counts[seg_lower] = counts.get(seg_lower, 0) + 1
+
+    # Filter for segments appearing >= 2 times (or find most frequent capitalized segment)
+    best_candidate = None
+    max_count = 1
+    for seg, count in counts.items():
+        if count > max_count:
+            # Pick original casing from segments
+            for orig in segments:
+                if orig.lower() == seg:
+                    best_candidate = orig
+                    max_count = count
+                    break
+
+    return best_candidate
+
+def check_descriptor_consistency(pages_data):
+    if not isinstance(pages_data, list):
+        pages_data = []
+
+    parsed_pages = []
+    for item in pages_data:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("url", "")
+        html = item.get("html", "")
+        
+        parser = PageHeaderParser()
+        try:
+            if html:
+                parser.feed(html)
+        except Exception:
+            pass
+
+        title_str = " ".join("".join(parser.title_text).split())
+        h1_str = " ".join("".join(parser.h1_text).split())
+
+        parsed_pages.append({
+            "url": url,
+            "title": title_str if title_str else None,
+            "h1": h1_str if h1_str else None,
+            "jsonld_scripts": parser.jsonld_scripts
+        })
+
+    candidate_brand = find_candidate_brand_phrase(parsed_pages)
+
+    # Core brand without legal designators (Inc, LLC, Ltd, Corp, Corporation, Co)
+    core_brand = None
+    if candidate_brand:
+        core_brand = re.sub(r'\b(Inc\.?|LLC|Ltd\.?|Corporation|Corp\.?|Co\.?)\b', '', candidate_brand, flags=re.IGNORECASE).strip()
+        if len(core_brand) < 2:
+            core_brand = candidate_brand
+
+    results = []
+    for p in parsed_pages:
+        title_has_brand = False
+        h1_has_brand = False
+
+        if candidate_brand:
+            cb_lower = candidate_brand.lower()
+            core_lower = core_brand.lower() if core_brand else cb_lower
+
+            if p["title"]:
+                t_lower = p["title"].lower()
+                title_has_brand = (cb_lower in t_lower) or (core_lower in t_lower)
+            if p["h1"]:
+                h1_lower = p["h1"].lower()
+                h1_has_brand = (cb_lower in h1_lower) or (core_lower in h1_lower)
+
+        results.append({
+            "url": p["url"],
+            "title": p["title"],
+            "h1": p["h1"],
+            "brand_phrase_present_in_title": title_has_brand,
+            "brand_phrase_present_in_h1": h1_has_brand
+        })
+
+    return {
+        "candidate_brand_phrase": candidate_brand,
+        "pages_audited": len(results),
+        "pages": results
+    }
+
+if __name__ == "__main__":
+    try:
+        raw_input = sys.stdin.read() if not sys.stdin.isatty() else '{}'
+        try:
+            params = json.loads(raw_input) if raw_input.strip() else {}
+        except json.JSONDecodeError:
+            params = {}
+
+        pages_data = params.get("pages", [])
+        if not pages_data and ("url" in params or "html" in params):
+            pages_data = [params]
+
+        result = check_descriptor_consistency(pages_data)
+        print(json.dumps(result, indent=2))
+    except Exception as e:
+        print(json.dumps({
+            "candidate_brand_phrase": None,
+            "pages_audited": 0,
+            "pages": [],
+            "script_error": str(e)
+        }))

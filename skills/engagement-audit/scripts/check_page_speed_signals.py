@@ -1,88 +1,118 @@
 import sys
 import json
-import re
-import html.parser
+import urllib.parse
+import urllib.request
+import urllib.error
+from html.parser import HTMLParser
 
-class SpeedSignalParser(html.parser.HTMLParser):
-    def __init__(self):
+class PageSpeedResourceParser(HTMLParser):
+    def __init__(self, base_url):
         super().__init__()
-        self.script_count = 0
-        self.external_scripts = 0
-        self.inline_scripts = 0
-        self.stylesheet_count = 0
-        self.inline_style_bytes = 0
+        self.base_url = base_url
+        self.css_js_urls = []
         self.image_count = 0
-        self.images_without_lazy = 0
-        self.total_nodes = 0
 
     def handle_starttag(self, tag, attrs):
-        self.total_nodes += 1
-        attrs_dict = {k.lower(): str(v) for k, v in attrs if k and v}
-        
-        if tag == "script":
-            self.script_count += 1
-            if "src" in attrs_dict:
-                self.external_scripts += 1
-            else:
-                self.inline_scripts += 1
-        elif tag == "link":
-            rel = attrs_dict.get("rel", "").lower()
-            if "stylesheet" in rel:
-                self.stylesheet_count += 1
-        elif tag == "style":
+        try:
+            tag_lower = tag.lower()
+            attrs_dict = {k.lower(): str(v) for k, v in attrs if k and v}
+
+            if tag_lower == "link":
+                rel = attrs_dict.get("rel", "").lower()
+                href = attrs_dict.get("href", "").strip()
+                if "stylesheet" in rel and href and not href.startswith(("data:", "javascript:", "#")):
+                    abs_url = urllib.parse.urljoin(self.base_url, href)
+                    self.css_js_urls.append(abs_url)
+            elif tag_lower == "script":
+                src = attrs_dict.get("src", "").strip()
+                if src and not src.startswith(("data:", "javascript:", "#")):
+                    abs_url = urllib.parse.urljoin(self.base_url, src)
+                    self.css_js_urls.append(abs_url)
+            elif tag_lower == "img":
+                self.image_count += 1
+        except Exception:
             pass
-        elif tag == "img":
-            self.image_count += 1
-            loading = attrs_dict.get("loading", "").lower()
-            if loading != "lazy":
-                self.images_without_lazy += 1
 
-    def handle_data(self, data):
-        if self.lasttag == "style" and data:
-            self.inline_style_bytes += len(data.encode('utf-8'))
-
-def check_page_speed_signals(html_content, url):
-    if not html_content:
-        html_content = ""
-
-    html_bytes = len(html_content.encode('utf-8'))
-    html_kb = round(html_bytes / 1024.0, 2)
-
-    parser = SpeedSignalParser()
+def fetch_content_length(url, timeout=3):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AntigravityAudit/1.0"}
+    
+    # Try HEAD request first
+    req = urllib.request.Request(url, headers=headers, method="HEAD")
     try:
-        parser.feed(html_content)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            cl = resp.headers.get("Content-Length")
+            if cl and cl.isdigit():
+                return int(cl), None
+    except urllib.error.HTTPError as e:
+        # Fall back to GET if 405 Method Not Allowed or 403
+        if e.code in [405, 403, 501]:
+            try:
+                req_get = urllib.request.Request(url, headers=headers, method="GET")
+                with urllib.request.urlopen(req_get, timeout=timeout) as resp_get:
+                    cl = resp_get.headers.get("Content-Length")
+                    if cl and cl.isdigit():
+                        return int(cl), None
+                    # Fallback: measure actual read payload size if Content-Length header missing
+                    body = resp_get.read(10 * 1024 * 1024)  # Read up to 10MB
+                    return len(body), None
+            except Exception as get_err:
+                return None, f"GET fallback failed: {str(get_err)}"
+        return None, f"HTTP Error {e.code}: {e.reason}"
+    except Exception as head_err:
+        # Fall back to GET on general head exception
+        try:
+            req_get = urllib.request.Request(url, headers=headers, method="GET")
+            with urllib.request.urlopen(req_get, timeout=timeout) as resp_get:
+                cl = resp_get.headers.get("Content-Length")
+                if cl and cl.isdigit():
+                    return int(cl), None
+                body = resp_get.read(10 * 1024 * 1024)
+                return len(body), None
+        except Exception as get_err:
+            return None, f"Fetch failed: {str(head_err)}"
+
+def check_page_speed_signals(params):
+    html_content = params.get("html", "") or ""
+    url = params.get("url", "") or "https://example.com"
+
+    html_bytes = len(html_content.encode("utf-8")) if isinstance(html_content, str) else 0
+
+    parser = PageSpeedResourceParser(url)
+    try:
+        if html_content:
+            parser.feed(html_content)
     except Exception:
         pass
 
-    # Performance risk thresholds
-    is_heavy_html = html_kb > 200.0  # >200KB initial HTML
-    has_excessive_scripts = parser.external_scripts > 15
-    has_unoptimized_images = parser.image_count > 5 and (parser.images_without_lazy / parser.image_count) > 0.5
-    has_heavy_dom = parser.total_nodes > 1500
+    css_js_total_found = len(parser.css_js_urls)
+    measured_urls = parser.css_js_urls[:15]
+    css_js_measured_count = len(measured_urls)
+
+    total_css_js_bytes = 0
+    resource_fetch_errors = []
+
+    for res_url in measured_urls:
+        length, err = fetch_content_length(res_url)
+        if length is not None:
+            total_css_js_bytes += length
+        else:
+            resource_fetch_errors.append({
+                "url": res_url,
+                "error": err or "Content-Length unavailable"
+            })
+
+    image_count = parser.image_count
+    resource_count_total = css_js_total_found + image_count
 
     return {
         "url": url,
-        "payload_size_kb": html_kb,
-        "is_heavy_html_payload": is_heavy_html,
-        "dom_metrics": {
-            "estimated_dom_nodes": parser.total_nodes,
-            "has_heavy_dom": has_heavy_dom
-        },
-        "resource_counts": {
-            "total_scripts": parser.script_count,
-            "external_scripts": parser.external_scripts,
-            "inline_scripts": parser.inline_scripts,
-            "stylesheets": parser.stylesheet_count,
-            "inline_style_kb": round(parser.inline_style_bytes / 1024.0, 2),
-            "total_images": parser.image_count,
-            "images_without_lazy_loading": parser.images_without_lazy
-        },
-        "performance_friction_risks": {
-            "excessive_external_scripts": has_excessive_scripts,
-            "unoptimized_image_loading": has_unoptimized_images,
-            "heavy_html_payload": is_heavy_html,
-            "excessive_dom_nodes": has_heavy_dom
-        }
+        "html_byte_size": html_bytes,
+        "total_css_js_bytes": total_css_js_bytes,
+        "css_js_resources_total_found": css_js_total_found,
+        "css_js_resources_measured": css_js_measured_count,
+        "image_count": image_count,
+        "resource_count_total": resource_count_total,
+        "resource_fetch_errors": resource_fetch_errors
     }
 
 if __name__ == "__main__":
@@ -93,10 +123,17 @@ if __name__ == "__main__":
         except json.JSONDecodeError:
             params = {}
 
-        html_content = params.get('html', '')
-        url = params.get('url', '')
-
-        result = check_page_speed_signals(html_content, url)
+        result = check_page_speed_signals(params)
         print(json.dumps(result, indent=2))
     except Exception as e:
-        print(json.dumps({'error': f'Script execution failed: {str(e)}'}))
+        print(json.dumps({
+            "url": None,
+            "html_byte_size": 0,
+            "total_css_js_bytes": 0,
+            "css_js_resources_total_found": 0,
+            "css_js_resources_measured": 0,
+            "image_count": 0,
+            "resource_count_total": 0,
+            "resource_fetch_errors": [],
+            "script_error": str(e)
+        }))
