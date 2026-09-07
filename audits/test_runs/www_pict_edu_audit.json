@@ -1,0 +1,253 @@
+{
+  "target": "https://www.pict.edu",
+  "domain": "www.pict.edu",
+  "audited_at": "2026-09-07T11:03:16Z",
+  "total_runtime_seconds": 18.17,
+  "skills": {
+    "skill_1": {
+      "site": "www.pict.edu",
+      "audited_at": "2026-09-07T11:03:04Z",
+      "summary": {
+        "total_findings": 4,
+        "critical": 1,
+        "high": 1,
+        "medium": 1,
+        "low": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "HTTP_ACCESS_FORBIDDEN",
+          "title": "Root URL returns HTTP 403 Forbidden to AI crawlers",
+          "severity": "critical",
+          "evidence": "GET https://www.pict.edu returned HTTP 403: HTTP Error 403: Forbidden. Automated crawlers are rejected at the edge/origin.",
+          "suggested_action": {
+            "summary": "Update web server permissions, IP filtering, or edge CDN WAF rules to allow search crawlers to access the public site.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "ACC-002",
+          "code": "AI_SEARCH_BOT_BLOCKED_COMPLETELY",
+          "title": "Live AI search bot completely blocked: Google Gemini / Extended",
+          "severity": "high",
+          "evidence": "robots.txt explicitly specifies 'Disallow: /' for User-agent: google-extended.",
+          "suggested_action": {
+            "summary": "Allow google-extended on public documentation and articles so Google Gemini / Extended can cite the brand in live answers.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "ACC-003",
+          "code": "AI_TRAINING_BOT_BLOCKED",
+          "title": "AI model training scraper restricted: OpenAI Model Training",
+          "severity": "low",
+          "evidence": "robots.txt disallows gptbot on '/'. This limits bulk model training but does not prevent live search citation.",
+          "suggested_action": {
+            "summary": "Informational: Keep disallow if copyright protection is desired; allow if you wish OpenAI Model Training to pre-train on your public docs.",
+            "priority": "low"
+          }
+        },
+        {
+          "id": "ACC-004",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.pict.edu/llms.txt returned HTTP 403 and /ai.txt returned HTTP 403.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.pict.edu",
+        "total_discovered": 0,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.pict.edu"
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-10-20",
+          "days_remaining": 43,
+          "issuer": "Google Trust Services, WE1",
+          "error": null
+        },
+        "origin_status": 403,
+        "robots_txt_status": 200,
+        "llms_txt_status": 403,
+        "ai_txt_status": 403,
+        "sitemap_target": null,
+        "sitemap_status": 403,
+        "candidate_sitemaps_tested": [
+          "https://www.pict.edu/sitemap.xml"
+        ],
+        "total_discovered_urls": 0,
+        "pages_visited": [
+          {
+            "url": "https://www.pict.edu",
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 403,
+            "elapsed_ms": 1012.2,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.pict.edu",
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 403,
+            "elapsed_ms": 739.1,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.pict.edu/robots.txt",
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 1516.4,
+            "error": null
+          },
+          {
+            "url": "https://www.pict.edu/llms.txt",
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 403,
+            "elapsed_ms": 814.0,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.pict.edu/ai.txt",
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 403,
+            "elapsed_ms": 916.8,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.pict.edu/sitemap.xml",
+            "purpose": "XML Sitemap (https://www.pict.edu/sitemap.xml)",
+            "status": 403,
+            "elapsed_ms": 816.5,
+            "error": "HTTP Error 403: Forbidden"
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.pict.edu",
+      "audited_at": "2026-09-07T11:03:11Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 403: HTTP Error 403: Forbidden.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 1,
+        "per_page_metrics": [
+          {
+            "url": "https://www.pict.edu",
+            "metrics": {
+              "pass_a_status": 403,
+              "pass_b_status": 200,
+              "parity_pct": 0.0
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.pict.edu",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch /: HTTP 403 (Forbidden)",
+          "severity": "HIGH",
+          "url": "https://www.pict.edu",
+          "evidence": "Request to https://www.pict.edu failed: HTTP 403 (Forbidden)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 1,
+        "pages_with_schema": 0,
+        "schema_coverage_pct": 0.0,
+        "pages": [
+          {
+            "url": "https://www.pict.edu",
+            "status": 0,
+            "error": "HTTP 403 (Forbidden)",
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.pict.edu",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch content on /: HTTP 403 (Forbidden)",
+          "severity": "HIGH",
+          "url": "https://www.pict.edu",
+          "evidence": "Request to https://www.pict.edu failed: HTTP 403 (Forbidden)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 1,
+        "total_sections_audited": 0,
+        "total_words_audited": 0,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.pict.edu",
+            "status": 0,
+            "error": "HTTP 403 (Forbidden)",
+            "archetype": "unknown",
+            "sections_count": 0,
+            "word_count": 0,
+            "headings": []
+          }
+        ]
+      }
+    }
+  }
+}

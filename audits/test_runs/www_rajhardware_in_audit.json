@@ -1,0 +1,255 @@
+{
+  "target": "https://www.rajhardware.in/",
+  "domain": "www.rajhardware.in",
+  "audited_at": "2026-09-07T11:37:14Z",
+  "total_runtime_seconds": 18.35,
+  "skills": {
+    "skill_1": {
+      "site": "www.rajhardware.in",
+      "audited_at": "2026-09-07T11:37:07Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.rajhardware.in/llms.txt returned HTTP 429 and /ai.txt returned HTTP 429.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.rajhardware.in",
+        "total_discovered": 0,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.rajhardware.in"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://www.rajhardware.in",
+            "depth": 0,
+            "archetype": "homepage"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-10-14",
+          "days_remaining": 36,
+          "issuer": "Google Trust Services, WR1",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 429,
+        "llms_txt_status": 429,
+        "ai_txt_status": 429,
+        "sitemap_target": null,
+        "sitemap_status": 429,
+        "candidate_sitemaps_tested": [
+          "https://www.rajhardware.in/sitemap.xml"
+        ],
+        "total_discovered_urls": 0,
+        "pages_visited": [
+          {
+            "url": "https://www.rajhardware.in",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 2440.5,
+            "error": null
+          },
+          {
+            "url": "https://www.rajhardware.in",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 2176.8,
+            "error": null
+          },
+          {
+            "url": "https://www.rajhardware.in/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 429,
+            "elapsed_ms": 1389.3,
+            "error": "HTTP Error 429: Too Many Requests"
+          },
+          {
+            "url": "https://www.rajhardware.in/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 429,
+            "elapsed_ms": 729.3,
+            "error": "HTTP Error 429: Too Many Requests"
+          },
+          {
+            "url": "https://www.rajhardware.in/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 429,
+            "elapsed_ms": 1719.9,
+            "error": "HTTP Error 429: Too Many Requests"
+          },
+          {
+            "url": "https://www.rajhardware.in/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.rajhardware.in/sitemap.xml)",
+            "status": 429,
+            "elapsed_ms": 520.3,
+            "error": "HTTP Error 429: Too Many Requests"
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.rajhardware.in",
+      "audited_at": "2026-09-07T11:37:13Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 429: HTTP Error 429: Too Many Requests.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 1,
+        "per_page_metrics": [
+          {
+            "url": "https://www.rajhardware.in",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 429,
+              "pass_b_status": 200,
+              "parity_pct": 0.0,
+              "depth": 0
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.rajhardware.in",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_SAMEAS_MISSING",
+          "title": "Root entity lacks authoritative sameAs disambiguation links",
+          "severity": "MEDIUM",
+          "url": "https://www.rajhardware.in/",
+          "evidence": "Declared entity (LocalBusiness) has no 'sameAs' property pointing to verified external knowledge graphs or code/package registries.",
+          "suggested_action": "Add 'sameAs' links pointing to your official GitHub repository, Crates.io/npm/PyPI package, LinkedIn company page, or Wikidata entry."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('RAJ HARDWARE')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://www.rajhardware.in/",
+          "evidence": "The WebSite ('RAJ HARDWARE') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "LocalBusiness"
+        ],
+        "same_as_authorities": [],
+        "pages_audited": 1,
+        "pages_with_schema": 1,
+        "schema_coverage_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.rajhardware.in/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "LocalBusiness",
+              "PostalAddress",
+              "WebSite"
+            ]
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.rajhardware.in",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "content_profile": {
+        "pages_audited": 1,
+        "total_sections_audited": 13,
+        "total_words_audited": 386,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.rajhardware.in/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 13,
+            "word_count": 386,
+            "headings": [
+              "Leaders in Power Tools, Safety & Industrial Solutions",
+              "Mission",
+              "Sectors",
+              "Construction",
+              "Manufacturing",
+              "Engineering",
+              "Products",
+              "Latest Projects",
+              "Aqua Line - Mumbai Metro",
+              "Waterstone - Andheri",
+              "Equinix Data Centre - Navi Mumbai",
+              "Contact Us"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

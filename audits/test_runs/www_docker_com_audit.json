@@ -1,0 +1,1787 @@
+{
+  "target": "https://www.docker.com",
+  "domain": "www.docker.com",
+  "audited_at": "2026-09-07T12:03:12Z",
+  "total_runtime_seconds": 160.91,
+  "skills": {
+    "skill_1": {
+      "site": "www.docker.com",
+      "audited_at": "2026-09-07T12:00:47Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.docker.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.docker.com",
+        "total_discovered": 947,
+        "doc_pages": [],
+        "blog_pages": [
+          "https://www.docker.com/blog/",
+          "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+          "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+          "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+          "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/"
+        ],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.docker.com",
+          "https://www.docker.com/blog/",
+          "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+          "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+          "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+          "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "https://www.docker.com/blog/docker-vmm-public-beta/",
+          "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+          "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+          "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "archetype": "article"
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "archetype": "article"
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+            "depth": 2,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-10-28",
+          "days_remaining": 50,
+          "issuer": "Let's Encrypt, YR1",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 404,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://www.docker.com/sitemap_index.xml",
+        "sitemap_status": 200,
+        "candidate_sitemaps_tested": [
+          "https://www.docker.com/sitemap_index.xml",
+          "https://www.docker.com/ja-jp/sitemap_index.xml",
+          "https://www.docker.com/sitemap.xml"
+        ],
+        "total_discovered_urls": 947,
+        "pages_visited": [
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 869.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 1442.1,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 399.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 404,
+            "elapsed_ms": 288.9,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.docker.com/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 1441.7,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.docker.com/sitemap_index.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.docker.com/sitemap_index.xml)",
+            "status": 200,
+            "elapsed_ms": 1120.4,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/post-sitemap1.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/post-sitemap1.xml)",
+            "status": 200,
+            "elapsed_ms": 1243.5,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/post-sitemap2.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/post-sitemap2.xml)",
+            "status": 200,
+            "elapsed_ms": 1250.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/post-sitemap3.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/post-sitemap3.xml)",
+            "status": 200,
+            "elapsed_ms": 1265.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/post-sitemap4.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/post-sitemap4.xml)",
+            "status": 200,
+            "elapsed_ms": 1135.8,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/post-sitemap5.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/post-sitemap5.xml)",
+            "status": 200,
+            "elapsed_ms": 1219.2,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /blog/)",
+            "status": 200,
+            "elapsed_ms": 601.8,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /blog/)",
+            "status": 200,
+            "elapsed_ms": 525.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /blog/the-3cs-a-framework-for-ai-agent-security/)",
+            "status": 200,
+            "elapsed_ms": 510.4,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /blog/the-3cs-a-framework-for-ai-agent-security/)",
+            "status": 200,
+            "elapsed_ms": 699.3,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/)",
+            "status": 200,
+            "elapsed_ms": 623.5,
+            "error": null
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/)",
+            "status": 200,
+            "elapsed_ms": 816.0,
+            "error": null
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.docker.com",
+      "audited_at": "2026-09-07T12:02:57Z",
+      "summary": {
+        "total_findings": 15,
+        "critical": 0,
+        "high": 0,
+        "medium": 15,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7724ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7724ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7158ms) exceeds crawl time budget on /blog/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7158ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (9077ms) exceeds crawl time budget on /blog/the-3cs-a-framework-for-ai-agent-security/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 9077ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7406ms) exceeds crawl time budget on /blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7406ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7397ms) exceeds crawl time budget on /blog/moving-from-minimus-to-docker-hardened-images/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7397ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7785ms) exceeds crawl time budget on /blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7785ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6598ms) exceeds crawl time budget on /blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6598ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7430ms) exceeds crawl time budget on /blog/ai-agent-security-systems-problem/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7430ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7182ms) exceeds crawl time budget on /blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7182ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7792ms) exceeds crawl time budget on /blog/make-zero-cves-your-new-default/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7792ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7094ms) exceeds crawl time budget on /blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7094ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (11081ms) exceeds crawl time budget on /blog/docker-vmm-public-beta/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 11081ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (10205ms) exceeds crawl time budget on /blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 10205ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7860ms) exceeds crawl time budget on /blog/governance-is-a-developer-experience-problem/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7860ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7485ms) exceeds crawl time budget on /blog/runtime-enforcement-not-runtime-advice/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7485ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 15,
+        "per_page_metrics": [
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 664.1,
+              "pass_b_latency_ms": 7724.3,
+              "parity_pct": 93.0,
+              "sentences_pass_a": 53,
+              "sentences_pass_b": 57,
+              "pass_a_excerpt": "Accelerate agent adoption, safely.   Full autonomy for any agent. Full confidence for your security team.  Get Started Docker Sandboxes  Docker Sandboxes MicroVM isolation for every agent session. Network and filesystem locked down at the runtime. Re",
+              "pass_b_excerpt": "Accelerate agent adoption, safely. \r  Full autonomy for any agent. Full confidence for your security team.\r  Get Started\r Docker Sandboxes  $ brew install docker/tap/sbx Tapping docker/tap and installing sbx ...  \u2847 Mounting workspace: /usr/local/bin",
+              "missing_sentences_count": 4,
+              "missing_content_blocks": [
+                "$ brew install docker/tap/sbx Tapping docker/tap and installing sbx ... \u2847 Mounting workspace: /usr/local/bin",
+                "\u2847 Network policy: deny all, allow 42 hostnames"
+              ],
+              "missing_snippets_sample": [
+                "$ brew install docker/tap/sbx",
+                "Tapping docker/tap and installing sbx ...",
+                "\u2847 Mounting workspace: /usr/local/bin"
+              ],
+              "depth": 0
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 650.9,
+              "pass_b_latency_ms": 7157.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 28,
+              "sentences_pass_b": 28,
+              "pass_a_excerpt": "Docker Blog  Aug 18, 2026   17,600 Actions: Agent Security Is a Systems Problem The OpenAI/Hugging Face incident exposed a new challenge for AI agent security. 17,600 attacker actions show why AI agent security can't rely on human review. Explore the",
+              "pass_b_excerpt": "Docker Blog\r  Aug 18, 2026 \r  17,600 Actions: Agent Security Is a Systems Problem\r The OpenAI/Hugging Face incident exposed a new challenge for AI agent security. 17,600 attacker actions show why AI agent security can't rely on human review. Explore",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 473.2,
+              "pass_b_latency_ms": 9077.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 94,
+              "sentences_pass_b": 101,
+              "pass_a_excerpt": "The 3Cs: A Framework for AI Agent Security  Posted Feb 3, 2026  Srini Sekaran   and  Eli Aleyner  Every time execution models change, security frameworks need to change with them. Agents force the next shift.  The Unattended Laptop Problem  No develo",
+              "pass_b_excerpt": "The 3Cs: A Framework for AI Agent Security\r  Posted Feb 3, 2026\r  Srini Sekaran \r  and\r  Eli Aleyner \r Every time execution models change, security frameworks need to change with them. Agents force the next shift.  The Unattended Laptop Problem  No d",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 609.9,
+              "pass_b_latency_ms": 7406.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 69,
+              "sentences_pass_b": 71,
+              "pass_a_excerpt": "MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS  Posted Aug 24, 2026  Vishrut Iyengar   MinIO reached end of life in February 2026. Docker Extended Lifecycle Support (ELS) keeps end-of-life software like it patched, compliant,",
+              "pass_b_excerpt": "MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS\r  Posted Aug 24, 2026\r  Vishrut Iyengar \r  MinIO reached end of life in February 2026. Docker Extended Lifecycle Support (ELS) keeps end-of-life software like it patched, complian",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 473.2,
+              "pass_b_latency_ms": 7396.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 42,
+              "sentences_pass_b": 42,
+              "pass_a_excerpt": "Moving from Minimus to Docker Hardened Images  Posted Aug 25, 2026  Vishrut Iyengar   and  Ranti Familusi  The hardened-images space gets better when more people are working on the problem, and Minimus has been a valuable part of that work. That chan",
+              "pass_b_excerpt": "Moving from Minimus to Docker Hardened Images\r  Posted Aug 25, 2026\r  Vishrut Iyengar \r  and\r  Ranti Familusi \r The hardened-images space gets better when more people are working on the problem, and Minimus has been a valuable part of that work. That",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 704.7,
+              "pass_b_latency_ms": 7784.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 50,
+              "sentences_pass_b": 54,
+              "pass_a_excerpt": "Docker Verified Publisher Applications Are Now Self-Serve  Posted Aug 20, 2026  Julia Wilson   and  Dan Stelzer   Curating trusted content for the agentic software era While AI made it easier for organizations to keep up with the latest innovations,",
+              "pass_b_excerpt": "Docker Verified Publisher Applications Are Now Self-Serve\r  Posted Aug 20, 2026\r  Julia Wilson \r  and\r  Dan Stelzer \r  Curating trusted content for the agentic software era\r While AI made it easier for organizations to keep up with the latest innovat",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 581.8,
+              "pass_b_latency_ms": 6597.5,
+              "parity_pct": 99.2,
+              "sentences_pass_a": 122,
+              "sentences_pass_b": 127,
+              "pass_a_excerpt": "Running AI agents in GitHub Actions with Docker Sandboxes  Posted Aug 21, 2026  Oleg Selajev  In July 2026, GitHub Agentic Workflows added Docker Sandboxes as a supported agent runtime . It means that in your CI an AI coding agent can have broad cont",
+              "pass_b_excerpt": "Running AI agents in GitHub Actions with Docker Sandboxes\r  Posted Aug 21, 2026\r  Oleg Selajev \r In July 2026, GitHub Agentic Workflows added Docker Sandboxes as a supported agent runtime . It means that in your CI an AI coding agent can have broad c",
+              "missing_sentences_count": 1,
+              "missing_content_blocks": [
+                "gh extension install github /gh-aw"
+              ],
+              "missing_snippets_sample": [
+                "gh extension install github /gh-aw"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 635.0,
+              "pass_b_latency_ms": 7430.3,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 149,
+              "sentences_pass_b": 152,
+              "pass_a_excerpt": "17,600 Actions: Agent Security Is a Systems Problem  Posted Aug 18, 2026  Mark Cavage   Everyone has been talking about the OpenAI/Hugging Face incident, and I was initially skeptical that Docker had much to add. After several weeks of customer conve",
+              "pass_b_excerpt": "17,600 Actions: Agent Security Is a Systems Problem\r  Posted Aug 18, 2026\r  Mark Cavage \r  Everyone has been talking about the OpenAI/Hugging Face incident, and I was initially skeptical that Docker had much to add. After several weeks of customer co",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 636.7,
+              "pass_b_latency_ms": 7182.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 191,
+              "sentences_pass_b": 197,
+              "pass_a_excerpt": "Coding Agent Horror Stories: The Command You Already Approved  Posted Aug 18, 2026  Ajeet Singh Raina  This is Part 5 of our AI Coding Agent Horror Stories series, a look at real security incidents involving AI coding agents, and how Docker Sandboxes",
+              "pass_b_excerpt": "Coding Agent Horror Stories: The Command You Already Approved\r  Posted Aug 18, 2026\r  Ajeet Singh Raina \r This is Part 5 of our AI Coding Agent Horror Stories series, a look at real security incidents involving AI coding agents, and how Docker Sandbo",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 707.6,
+              "pass_b_latency_ms": 7791.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 113,
+              "sentences_pass_b": 119,
+              "pass_a_excerpt": "Make zero CVEs your new default  Posted Aug 17, 2026  Vishrut Iyengar  Supply-chain attacks have stopped being isolated incidents somewhere in the past year. The compromises now reach the tools the industry trusts to defend itself, with Trivy and KIC",
+              "pass_b_excerpt": "Make zero CVEs your new default\r  Posted Aug 17, 2026\r  Vishrut Iyengar \r Supply-chain attacks have stopped being isolated incidents somewhere in the past year. The compromises now reach the tools the industry trusts to defend itself, with Trivy and",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 509.2,
+              "pass_b_latency_ms": 7094.2,
+              "parity_pct": 89.6,
+              "sentences_pass_a": 102,
+              "sentences_pass_b": 115,
+              "pass_a_excerpt": "Docker Captain  Reproducible ESP32 Firmware Development with Docker and Docker Sandboxes  Posted Aug 14, 2026  Marco Franzon  Firmware development has always been challenging: mismatched toolchains, \"it works on my machine\" builds, and the tension be",
+              "pass_b_excerpt": "Docker Captain\r  Reproducible ESP32 Firmware Development with Docker and Docker Sandboxes\r  Posted Aug 14, 2026\r  Marco Franzon \r Firmware development has always been challenging: mismatched toolchains, \"it works on my machine\" builds, and the tensio",
+              "missing_sentences_count": 12,
+              "missing_content_blocks": [
+                "espressif /idf :release-v5.4 idf.py build espressif /idf :release-v5.4 idf.py flash monitor esp_rfc2217_server -p 4000 /dev/cu .usbserial-1420",
+                "image: espressif /idf :release-v5.4 volumes: [ \"./new-feature:/project\" ] devices: [ \"/dev/esp32-experimental:/dev/ttyUSB0\" ]",
+                "image: espressif /idf :release-v5.3 volumes: [ \"./legacy:/project\" ] devices: [ \"/dev/esp32-production:/dev/ttyUSB0\" ]",
+                "sbx run claude ~ /firmware/new-feature - uses: actions /checkout @v4 - uses: espressif /esp-idf-ci-action @v1"
+              ],
+              "missing_snippets_sample": [
+                "espressif /idf :release-v5.4 idf.py build",
+                "espressif /idf :release-v5.4 idf.py flash monitor",
+                "esp_rfc2217_server -p 4000 /dev/cu .usbserial-1420"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 824.4,
+              "pass_b_latency_ms": 11081.3,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 65,
+              "sentences_pass_b": 68,
+              "pass_a_excerpt": "Docker VMM Public Beta: A Complete Overhaul, Built for Performance  Posted Aug 12, 2026  Deanna Sparks   and  Colin Hemmings  Today we're announcing the public beta of a fully rebuilt Docker VMM: a new first-party virtualization layer underneath Dock",
+              "pass_b_excerpt": "Docker VMM Public Beta: A Complete Overhaul, Built for Performance\r  Posted Aug 12, 2026\r  Deanna Sparks \r  and\r  Colin Hemmings \r Today we're announcing the public beta of a fully rebuilt Docker VMM: a new first-party virtualization layer underneath",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 691.4,
+              "pass_b_latency_ms": 10204.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 96,
+              "sentences_pass_b": 101,
+              "pass_a_excerpt": "A new security baseline for enterprise agentic adoption  Posted Aug 12, 2026  Eli Aleyner   and  Ranti Familusi   Agent Baseline is a blueprint for AI adoption that defines six security outcomes for putting enterprise agents to work without giving th",
+              "pass_b_excerpt": "A new security baseline for enterprise agentic adoption\r  Posted Aug 12, 2026\r  Eli Aleyner \r  and\r  Ranti Familusi \r  Agent Baseline is a blueprint for AI adoption that defines six security outcomes for putting enterprise agents to work without givi",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 875.6,
+              "pass_b_latency_ms": 7860.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 80,
+              "sentences_pass_b": 81,
+              "pass_a_excerpt": "Docker Captain  Governance Is a Developer Experience Problem  Posted Aug 5, 2026  Karan Verma  This is the third post of a 3-part series by Docker Captain Karan Verma. Catch up on Part 1: Your Laptop Is the New Production Environment and Part 2: Runt",
+              "pass_b_excerpt": "Docker Captain\r  Governance Is a Developer Experience Problem\r  Posted Aug 5, 2026\r  Karan Verma \r This is the third post of a 3-part series by Docker Captain Karan Verma. Catch up on Part 1: Your Laptop Is the New Production Environment and Part 2:",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 705.8,
+              "pass_b_latency_ms": 7484.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 100,
+              "sentences_pass_b": 105,
+              "pass_a_excerpt": "Docker Captain  Runtime Enforcement, Not Runtime Advice  Posted Jul 22, 2026  Karan Verma  In Part 1 , we explored why traditional security models struggle with autonomous agents. As developers begin delegating more work to AI systems, a growing amou",
+              "pass_b_excerpt": "Docker Captain\r  Runtime Enforcement, Not Runtime Advice\r  Posted Jul 22, 2026\r  Karan Verma \r In Part 1 , we explored why traditional security models struggle with autonomous agents. As developers begin delegating more work to AI systems, a growing",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.docker.com",
+      "summary": {
+        "total_findings": 15,
+        "critical": 0,
+        "high": 0,
+        "medium": 15,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/the-3cs-a-framework-for-ai-agent-security/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-004",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-005",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/moving-from-minimus-to-docker-hardened-images/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-006",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-007",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-008",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/ai-agent-security-systems-problem/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-009",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-010",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/make-zero-cves-your-new-default/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-011",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-012",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/docker-vmm-public-beta/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-013",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-014",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/governance-is-a-developer-experience-problem/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-015",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/runtime-enforcement-not-runtime-advice/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Corporation"
+        ],
+        "same_as_authorities": [
+          "https://x.com/docker",
+          "https://www.linkedin.com/company/docker",
+          "https://github.com/docker"
+        ],
+        "pages_audited": 15,
+        "pages_with_schema": 15,
+        "schema_coverage_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Corporation",
+              "ImageObject",
+              "SearchAction",
+              "VideoObject",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BreadcrumbList",
+              "CollectionPage",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "SearchAction",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "Brand",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "Thing",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Person",
+              "SearchAction",
+              "VideoObject",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BlogPosting",
+              "BreadcrumbList",
+              "Corporation",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.docker.com",
+      "summary": {
+        "total_findings": 20,
+        "critical": 0,
+        "high": 1,
+        "medium": 5,
+        "low": 0,
+        "info": 14
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/",
+          "evidence": "Page contains 367 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-002",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "evidence": "Page contains 1064 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-003",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "evidence": "Page contains 1029 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-004",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+          "evidence": "Page contains 731 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-005",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+          "evidence": "Page contains 821 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-006",
+          "code": "RAG_SECTION_CONTENT_FLOODING",
+          "title": "Section 'Giving the agent a defect worth finding' contains continuous prose flooding (424 words)",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "evidence": "Section contains 424 words of continuous prose without subheadings, bullet lists, or tables, triggering 'Lost in the Middle' attention degradation in LLM retrieval.\nSection Opening Excerpt:\n  \"The sample is a small Java 21 registration service. Its requirements say that email addresses are case-insensitive. The seeded implementation stores them as provided and relies on PostgreSQL\u2019s case-sensitive unique constraint. An existing Testcontainers integr...\"",
+          "suggested_action": "Break this section into self-contained 40-80 word paragraphs and introduce subheadings (<h3>) or bulleted lists."
+        },
+        {
+          "id": "CNT-007",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+          "evidence": "Page contains 1786 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-008",
+          "code": "RAG_SECTION_CONTENT_FLOODING",
+          "title": "Section 'How I work' contains continuous prose flooding (460 words)",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+          "evidence": "Section contains 460 words of continuous prose without subheadings, bullet lists, or tables, triggering 'Lost in the Middle' attention degradation in LLM retrieval.\nSection Opening Excerpt:\n  \"I use agents every day, and I assume that a sufficiently capable agent will eventually try something I did not anticipate (perhaps on a daily basis\u2026). For the most part, I do not run one general-purpose agent with access to everything. I use task-focused agent...\"",
+          "suggested_action": "Break this section into self-contained 40-80 word paragraphs and introduce subheadings (<h3>) or bulleted lists."
+        },
+        {
+          "id": "CNT-009",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+          "evidence": "Page contains 2628 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-010",
+          "code": "RAG_SECTION_CONTENT_FLOODING",
+          "title": "Section 'How Docker Sandboxes Contain This at the Execution Layer' contains continuous prose flooding (518 words)",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "evidence": "Section contains 518 words of continuous prose without subheadings, bullet lists, or tables, triggering 'Lost in the Middle' attention degradation in LLM retrieval.\nSection Opening Excerpt:\n  \"Docker Sandboxes run AI coding agents in isolated microVMs, each with its own kernel, filesystem, and deny-by-default network, so a compromised dependency an agent pulls cannot reach the host, its credentials, or other workloads. Inside that box the agent can ...\"",
+          "suggested_action": "Break this section into self-contained 40-80 word paragraphs and introduce subheadings (<h3>) or bulleted lists."
+        },
+        {
+          "id": "CNT-011",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Conclusion' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "evidence": "Heading 'Conclusion' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The uncomfortable thing about CVE-2026-22708 is that nobody in the story did anything wrong. Cursor built an allowlist, which is what everyone asked for. The developer approved git branch , which any of us would have approved. The check inspected the command a...\"",
+          "suggested_action": "Rename 'Conclusion' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-012",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+          "evidence": "Page contains 3342 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-013",
+          "code": "RAG_CHUNK_ORPHAN_PRONOUN",
+          "title": "Section 'A trusted foundation for the whole supply chain' opens with an ambiguous pronoun (orphan chunk risk)",
+          "severity": "HIGH",
+          "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+          "evidence": "Opening sentence: 'It all starts from one principle, and Docker Hardened Images was built on it.'\nActual Section Content Excerpt:\n  \"It all starts from one principle, and Docker Hardened Images was built on it. Security that doesn\u2019t get adopted doesn\u2019t secure anything. The entire catalog is free for every developer, because a secure baseline shouldn\u2019t be a premium feature. Every image is co...\"\nThe section relies on an ambiguous pronoun rather than naming the explicit subject entity.",
+          "suggested_action": "Replace the opening pronoun with the explicit brand or technical noun (e.g. name the tool/feature directly) so RAG vector chunkers retain context."
+        },
+        {
+          "id": "CNT-014",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+          "evidence": "Page contains 1829 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-015",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Conclusion' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "evidence": "Heading 'Conclusion' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"Docker turned ESP32 builds from a fragile, machine-specific ritual into something reproducible enough to trust. Parallel containers turn one desk into a small hardware lab, with legacy and next-gen firmware coexisting without friction. And Docker Sandboxes clo...\"",
+          "suggested_action": "Rename 'Conclusion' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-016",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+          "evidence": "Page contains 1999 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-017",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+          "evidence": "Page contains 952 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-018",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+          "evidence": "Page contains 1385 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-019",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+          "evidence": "Page contains 935 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-020",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+          "evidence": "Page contains 1158 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 224,
+        "total_words_audited": 20570,
+        "autonomous_chunk_ratio_pct": 99.5,
+        "pages": [
+          {
+            "url": "https://www.docker.com",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 23,
+            "word_count": 544,
+            "headings": [
+              "Accelerate agent adoption, safely.",
+              "Docker Sandboxes",
+              "Docker AI Governance",
+              "Docker Hardened Images",
+              "Invisible to developers. Total control for security.",
+              "Your laptop. One command.",
+              "Your console. Zero checks .",
+              "The runtime under every agent",
+              "Isolation you can trust",
+              "Nothing to rip and replace",
+              "Start local. Scale anywhere.",
+              "No lock-in. Ever.",
+              "Unlock the Autonomy of Agents, Safely",
+              "Lower cost through trusted autonomy.",
+              "Ship faster. Without the breach.",
+              "Compliant by default.",
+              "From the company that secured the developer laptop for the enterprise.",
+              "91%",
+              "20B+",
+              "20M+",
+              "Docker Desktop",
+              "Build better, together"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 11,
+            "word_count": 367,
+            "headings": [
+              "Docker Blog",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World",
+              "Secure by default is your only way forward",
+              "Moving from Minimus to Docker Hardened Images",
+              "MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS",
+              "Running AI agents in GitHub Actions with Docker Sandboxes",
+              "Docker Verified Publisher Applications Are Now Self-Serve"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 15,
+            "word_count": 1064,
+            "headings": [
+              "The 3Cs: A Framework for AI Agent Security",
+              "The Unattended Laptop Problem",
+              "Why AI Agents Break Existing Governance",
+              "AI Governance and the Execution Layer: The Three Cs Framework",
+              "Contain: Bound the Blast Radius",
+              "Curate: Define the Agent\u2019s Environment",
+              "Control: Enforce Boundaries in Real Time",
+              "Putting the 3Cs Into Practice",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 10,
+            "word_count": 1029,
+            "headings": [
+              "MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS",
+              "MinIO lives on as the newest ELS update",
+              "Extended Lifecycle Support for your whole fleet",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 9,
+            "word_count": 731,
+            "headings": [
+              "Moving from Minimus to Docker Hardened Images",
+              "Docker Hardened Images",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 12,
+            "word_count": 821,
+            "headings": [
+              "Docker Verified Publisher Applications Are Now Self-Serve",
+              "Curating trusted content for the agentic software era",
+              "What\u2019s new in Docker Verified Publisher Applications",
+              "Turn pulls into reach: One badge for all your content",
+              "What DVP means for developers",
+              "Get started",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/running-ai-agents-in-github-actions-with-docker-sandboxes/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 13,
+            "word_count": 1786,
+            "headings": [
+              "Running AI agents in GitHub Actions with Docker Sandboxes",
+              "What are GitHub Agentic Workflows?",
+              "Configuring sbx in GitHub Actions",
+              "The isolation boundary is a micro VM",
+              "Giving the agent a defect worth finding",
+              "Running the workflow yourself",
+              "Try sbx on your laptop",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/ai-agent-security-systems-problem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 13,
+            "word_count": 2628,
+            "headings": [
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "What happened",
+              "The controls this requires",
+              "Where Docker fits today, and where we do not",
+              "The operational tradeoff",
+              "How I work",
+              "Conclusion: Security at agent speed",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 23,
+            "word_count": 3342,
+            "headings": [
+              "Coding Agent Horror Stories: The Command You Already Approved",
+              "Today\u2019s Horror Story: The Approval That Ran Something Else",
+              "The Problem",
+              "The Scale of the Problem",
+              "Technical Breakdown: How the Attack Works",
+              "1. The half you never see",
+              "2. The half you approve",
+              "The Impact",
+              "How Docker Sandboxes Contain This at the Execution Layer",
+              "Codify the Boundary with Kits",
+              "What This Looks Like in Practice",
+              "Making This Hold Across a Team",
+              "Best Practices",
+              "Take Action",
+              "Conclusion",
+              "Learn more",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/make-zero-cves-your-new-default/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 15,
+            "word_count": 1829,
+            "headings": [
+              "Make zero CVEs your new default",
+              "A trusted foundation for the whole supply chain",
+              "Built from source, down to every package",
+              "Patch past end of life",
+              "Customize at scale, manage as code",
+              "Harden beyond base images",
+              "Govern it all with Docker Scout policy",
+              "The foundation is already in your stack",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/reproducible-esp32-firmware-development-with-docker-and-docker-sandboxes/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 20,
+            "word_count": 1999,
+            "headings": [
+              "Reproducible ESP32 Firmware Development with Docker and Docker Sandboxes",
+              "Part 1: The Baseline \u2013 Building with the Official Image",
+              "Flashing and monitoring",
+              "Hide it behind a Makefile",
+              "Part 2: Parallel Environments \u2013 New Features and Legacy, Side by Side",
+              "Stable device names with udev",
+              "Or codify it with Compose",
+              "Part 3: Docker Sandboxes \u2013 Letting AI Agents Work Unsupervised",
+              "But how does the agent flash a board?",
+              "Honest caveats",
+              "Part 4: Putting It Together \u2013 A Daily Workflow",
+              "Pro Tips",
+              "Conclusion",
+              "Learn more",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/docker-vmm-public-beta/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 15,
+            "word_count": 952,
+            "headings": [
+              "Docker VMM Public Beta: A Complete Overhaul, Built for Performance",
+              "What\u2019s Changed, and Why It Matters",
+              "The Performance Improvements Are Real",
+              "One Engine, Everywhere You Run Docker",
+              "How To Enable It",
+              "What\u2019s Next",
+              "Try It Today",
+              "Learn more",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/a-new-security-baseline-for-enterprise-agentic-adoption/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 13,
+            "word_count": 1385,
+            "headings": [
+              "A new security baseline for enterprise agentic adoption",
+              "Agent Baseline is a blueprint for AI adoption that defines six security outcomes for putting enterprise agents to work without giving them unchecked authority.",
+              "Agents turn familiar controls into a new systems problem",
+              "Enter the Agent Baseline: an open blueprint for building, operating and governing enterprise agents.",
+              "The Agent Baseline in Practice",
+              "Securing organizations in the decade of agents",
+              "Read more about Agent Baseline:",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/governance-is-a-developer-experience-problem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 15,
+            "word_count": 935,
+            "headings": [
+              "Governance Is a Developer Experience Problem",
+              "The Trust Bottleneck",
+              "The Wrong Tradeoff",
+              "A Tale of Two Teams",
+              "Why Boundaries Create Freedom",
+              "The Platform Shift",
+              "Governance as an Enabler",
+              "Looking Ahead",
+              "Learn more",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 17,
+            "word_count": 1158,
+            "headings": [
+              "Runtime Enforcement, Not Runtime Advice",
+              "Policies Alone Are Not Enough",
+              "The Three Boundaries Behind Developer Confidence",
+              "1. Execution Boundary",
+              "2. Tool Boundary",
+              "3. Credential Boundary",
+              "A Simple Architecture View",
+              "The Role of Isolation",
+              "Governance Beyond Code Execution",
+              "Building Trust Through Boundaries",
+              "Learn More",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

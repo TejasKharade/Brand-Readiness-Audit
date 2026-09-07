@@ -1,24 +1,18 @@
 {
   "target": "https://garagehq.deuxfleurs.fr/",
   "domain": "garagehq.deuxfleurs.fr",
-  "audited_at": "2026-09-06T10:12:50Z",
-  "total_runtime_seconds": 46.79,
-  "summary": {
-    "total_findings": 10,
-    "critical": 0,
-    "high": 5,
-    "medium": 5,
-    "low": 0
-  },
+  "audited_at": "2026-09-07T12:08:01Z",
+  "total_runtime_seconds": 101.84,
   "skills": {
     "skill_1": {
       "site": "garagehq.deuxfleurs.fr",
-      "audited_at": "2026-09-06T10:12:15Z",
+      "audited_at": "2026-09-07T12:06:33Z",
       "summary": {
         "total_findings": 1,
         "critical": 0,
         "high": 0,
-        "medium": 1
+        "medium": 1,
+        "low": 0
       },
       "findings": [
         {
@@ -39,36 +33,250 @@
         "doc_pages": [
           "https://garagehq.deuxfleurs.fr/documentation/",
           "https://garagehq.deuxfleurs.fr/documentation/build/",
-          "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
-          "https://garagehq.deuxfleurs.fr/documentation/build/javascript/",
-          "https://garagehq.deuxfleurs.fr/documentation/build/others/"
+          "https://garagehq.deuxfleurs.fr/documentation/connect/",
+          "https://garagehq.deuxfleurs.fr/documentation/cookbook/",
+          "https://garagehq.deuxfleurs.fr/documentation/design/",
+          "https://garagehq.deuxfleurs.fr/documentation/development/",
+          "https://garagehq.deuxfleurs.fr/documentation/operations/",
+          "https://garagehq.deuxfleurs.fr/documentation/quick-start/",
+          "https://garagehq.deuxfleurs.fr/documentation/reference-manual/",
+          "https://garagehq.deuxfleurs.fr/documentation/working-documents/"
         ],
         "blog_pages": [
           "https://garagehq.deuxfleurs.fr/blog/",
           "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
           "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
           "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
-          "https://garagehq.deuxfleurs.fr/blog/2022-perf/"
+          "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+          "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+          "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+          "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+          "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/"
         ],
+        "product_pages": [],
         "curated_sample": [
           "https://garagehq.deuxfleurs.fr",
           "https://garagehq.deuxfleurs.fr/documentation/",
           "https://garagehq.deuxfleurs.fr/documentation/build/",
-          "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
+          "https://garagehq.deuxfleurs.fr/documentation/connect/",
           "https://garagehq.deuxfleurs.fr/blog/",
           "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
-          "https://garagehq.deuxfleurs.fr/blog/page/1/"
+          "https://garagehq.deuxfleurs.fr/download/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+          "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+          "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+          "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+          "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+          "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://garagehq.deuxfleurs.fr",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/",
+            "depth": 1,
+            "archetype": "documentation"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/build/",
+            "depth": 2,
+            "archetype": "documentation"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/connect/",
+            "depth": 2,
+            "archetype": "documentation"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
+            "archetype": "article"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
+            "archetype": "article"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/download/",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/",
+            "depth": 2,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-11-11",
+          "days_remaining": 65,
+          "issuer": "Let's Encrypt, YE2",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 404,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://garagehq.deuxfleurs.fr/sitemap.xml",
+        "sitemap_status": 200,
+        "candidate_sitemaps_tested": [
+          "https://garagehq.deuxfleurs.fr/sitemap.xml",
+          "https://garagehq.deuxfleurs.fr/sitemap_index.xml"
+        ],
+        "total_discovered_urls": 84,
+        "pages_visited": [
+          {
+            "url": "https://garagehq.deuxfleurs.fr",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 1420.4,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 1214.4,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 1016.8,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 404,
+            "elapsed_ms": 931.6,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 1122.9,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://garagehq.deuxfleurs.fr/sitemap.xml)",
+            "status": 200,
+            "elapsed_ms": 830.5,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /blog/)",
+            "status": 200,
+            "elapsed_ms": 1104.4,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /blog/)",
+            "status": 200,
+            "elapsed_ms": 1267.0,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /blog/2022-fosdem/)",
+            "status": 200,
+            "elapsed_ms": 903.9,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /blog/2022-fosdem/)",
+            "status": 200,
+            "elapsed_ms": 945.1,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /blog/2022-introducing-garage/)",
+            "status": 200,
+            "elapsed_ms": 1246.3,
+            "error": null
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /blog/2022-introducing-garage/)",
+            "status": 200,
+            "elapsed_ms": 1095.1,
+            "error": null
+          }
         ]
       }
     },
     "skill_2": {
       "site": "garagehq.deuxfleurs.fr",
-      "audited_at": "2026-09-06T10:12:42Z",
+      "audited_at": "2026-09-07T12:07:29Z",
       "summary": {
-        "total_findings": 8,
+        "total_findings": 5,
         "critical": 0,
-        "high": 4,
-        "medium": 4,
+        "high": 2,
+        "medium": 3,
         "low": 0
       },
       "findings": [
@@ -77,7 +285,7 @@
           "code": "INTERNAL_LINK_DISCOVERY_GAP",
           "title": "Navigation links (7 URLs) are locked inside client JavaScript on /",
           "severity": "medium",
-          "evidence": "7 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/documentation/connect/websites, https://garagehq.deuxfleurs.fr/documentation/connect/backup).",
+          "evidence": "7 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/documentation/connect/websites, https://garagehq.deuxfleurs.fr, https://garagehq.deuxfleurs.fr/download).",
           "suggested_action": {
             "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
             "priority": "medium"
@@ -88,7 +296,7 @@
           "code": "CORE_CONTENT_RENDER_GAP",
           "title": "Significant content render gap (0.0% parity) on /documentation/",
           "severity": "high",
-          "evidence": "Pass B rendered 152 sentences, but Pass A only contained 0 (152 missing). Example missing: \"Let's start your Garage journey!\"",
+          "evidence": "Pass B rendered 152 sentences, but Pass A only contained 0 in raw HTML (152 missing sentences, 0.0% parity).\nActual Missing Content from Browser DOM:\nSection 1: \"Let's start your Garage journey! In this chapter, we explain how to deploy Garage as a single-node server and how to interact with it.\"\nSection 2: \"Before jumping in, you might be interested in reading the following pages: Our goal is to introduce you to Garage's workflows. Following this guide is recommended before moving on to\"\nSection 3: \"configuring a multi-node cluster . Note that this kind of deployment should not be used in production, as it provides no redundancy for your data!\"",
           "suggested_action": {
             "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
             "priority": "high"
@@ -110,7 +318,7 @@
           "code": "INTERNAL_LINK_DISCOVERY_GAP",
           "title": "Navigation links (67 URLs) are locked inside client JavaScript on /documentation/",
           "severity": "medium",
-          "evidence": "67 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/documentation/working-documents/load-balancing, https://garagehq.deuxfleurs.fr/documentation/cookbook/kubernetes, https://garagehq.deuxfleurs.fr/documentation/working-documents/migration-06).",
+          "evidence": "67 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/documentation/connect/websites, https://garagehq.deuxfleurs.fr/documentation/cookbook/systemd, https://garagehq.deuxfleurs.fr/documentation/build/rust).",
           "suggested_action": {
             "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
             "priority": "medium"
@@ -121,40 +329,7 @@
           "code": "INTERNAL_LINK_DISCOVERY_GAP",
           "title": "Navigation links (12 URLs) are locked inside client JavaScript on /blog/",
           "severity": "medium",
-          "evidence": "12 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/blog/page/2, https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/blog/2026-04-performance-reliability).",
-          "suggested_action": {
-            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
-            "priority": "medium"
-          }
-        },
-        {
-          "id": "RND-001",
-          "code": "CORE_CONTENT_RENDER_GAP",
-          "title": "Significant content render gap (0.0% parity) on /blog/page/1/",
-          "severity": "high",
-          "evidence": "Pass B rendered 5 sentences, but Pass A only contained 0 (5 missing). Example missing: \"Garage receives NLNet grant to work on reliability and performance\"",
-          "suggested_action": {
-            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
-            "priority": "high"
-          }
-        },
-        {
-          "id": "RND-002",
-          "code": "HEADING_RENDER_GAP",
-          "title": "Primary <h1> is injected via client JavaScript on /blog/page/1/",
-          "severity": "high",
-          "evidence": "Rendered DOM contains <h1> 'Blog', but raw HTML has 0 <h1> tags.",
-          "suggested_action": {
-            "summary": "Render primary <h1> tags in static HTML to ensure AI crawlers immediately identify the topic.",
-            "priority": "high"
-          }
-        },
-        {
-          "id": "RND-003",
-          "code": "INTERNAL_LINK_DISCOVERY_GAP",
-          "title": "Navigation links (11 URLs) are locked inside client JavaScript on /blog/page/1/",
-          "severity": "medium",
-          "evidence": "11 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/blog/page/2, https://garagehq.deuxfleurs.fr/download, https://garagehq.deuxfleurs.fr/blog/2026-04-performance-reliability).",
+          "evidence": "12 internal links exist only in the rendered DOM (e.g., https://garagehq.deuxfleurs.fr/blog/2025-03-admin-ui, https://garagehq.deuxfleurs.fr, https://garagehq.deuxfleurs.fr/blog/page/1).",
           "suggested_action": {
             "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
             "priority": "medium"
@@ -163,116 +338,300 @@
       ],
       "render_profile": {
         "browser_engine": "chrome.exe",
-        "pages_audited": 7,
+        "pages_audited": 15,
         "per_page_metrics": [
           {
             "url": "https://garagehq.deuxfleurs.fr",
+            "depth": 0,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1137.9,
-              "pass_b_latency_ms": 2385.3,
+              "pass_a_latency_ms": 1015.4,
+              "pass_b_latency_ms": 2585.4,
               "parity_pct": 100.0,
               "sentences_pass_a": 40,
               "sentences_pass_b": 40,
+              "pass_a_excerpt": "Garage - An S3 object store so reliable you can run it outside datacenters Garage An S3 object store so reliable you can run it outside datacenters  Download   Get Started   Host a Website   Store Media   Backup Target  Made for redundancy Each chunk",
+              "pass_b_excerpt": "Garage - An S3 object store so reliable you can run it outside datacenters\r Garage An S3 object store so reliable you can run it outside datacenters  Download \r  Get Started \r  Host a Website \r  Store Media \r  Backup Target \r Made for redundancy Each",
               "missing_sentences_count": 0,
-              "missing_snippets_sample": []
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 0
             }
           },
           {
             "url": "https://garagehq.deuxfleurs.fr/documentation/",
+            "depth": 1,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 861.5,
-              "pass_b_latency_ms": 3073.0,
+              "pass_a_latency_ms": 1261.9,
+              "pass_b_latency_ms": 3026.4,
               "parity_pct": 0.0,
               "sentences_pass_a": 1,
               "sentences_pass_b": 152,
+              "pass_a_excerpt": "Redirect   Click here to be redirected.",
+              "pass_b_excerpt": "Quick Start\r  9 min \r Let's start your Garage journey!\r In this chapter, we explain how to deploy Garage as a single-node server\r and how to interact with it. What is Garage? Before jumping in, you might be interested in reading the following pages:",
               "missing_sentences_count": 152,
+              "missing_content_blocks": [
+                "Let's start your Garage journey! In this chapter, we explain how to deploy Garage as a single-node server and how to interact with it.",
+                "Before jumping in, you might be interested in reading the following pages: Our goal is to introduce you to Garage's workflows. Following this guide is recommended before moving on to",
+                "configuring a multi-node cluster . Note that this kind of deployment should not be used in production, as it provides no redundancy for your data!",
+                "Download the latest Garage binary from the release pages on our repository: Place this binary somewhere in your $PATH so that you can invoke the garage You may also check whether your distribution already includes a"
+              ],
               "missing_snippets_sample": [
                 "Let's start your Garage journey!",
                 "In this chapter, we explain how to deploy Garage as a single-node server",
                 "and how to interact with it."
-              ]
+              ],
+              "depth": 1
             }
           },
           {
             "url": "https://garagehq.deuxfleurs.fr/documentation/build/",
+            "depth": 2,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1175.4,
-              "pass_b_latency_ms": 2522.4,
+              "pass_a_latency_ms": 1446.7,
+              "pass_b_latency_ms": 2821.3,
               "parity_pct": 100.0,
               "sentences_pass_a": 18,
               "sentences_pass_b": 18,
+              "pass_a_excerpt": "Build your own app  2 min  Garage has many API that you can rely on to build complex applications. In this section, we reference the existing SDKs and give some code examples. \u26a0\ufe0f DISCLAIMER  K2V AND ADMIN SDK ARE TECHNICAL PREVIEWS . The following li",
+              "pass_b_excerpt": "Build your own app\r  2 min \r Garage has many API that you can rely on to build complex applications.\r In this section, we reference the existing SDKs and give some code examples. \u26a0\ufe0f DISCLAIMER  K2V AND ADMIN SDK ARE TECHNICAL PREVIEWS . The following",
               "missing_sentences_count": 0,
-              "missing_snippets_sample": []
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
             }
           },
           {
-            "url": "https://garagehq.deuxfleurs.fr/documentation/build/golang/",
+            "url": "https://garagehq.deuxfleurs.fr/documentation/connect/",
+            "depth": 2,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1270.4,
-              "pass_b_latency_ms": 2630.2,
-              "parity_pct": 80.0,
-              "sentences_pass_a": 4,
-              "sentences_pass_b": 5,
-              "missing_sentences_count": 1,
-              "missing_snippets_sample": [
-                "garage \" git.deuxfleurs.fr/garage-sdk/garage-admin-sdk-golang \""
-              ]
+              "pass_a_latency_ms": 1252.6,
+              "pass_b_latency_ms": 2518.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 25,
+              "sentences_pass_b": 25,
+              "pass_a_excerpt": "Existing integrations  2 min  Garage implements the Amazon S3 protocol, which makes it compatible with many existing software programs. In particular, you will find here instructions to connect it with:  Applications   Browsing tools   FUSE   Observa",
+              "pass_b_excerpt": "Existing integrations\r  2 min \r Garage implements the Amazon S3 protocol, which makes it compatible with many existing software programs. In particular, you will find here instructions to connect it with:  Applications   Browsing tools   FUSE   Obser",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
             }
           },
           {
             "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1083.2,
-              "pass_b_latency_ms": 2819.2,
+              "pass_a_latency_ms": 1095.6,
+              "pass_b_latency_ms": 2425.4,
               "parity_pct": 100.0,
               "sentences_pass_a": 5,
               "sentences_pass_b": 5,
+              "pass_a_excerpt": "Garage receives NLNet grant to work on reliability and performance  Published on   April 18, 2026   7 min reading time  1328 words  We are happy to announce that Garage just received a new NLNet grant, to fund work on reliability and performance. In",
+              "pass_b_excerpt": "Garage receives NLNet grant to work on reliability and performance\r  Published on \r  April 18, 2026 \r  7 min reading time\r  1328 words\r  We are happy to announce that Garage just received a new NLNet grant, to\r fund work on reliability and performanc",
               "missing_sentences_count": 0,
-              "missing_snippets_sample": []
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
             }
           },
           {
             "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1130.4,
-              "pass_b_latency_ms": 2375.6,
-              "parity_pct": 96.3,
-              "sentences_pass_a": 26,
+              "pass_a_latency_ms": 1027.4,
+              "pass_b_latency_ms": 2173.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 27,
               "sentences_pass_b": 27,
-              "missing_sentences_count": 1,
-              "missing_snippets_sample": [
-                "Garage will be at FOSDEM'22"
-              ]
+              "pass_a_excerpt": "Garage will be at FOSDEM'22  Published on   February 02, 2022   2 min reading time  360 words  FOSDEM is an international meeting about Free Software, organized from Brussels. On next Sunday, February 6th, 2022, we will be there to present Garage.  I",
+              "pass_b_excerpt": "Garage will be at FOSDEM'22\r  Published on \r  February 02, 2022 \r  2 min reading time\r  360 words\r  FOSDEM is an international meeting about Free Software, organized from Brussels.\r On next Sunday, February 6th, 2022, we will be there to present Gara",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
             }
           },
           {
-            "url": "https://garagehq.deuxfleurs.fr/blog/page/1/",
+            "url": "https://garagehq.deuxfleurs.fr/download/",
+            "depth": 1,
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 840.0,
-              "pass_b_latency_ms": 3265.4,
-              "parity_pct": 0.0,
-              "sentences_pass_a": 1,
-              "sentences_pass_b": 5,
-              "missing_sentences_count": 5,
-              "missing_snippets_sample": [
-                "Garage receives NLNet grant to work on reliability and performance",
-                "We are happy to announce that Garage just received a new NLNet grant, to",
-                "fund work on reliability and performance."
-              ]
+              "pass_a_latency_ms": 974.0,
+              "pass_b_latency_ms": 2332.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 7,
+              "sentences_pass_b": 7,
+              "pass_a_excerpt": "Downloads | Garage HQ Download Garage Deploy with Docker All of the builds listed in the sections below can be downloaded as Docker images  available  on the Docker hub . Release notes (changelogs) Release notes for each Garage release can be read  o",
+              "pass_b_excerpt": "Downloads | Garage HQ\r Download Garage Deploy with Docker All of the builds listed in the sections below can be downloaded as Docker images\r  available\r  on the Docker hub .\r Release notes (changelogs) Release notes for each Garage release can be rea",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1067.9,
+              "pass_b_latency_ms": 2495.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 133,
+              "sentences_pass_b": 133,
+              "pass_a_excerpt": "Introducing Garage, our self-hosted distributed object storage solution  Published on   February 01, 2022   8 min reading time  1563 words  Deuxfleurs is a non-profit based in France that aims to defend and promote individual freedom and rights on th",
+              "pass_b_excerpt": "Introducing Garage, our self-hosted distributed object storage solution\r  Published on \r  February 01, 2022 \r  8 min reading time\r  1563 words\r  Deuxfleurs is a non-profit based in France that aims to defend and promote\r individual freedom and rights",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1176.5,
+              "pass_b_latency_ms": 2794.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 150,
+              "sentences_pass_b": 150,
+              "pass_a_excerpt": "We tried IPFS over Garage  Published on   July 04, 2022   17 min reading time  3285 words  Once you have spawned your Garage cluster, you might be interested in finding ways to share efficiently your content with the rest of the world, such as by joi",
+              "pass_b_excerpt": "We tried IPFS over Garage\r  Published on \r  July 04, 2022 \r  17 min reading time\r  3285 words\r  Once you have spawned your Garage cluster, you might be interested in finding ways to share efficiently your content with the rest of the world,\r such as",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1620.4,
+              "pass_b_latency_ms": 2539.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 361,
+              "sentences_pass_b": 361,
+              "pass_a_excerpt": "Confronting theoretical design with observed performances  Published on   September 26, 2022   26 min reading time  5131 words  During the past years, we have thought a lot about possible design decisions and their theoretical trade-offs for Garage.",
+              "pass_b_excerpt": "Confronting theoretical design with observed performances\r  Published on \r  September 26, 2022 \r  26 min reading time\r  5131 words\r  During the past years, we have thought a lot about possible design decisions and\r their theoretical trade-offs for Ga",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1448.2,
+              "pass_b_latency_ms": 2499.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 67,
+              "sentences_pass_b": 67,
+              "pass_a_excerpt": "Garage v0.7: Kubernetes and OpenTelemetry  Published on   April 04, 2022   9 min reading time  1688 words  We just published Garage v0.7, our second public beta release. In this post, we do a quick tour of its 2 new features: Kubernetes integration a",
+              "pass_b_excerpt": "Garage v0.7: Kubernetes and OpenTelemetry\r  Published on \r  April 04, 2022 \r  9 min reading time\r  1688 words\r  We just published Garage v0.7, our second public beta release. In this post, we do a quick tour of its 2 new features: Kubernetes integrat",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1042.3,
+              "pass_b_latency_ms": 2551.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 145,
+              "sentences_pass_b": 145,
+              "pass_a_excerpt": "Thoughts on \"Leaderless Consensus\"  Published on   November 30, 2023   10 min reading time  1844 words  Consensus algorithms such as Raft and Paxos, which are used in many distributed databases, have notoriously unpredictable performance in low-quali",
+              "pass_b_excerpt": "Thoughts on \"Leaderless Consensus\"\r  Published on \r  November 30, 2023 \r  10 min reading time\r  1844 words\r  Consensus algorithms such as Raft and Paxos, which are used in many distributed databases,\r have notoriously unpredictable performance in low",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 928.1,
+              "pass_b_latency_ms": 2496.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 205,
+              "sentences_pass_b": 205,
+              "pass_a_excerpt": "Maintaining read-after-write consistency in all circumstances  Published on   December 06, 2023   14 min reading time  2652 words  Garage is a data storage system that is based on CRDTs internally. It does not use a consensus algorithm such as Raft,",
+              "pass_b_excerpt": "Maintaining read-after-write consistency in all circumstances\r  Published on \r  December 06, 2023 \r  14 min reading time\r  2652 words\r  Garage is a data storage system that is based on CRDTs internally. It does not\r use a consensus algorithm such as",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 977.5,
+              "pass_b_latency_ms": 2322.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 31,
+              "sentences_pass_b": 31,
+              "pass_a_excerpt": "PhD offering to work on Garage and Distributed Systems  Published on   January 10, 2024   2 min reading time  388 words  Deuxfleurs and IMT Atlantique are partnering to fund a PhD student to work on Garage and distributed systems theory during three",
+              "pass_b_excerpt": "PhD offering to work on Garage and Distributed Systems\r  Published on \r  January 10, 2024 \r  2 min reading time\r  388 words\r  Deuxfleurs and IMT Atlantique are partnering to fund a PhD student to work on\r Garage and distributed systems theory during",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1093.0,
+              "pass_b_latency_ms": 2501.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 56,
+              "sentences_pass_b": 56,
+              "pass_a_excerpt": "Open letter to the European Commission  Published on   July 14, 2024   4 min reading time  711 words  Deuxfleurs has benefitted multiple times from European grants via the NGI project, for the developpement of Garage and Aerogramme, two pieces of sof",
+              "pass_b_excerpt": "Open letter to the European Commission\r  Published on \r  July 14, 2024 \r  4 min reading time\r  711 words\r  Deuxfleurs has benefitted multiple times from European grants via the NGI project, for the developpement of Garage and Aerogramme, two pieces o",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
             }
           }
         ]
@@ -303,9 +662,286 @@
         "root_entity_detected": false,
         "root_entity_types": [],
         "same_as_authorities": [],
-        "pages_audited": 6,
+        "pages_audited": 15,
         "pages_with_schema": 0,
-        "schema_coverage_pct": 0.0
+        "schema_coverage_pct": 0.0,
+        "pages": [
+          {
+            "url": "https://garagehq.deuxfleurs.fr/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/build/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/connect/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/download/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "garagehq.deuxfleurs.fr",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 15,
+        "total_words_audited": 2187,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://garagehq.deuxfleurs.fr/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 1,
+            "word_count": 137,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "documentation",
+            "sections_count": 1,
+            "word_count": 6,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/build/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "documentation",
+            "sections_count": 1,
+            "word_count": 172,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/documentation/connect/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "documentation",
+            "sections_count": 1,
+            "word_count": 170,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 103,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-fosdem/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 106,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/download/",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 1,
+            "word_count": 130,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-introducing-garage/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 145,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-ipfs/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 236,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-perf/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 312,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2022-v0-7-released/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 219,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-11-thoughts-on-leaderless-consensus/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 182,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2023-12-preserving-read-after-write-consistency/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 134,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-01-phd-offering/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 73,
+            "headings": []
+          },
+          {
+            "url": "https://garagehq.deuxfleurs.fr/blog/2024-07-european-commission-letter/",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 1,
+            "word_count": 62,
+            "headings": []
+          }
+        ]
       }
     }
   }

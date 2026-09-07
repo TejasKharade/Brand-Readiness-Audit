@@ -1,0 +1,1392 @@
+{
+  "target": "https://www.nxcar.in/",
+  "domain": "www.nxcar.in",
+  "audited_at": "2026-09-07T12:00:13Z",
+  "total_runtime_seconds": 420.6,
+  "skills": {
+    "skill_1": {
+      "site": "www.nxcar.in",
+      "audited_at": "2026-09-07T11:55:44Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [],
+      "sampled_pages": {
+        "homepage": "https://www.nxcar.in",
+        "total_discovered": 367,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.nxcar.in",
+          "https://www.nxcar.in/about-us",
+          "https://www.nxcar.in/used-car-loan",
+          "https://www.nxcar.in/car-loan-emi-calculator",
+          "https://www.nxcar.in/car-services",
+          "https://www.nxcar.in/partner",
+          "https://www.nxcar.in/contact-us",
+          "https://www.nxcar.in/insurance-check",
+          "https://www.nxcar.in/challan-check",
+          "https://www.nxcar.in/rc-check",
+          "https://www.nxcar.in/login",
+          "https://www.nxcar.in/faq",
+          "https://www.nxcar.in/used-car-dealers-in",
+          "https://www.nxcar.in/privacy-policy",
+          "https://www.nxcar.in/terms"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://www.nxcar.in",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/car-services",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/partner",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/contact-us",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/insurance-check",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/challan-check",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/rc-check",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/login",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/faq",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-dealers-in",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/privacy-policy",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.nxcar.in/terms",
+            "depth": 1,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-11-09",
+          "days_remaining": 62,
+          "issuer": "Google Trust Services, WR3",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 200,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://www.nxcar.in/sitemap.xml",
+        "sitemap_status": 200,
+        "candidate_sitemaps_tested": [
+          "https://www.nxcar.in/sitemap.xml",
+          "https://www.nxcar.in/sitemap_index.xml"
+        ],
+        "total_discovered_urls": 367,
+        "pages_visited": [
+          {
+            "url": "https://www.nxcar.in",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 4914.3,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 818.7,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 6841.7,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 200,
+            "elapsed_ms": 1166.7,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 370.1,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.nxcar.in/sitemap.xml)",
+            "status": 200,
+            "elapsed_ms": 545.5,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap-static.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/sitemap-static.xml)",
+            "status": 200,
+            "elapsed_ms": 6941.9,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap-new-cars.xml",
+            "depth": 1,
+            "purpose": "Child Sitemap (/sitemap-new-cars.xml)",
+            "status": 200,
+            "elapsed_ms": 8037.6,
+            "error": null
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap-cities/all.xml",
+            "depth": 2,
+            "purpose": "Child Sitemap (/sitemap-cities/all.xml)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap-individual-cars/1.xml",
+            "depth": 2,
+            "purpose": "Child Sitemap (/sitemap-individual-cars/1.xml)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/sitemap-individual-cars/2.xml",
+            "depth": 2,
+            "purpose": "Child Sitemap (/sitemap-individual-cars/2.xml)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /about-us)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /about-us)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /used-car-loan)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /used-car-loan)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /car-loan-emi-calculator)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /car-loan-emi-calculator)",
+            "status": 0,
+            "elapsed_ms": 0,
+            "error": "The read operation timed out"
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.nxcar.in",
+      "audited_at": "2026-09-07T11:59:53Z",
+      "summary": {
+        "total_findings": 4,
+        "critical": 1,
+        "high": 3,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 0: The read operation timed out.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /about-us",
+          "severity": "high",
+          "evidence": "Raw fetch returned HTTP 0: The read operation timed out.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /used-car-loan",
+          "severity": "high",
+          "evidence": "Raw fetch returned HTTP 0: The read operation timed out.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /car-loan-emi-calculator",
+          "severity": "high",
+          "evidence": "Raw fetch returned HTTP 502: HTTP Error 502: Bad Gateway.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "high"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 15,
+        "per_page_metrics": [
+          {
+            "url": "https://www.nxcar.in",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 0,
+              "pass_b_status": 0,
+              "parity_pct": 0.0,
+              "depth": 0
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 0,
+              "pass_b_status": 0,
+              "parity_pct": 0.0,
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 0,
+              "pass_b_status": 0,
+              "parity_pct": 0.0,
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 502,
+              "pass_b_status": 200,
+              "parity_pct": 0.0,
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/car-services",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2350.7,
+              "pass_b_latency_ms": 2029.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 59,
+              "sentences_pass_b": 59,
+              "pass_a_excerpt": "One Platform, Every Service  All Your Car Services in One Place  RC verification, challan checks, insurance, PDI, car loans, RC transfer, and EMI calculator \u2014 everything you need for a confident used car journey, without platform-hopping.  Explore Se",
+              "pass_b_excerpt": "One Platform, Every Service  All Your Car Services in One Place  RC verification, challan checks, insurance, PDI, car loans, RC transfer, and EMI calculator \u2014 everything you need for a confident used car journey, without platform-hopping.  Explore Se",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/partner",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1159.1,
+              "pass_b_latency_ms": 2460.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 112,
+              "sentences_pass_b": 112,
+              "pass_a_excerpt": "Everything Your Dealership Needs  Earn More. Sell Faster. Grow Bigger with Nxcar Nxcar is built for used car dealers. From sourcing inventory to closing loans and adding services, we've got your back at every step.  Register as Partner Chat on WhatsA",
+              "pass_b_excerpt": "Everything Your Dealership Needs  Earn More. Sell Faster. Grow Bigger with Nxcar Nxcar is built for used car dealers. From sourcing inventory to closing loans and adding services, we've got your back at every step.  Register as Partner Chat on WhatsA",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/contact-us",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 699.9,
+              "pass_b_latency_ms": 2156.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 8,
+              "sentences_pass_b": 8,
+              "pass_a_excerpt": "Get In Touch  Hit the Brakes, Let's Talk Cars! We're here to answer your questions and help you hit the road smoothly Send us a Message  Name *   Email *   Phone *   +91   Subject Select a subject General Inquiry Sell My Car Buy a Car Car Loan Insura",
+              "pass_b_excerpt": "Get In Touch  Hit the Brakes, Let's Talk Cars! We're here to answer your questions and help you hit the road smoothly Send us a Message  Name *   Email *   Phone *   +91   Subject Select a subject General Inquiry Sell My Car Buy a Car Car Loan Insura",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/insurance-check",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 798.9,
+              "pass_b_latency_ms": 2481.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 19,
+              "sentences_pass_b": 19,
+              "pass_a_excerpt": "Car Insurance  Car Insurance Made Simple Buy, renew, or compare car insurance plans from India's top providers.  Instant Policy   Best Rates   24x7 Support  Get a Free Quote  Vehicle Number   Phone Number   +91   Get a Quote  Why Choose Nxcar Insuran",
+              "pass_b_excerpt": "Car Insurance  Car Insurance Made Simple Buy, renew, or compare car insurance plans from India's top providers.  Instant Policy   Best Rates   24x7 Support  Get a Free Quote  Vehicle Number   Phone Number   +91   Get a Quote  Why Choose Nxcar Insuran",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/challan-check",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1027.9,
+              "pass_b_latency_ms": 2556.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 129,
+              "sentences_pass_b": 129,
+              "pass_a_excerpt": "Traffic Challan  Check Vehicle Challans Online Instantly check pending traffic challans and fines for any vehicle number. Check Vehicle Challan  Vehicle Number   Phone Number   +91   Check Challan   \u20b92.1B+ Challans Settled   450K+ Challans Paid Secur",
+              "pass_b_excerpt": "Traffic Challan  Check Vehicle Challans Online Instantly check pending traffic challans and fines for any vehicle number. Check Vehicle Challan  Vehicle Number   Phone Number   +91   Check Challan   \u20b92.1B+ Challans Settled   450K+ Challans Paid Secur",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/rc-check",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 831.7,
+              "pass_b_latency_ms": 2703.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 93,
+              "sentences_pass_b": 93,
+              "pass_a_excerpt": "RC Verification  RC Status Check Online Verify vehicle registration details, ownership history, and more \u2014 instantly.  Instant Results   Pan India Coverage   100% Authentic Data  Check RC Details  Vehicle Number   Phone Number   +91   Check RC   4.8\u2605",
+              "pass_b_excerpt": "RC Verification  RC Status Check Online Verify vehicle registration details, ownership history, and more \u2014 instantly.  Instant Results   Pan India Coverage   100% Authentic Data  Check RC Details  Vehicle Number   Phone Number   +91   Check RC   4.8\u2605",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/login",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 595.3,
+              "pass_b_latency_ms": 2025.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 0,
+              "sentences_pass_b": 0,
+              "pass_a_excerpt": "Nxcar - Buy & Sell Used Cars | Best Price Guaranteed",
+              "pass_b_excerpt": "Nxcar - Buy & Sell Used Cars | Best Price Guaranteed",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/faq",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 850.0,
+              "pass_b_latency_ms": 2256.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 17,
+              "sentences_pass_b": 17,
+              "pass_a_excerpt": "Help Center  Frequently Asked Questions Find answers to common questions about buying, selling, loans, and more.  All Buying Selling Loans Services   How do I buy a car listed on Nxcar?   Can I list my car for sale on Nxcar?   How does Nxcar verify t",
+              "pass_b_excerpt": "Help Center  Frequently Asked Questions Find answers to common questions about buying, selling, loans, and more.  All Buying Selling Loans Services   How do I buy a car listed on Nxcar?   Can I list my car for sale on Nxcar?   How does Nxcar verify t",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-dealers-in",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 624.4,
+              "pass_b_latency_ms": 2311.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 2,
+              "sentences_pass_b": 2,
+              "pass_a_excerpt": "Verified Partner Network Verified Dealer Network Access India's most exclusive network of premium pre-owned car dealerships. All dealers are verified for quality and customer satisfaction. \u2014 Verified Dealers \u2014 Cities Covered 10L+ Happy Customers Trus",
+              "pass_b_excerpt": "Verified Partner Network Verified Dealer Network Access India's most exclusive network of premium pre-owned car dealerships. All dealers are verified for quality and customer satisfaction. \u2014 Verified Dealers \u2014 Cities Covered 10L+ Happy Customers Trus",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/privacy-policy",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 907.4,
+              "pass_b_latency_ms": 2313.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 58,
+              "sentences_pass_b": 58,
+              "pass_a_excerpt": "Back to Home  Privacy Policy Introduction At Nxfin('Nxcar', 'NXFIN TECHNOLOGIES PRIVATE LIMITED', 'we', 'us', or 'our' ), we are committed to protecting the privacy and confidentiality of personal information entrusted to us by our users, clients, em",
+              "pass_b_excerpt": "Back to Home  Privacy Policy Introduction At Nxfin('Nxcar', 'NXFIN TECHNOLOGIES PRIVATE LIMITED', 'we', 'us', or 'our' ), we are committed to protecting the privacy and confidentiality of personal information entrusted to us by our users, clients, em",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.nxcar.in/terms",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 547.5,
+              "pass_b_latency_ms": 2396.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 47,
+              "sentences_pass_b": 47,
+              "pass_a_excerpt": "Back to Home  Terms & Conditions 01. Acceptance of Terms By accessing or using the Nxcar platform (website and mobile application), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our service",
+              "pass_b_excerpt": "Back to Home  Terms & Conditions 01. Acceptance of Terms By accessing or using the Nxcar platform (website and mobile application), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our service",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.nxcar.in",
+      "summary": {
+        "total_findings": 8,
+        "critical": 0,
+        "high": 1,
+        "medium": 7,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Nxcar')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/",
+          "evidence": "The WebSite ('Nxcar') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-002",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch /about-us: HTTP 404 (Not Found)",
+          "severity": "HIGH",
+          "url": "https://www.nxcar.in/about-us",
+          "evidence": "Request to https://www.nxcar.in/about-us failed: HTTP 404 (Not Found)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /used-car-loan",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/used-car-loan",
+          "evidence": "2 instances of Organization (Nxcar, Nxcar...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-004",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /car-services",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/car-services",
+          "evidence": "2 instances of Organization (Nxcar, Nxcar...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-005",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Organization ('Nxcar')) lacks description property on /partner",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/partner",
+          "evidence": "The Organization ('Nxcar') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-006",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /insurance-check",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/insurance-check",
+          "evidence": "2 instances of Organization (Nxcar, Nxcar...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-007",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /challan-check",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/challan-check",
+          "evidence": "2 instances of Organization (Nxcar, Nxcar...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-008",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "3 Organization entities lack description property on /rc-check",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/rc-check",
+          "evidence": "3 instances of Organization (Nxcar, Nxcar, Nxcar...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Organization"
+        ],
+        "same_as_authorities": [
+          "https://www.linkedin.com/company/nxfin/"
+        ],
+        "pages_audited": 15,
+        "pages_with_schema": 10,
+        "schema_coverage_pct": 66.7,
+        "pages": [
+          {
+            "url": "https://www.nxcar.in/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "ContactPoint",
+              "Organization",
+              "PostalAddress",
+              "SearchAction",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "status": 0,
+            "error": "HTTP 404 (Not Found)",
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateOffer",
+              "AggregateRating",
+              "Answer",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "FAQPage",
+              "FinancialProduct",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "Product",
+              "Question",
+              "Rating",
+              "Review"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Answer",
+              "FAQPage",
+              "Question"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/car-services",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Answer",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "FAQPage",
+              "HowTo",
+              "HowToStep",
+              "ImageObject",
+              "ListItem",
+              "Offer",
+              "OfferCatalog",
+              "Organization",
+              "Question",
+              "Service"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/partner",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Answer",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "FAQPage",
+              "ImageObject",
+              "ListItem",
+              "Offer",
+              "OfferCatalog",
+              "Organization",
+              "Question",
+              "Service",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/contact-us",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.nxcar.in/insurance-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "HowTo",
+              "HowToStep",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "Product",
+              "Rating",
+              "Review"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/challan-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "HowTo",
+              "HowToStep",
+              "ImageObject",
+              "ListItem",
+              "Organization",
+              "Person",
+              "Product",
+              "Rating",
+              "Review"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/rc-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Answer",
+              "BreadcrumbList",
+              "ContactPoint",
+              "Country",
+              "FAQPage",
+              "HowTo",
+              "HowToStep",
+              "ImageObject",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Person",
+              "Product",
+              "Question",
+              "Rating",
+              "Review",
+              "WebApplication"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.nxcar.in/faq",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Answer",
+              "FAQPage",
+              "Question"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-dealers-in",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BreadcrumbList",
+              "ContactPoint",
+              "ImageObject",
+              "ListItem",
+              "Organization"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/privacy-policy",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.nxcar.in/terms",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.nxcar.in",
+      "summary": {
+        "total_findings": 4,
+        "critical": 0,
+        "high": 1,
+        "medium": 3,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch content on /about-us: HTTP 404 (Not Found)",
+          "severity": "HIGH",
+          "url": "https://www.nxcar.in/about-us",
+          "evidence": "Request to https://www.nxcar.in/about-us failed: HTTP 404 (Not Found)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        },
+        {
+          "id": "CNT-002",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/used-car-loan",
+          "evidence": "Page contains 6 links, but 100% of them point back to www.nxcar.in. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-003",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/car-loan-emi-calculator",
+          "evidence": "Page contains 5 links, but 100% of them point back to www.nxcar.in. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-004",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Introduction' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://www.nxcar.in/privacy-policy",
+          "evidence": "Heading 'Introduction' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"At Nxfin('Nxcar', 'NXFIN TECHNOLOGIES PRIVATE LIMITED', 'we', 'us', or 'our' ), we are committed to protecting the privacy and confidentiality of personal information entrusted to us by our users, clients, employees, partners, and other stakeholders. This Priv...\"",
+          "suggested_action": "Rename 'Introduction' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 275,
+        "total_words_audited": 9768,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.nxcar.in/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 8,
+            "word_count": 176,
+            "headings": [
+              "Sell Your Car At Best Price",
+              "Sell Your Car At Best Price",
+              "Sell in Minutes. No Compromise.",
+              "Get Valuation",
+              "Inspection",
+              "Best Offer",
+              "Transfer"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/about-us",
+            "depth": 1,
+            "status": 0,
+            "error": "HTTP 404 (Not Found)",
+            "archetype": "unknown",
+            "sections_count": 0,
+            "word_count": 0,
+            "headings": []
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-loan",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 41,
+            "word_count": 571,
+            "headings": [
+              "Your One-Stop Destination for Second Hand Car Loans",
+              "Whether you're purchasing from a dealer, online marketplace, or an individual seller \u2014 get the best car loan deals with quick approvals and competitive rates.",
+              "Choose Your Loan Type",
+              "Refinance",
+              "When should you Refinance?",
+              "Pre-Owned Car Purchase",
+              "Why you should go for a used car loan?",
+              "Balance Transfer & Top Up",
+              "When should you opt for Balance Transfer & Top Up?",
+              "Why Choose Nxcar for Your Car Loan?",
+              "24-Hour Approval",
+              "Competitive Rates",
+              "100% Transparent",
+              "Minimal Paperwork",
+              "Flexible Tenure",
+              "Dedicated Support",
+              "Eligibility Criteria",
+              "Minimum Age",
+              "Good Credit Score",
+              "Valid ID Proof",
+              "Valid Income Proof",
+              "Address Proof",
+              "Ownership of Vehicle",
+              "Ready to Get Your Car Loan?",
+              "Used Car Loan EMI Calculator",
+              "Attractive Interest Rates",
+              "High Loan-to-Value (LTV)",
+              "Flexible Tenure Options",
+              "Zero Paperwork Hurdles",
+              "Frequently Asked Questions",
+              "Why should you go for a used car loan?",
+              "When should you refinance your car loan?",
+              "What are the eligibility criteria for a used car loan?",
+              "What types of used car loans does Nxcar offer?",
+              "How quickly can I get my loan approved?",
+              "What documents do I need to apply for a used car loan?",
+              "What is the minimum CIBIL score required for a used car loan?",
+              "What loan-to-value ratio can I expect on a used car loan?",
+              "What are the loan tenure options for a used car loan?",
+              "Can I prepay or foreclose my used car loan early?"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/car-loan-emi-calculator",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 33,
+            "word_count": 2346,
+            "headings": [
+              "Car Loan EMI Calculator",
+              "Adjust Loan Details",
+              "Monthly EMI Breakdown",
+              "How to lower your EMI?",
+              "Your Personalised Amortization Schedule",
+              "What is a Car Loan EMI?",
+              "How is Car Loan EMI Calculated?",
+              "Example Calculation:",
+              "How to Use the Nxcar Car Loan EMI Calculator",
+              "Step 1 : Select your loan amount",
+              "Step 2 : Choose your preferred loan tenure",
+              "Step 3 : Set the interest rate",
+              "Step 4 : View your results instantly",
+              "Step 5 : Check Eligibility",
+              "Car Loan Amortization Schedule \u2014 What It Is and Why It Matters",
+              "Car Loan Interest Rates in India 2026 \u2014 Bank Comparison",
+              "Factors That Affect Your Car Loan EMI",
+              "Loan Amount",
+              "Interest Rate",
+              "Loan Tenure",
+              "Credit Score (CIBIL)",
+              "New vs Used Car",
+              "Employment Type",
+              "7 Tips to Reduce Your Car Loan EMI",
+              "Documents Required for a Car Loan in India",
+              "Identity Proof (any one)",
+              "Address Proof (any one)",
+              "Income Proof",
+              "Vehicle & Other Docs",
+              "What Happens If You Miss a Car Loan EMI Payment?",
+              "Frequently Asked Questions",
+              "Ready to Get Your Car Loan?"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/car-services",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 18,
+            "word_count": 596,
+            "headings": [
+              "All Your Car Services in One Place",
+              "RC verification, challan checks, insurance, PDI, car loans, RC transfer, and EMI calculator \u2014 everything you need for a confident used car journey, without platform-hopping.",
+              "Our Services",
+              "RC Check",
+              "Challan Check",
+              "Car Insurance",
+              "PDI Services",
+              "Used Car Loan",
+              "EMI Calculator",
+              "RC Transfer",
+              "Ektag",
+              "Why Use Nxcar for This?",
+              "No Hidden Charges",
+              "Online & Doorstep",
+              "Fully Legal Process",
+              "Frequently Asked Questions",
+              "Not Sure Which Service You Need?"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/partner",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 42,
+            "word_count": 1122,
+            "headings": [
+              "Earn More. Sell Faster. Grow Bigger with Nxcar",
+              "You sell cars. We handle everything else.",
+              "Why Partner with Nxcar",
+              "Bid Smart. Buy Used Cars with Confidence.",
+              "Buy Cars",
+              "Fund Your Inventory. Scale Faster.",
+              "Buy More Cars",
+              "List. Get Enquiries. Close Deals.",
+              "Sell Cars",
+              "Arrange Loans for Your Customers. Sell Without Delays.",
+              "Sell Cars Faster",
+              "Your Dealership, in Full Control.",
+              "Value-Added Services to Increase Margins",
+              "EkTAG",
+              "PDI \u2014 Pre-Delivery Inspection",
+              "Insurance & Warranty",
+              "RTO Transfer & Challan Services",
+              "RSA \u2014 Roadside Assistance",
+              "Service History Reports",
+              "Partner Benefits",
+              "Quick Disbursement",
+              "No Competition",
+              "Extended Services",
+              "Revenue Growth",
+              "What Our Partners Say",
+              "Help your customers get the loan they need.",
+              "Consumer Finance",
+              "Nxcar \u2014 The Bridge",
+              "Dealer Finance",
+              "25+ Lending Partners",
+              "Boost Revenue per Deal",
+              "Fast Approvals",
+              "2\u00d7 Customer Satisfaction",
+              "Hassle-free financing for your inventory.",
+              "Flexible Loan Limit",
+              "Quick Loan Disbursement",
+              "Nxcar Doesn't Compete With You",
+              "Loans for Cars from Multiple Sources",
+              "Frequently Asked Questions",
+              "Register as a Partner",
+              "Ready to grow your business? Join 2000+ dealers already thriving with Nxcar."
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/contact-us",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 4,
+            "word_count": 112,
+            "headings": [
+              "Hit the Brakes, Let's Talk Cars!",
+              "Send us a Message",
+              "NXFIN TECHNOLOGIES PRIVATE LIMITED"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/insurance-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 19,
+            "word_count": 178,
+            "headings": [
+              "Car Insurance Made Simple",
+              "Get a Free Quote",
+              "Why Choose Nxcar Insurance",
+              "Low Premiums",
+              "Zero Paperwork",
+              "Stress-free Claims",
+              "Instant Claim Settlement",
+              "Total Convenience",
+              "24x7 Support",
+              "Easy Insurance Renewal",
+              "Insurance Plans",
+              "Third Party",
+              "Comprehensive",
+              "Zero Depreciation (Bumper-to-Bumper)",
+              "Stand Alone Own Damage",
+              "Avail Other Services",
+              "RC Check",
+              "Challan Check"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/challan-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 30,
+            "word_count": 1604,
+            "headings": [
+              "Check Vehicle Challans Online",
+              "Check Vehicle Challan",
+              "What is an E-Challan?",
+              "How to Check E-Challan Status Online",
+              "Method 1: Check via Nxcar (Fastest)",
+              "Method 2: Check via Parivahan E-Challan Portal (Government)",
+              "Method 3: Check via State Traffic Police Websites",
+              "Method 4: Check via SMS",
+              "Traffic Violations and Fines in India 2026",
+              "How to Pay E-Challan",
+              "Online Payment (Recommended)",
+              "Offline Payment Methods",
+              "What Happens If You Don't Pay a Traffic Challan?",
+              "Late Payment Penalties",
+              "Court Summons",
+              "Driving Licence Suspension",
+              "Vehicle Services Blocked",
+              "Insurance Impact",
+              "Vehicle Resale Value",
+              "What is a Virtual Court Challan?",
+              "Lok Adalat for Traffic Challans",
+              "Key Benefits:",
+              "How to Attend:",
+              "How to Dispute a Wrong E-Challan",
+              "Documents to Keep While Driving",
+              "Why Pay on Time?",
+              "Need Help Settle Fines?",
+              "Frequently Asked Questions \u2014 E-Challan Check",
+              "Check Challan Status for Other States"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/rc-check",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 31,
+            "word_count": 1333,
+            "headings": [
+              "RC Status Check Online",
+              "Check RC Details",
+              "What You'll See in a Verified Report",
+              "Owner & Authority",
+              "Vehicle Technicals",
+              "Insurance Status",
+              "Validity & Hypothecation",
+              "What is a Registration Certificate (RC)?",
+              "What Information Does an RC Contain?",
+              "Why Should You Check RC Status Online?",
+              "Verify Ownership",
+              "Check Hypothecation Status",
+              "Confirm Insurance Validity",
+              "Check Expiry & Validity",
+              "How to Check RC Status Online \u2014 3 Methods",
+              "RC Validity, Renewal & Transfer Details",
+              "RC Validity and Renewal",
+              "RC Transfer Status Check",
+              "Key RTO Processes & Documents",
+              "Digital RC via DigiLocker",
+              "Loan Hypothecation Removal",
+              "How to Get a Duplicate RC",
+              "Required Documents for New RC Issuance",
+              "Frequently Asked Questions \u2014 RC Check Online",
+              "Check RC Status for Other States",
+              "Important Car Purchase & Selling Tools",
+              "Check Traffic Challans",
+              "Verify Car Insurance",
+              "Browse Used Cars",
+              "Need Help with RC Transfer ?"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 1,
+            "word_count": 11,
+            "headings": []
+          },
+          {
+            "url": "https://www.nxcar.in/faq",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 3,
+            "word_count": 158,
+            "headings": [
+              "Frequently Asked Questions",
+              "Still Have Questions?"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/used-car-dealers-in",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 2,
+            "word_count": 49,
+            "headings": [
+              "Verified Dealer Network"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/privacy-policy",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 28,
+            "word_count": 961,
+            "headings": [
+              "Privacy Policy",
+              "Introduction",
+              "Scope",
+              "Personal Information Collection and Use",
+              "Types of Information:",
+              "Purpose of Collection:",
+              "Legal Basis:",
+              "Data Retention and Storage",
+              "Retention Period:",
+              "Data Security:",
+              "Sharing and Disclosure",
+              "Third-Party Service Providers:",
+              "Legal Requirements:",
+              "Individual Rights",
+              "Access and Correction:",
+              "Withdrawal of Consent:",
+              "Account Information:",
+              "Marketing Communications",
+              "Opt-Out:",
+              "Compliance and Accountability",
+              "Regulatory Compliance:",
+              "Accountability:",
+              "Policy Review and Updates",
+              "Policy Review:",
+              "Notification:",
+              "Contact Information",
+              "Review, Update, Or Delete The Data We Collect",
+              "To Withdraw Consent for Credit Information Data -"
+            ]
+          },
+          {
+            "url": "https://www.nxcar.in/terms",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 15,
+            "word_count": 551,
+            "headings": [
+              "Terms & Conditions",
+              "01. Acceptance of Terms",
+              "02. Services Offered",
+              "03. User Eligibility",
+              "04. Account Registration",
+              "05. Vehicle Listings",
+              "06. Transactions and Payments",
+              "07. Inspection and Verification",
+              "08. Limitation of Liability",
+              "09. Prohibited Activities",
+              "10. Intellectual Property",
+              "11. Termination",
+              "12. Governing Law",
+              "13. Modifications",
+              "14. Contact Information"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

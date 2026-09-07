@@ -1,0 +1,1660 @@
+{
+  "target": "https://www.linkedin.com/",
+  "domain": "www.linkedin.com",
+  "audited_at": "2026-09-07T11:56:56Z",
+  "total_runtime_seconds": 167.21,
+  "skills": {
+    "skill_1": {
+      "site": "www.linkedin.com",
+      "audited_at": "2026-09-07T11:54:40Z",
+      "summary": {
+        "total_findings": 5,
+        "critical": 1,
+        "high": 1,
+        "medium": 2,
+        "low": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "TLS_CERT_EXPIRING_SOON",
+          "title": "SSL/TLS certificate expires soon (12 days remaining)",
+          "severity": "medium",
+          "evidence": "Certificate expires on 2026-09-19 (Issuer: DigiCert Inc, DigiCert Global G2 TLS RSA SHA256 2020 CA1).",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Renew SSL certificate before 2026-09-19 to avoid disruption to search citation crawlers.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "ACC-002",
+          "code": "SITE_WIDE_DISALLOW",
+          "title": "Entire website blocked in robots.txt",
+          "severity": "critical",
+          "evidence": "robots.txt contains 'Disallow: /' for User-agent: *.",
+          "suggested_action": {
+            "summary": "Remove site-wide disallow rule to allow AI search and general engines to crawl public content.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "ACC-003",
+          "code": "AI_SEARCH_BOT_BLOCKED_COMPLETELY",
+          "title": "Live AI search bot completely blocked: Perplexity AI Search",
+          "severity": "high",
+          "evidence": "robots.txt explicitly specifies 'Disallow: /' for User-agent: perplexitybot.",
+          "suggested_action": {
+            "summary": "Allow perplexitybot on public documentation and articles so Perplexity AI Search can cite the brand in live answers.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "ACC-004",
+          "code": "AI_TRAINING_BOT_BLOCKED",
+          "title": "AI model training scraper restricted: OpenAI Model Training",
+          "severity": "low",
+          "evidence": "robots.txt disallows gptbot on '/'. This limits bulk model training but does not prevent live search citation.",
+          "suggested_action": {
+            "summary": "Informational: Keep disallow if copyright protection is desired; allow if you wish OpenAI Model Training to pre-train on your public docs.",
+            "priority": "low"
+          }
+        },
+        {
+          "id": "ACC-005",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.linkedin.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.linkedin.com",
+        "total_discovered": 130,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [
+          "https://www.linkedin.com/products",
+          "https://www.linkedin.com/top-content/productivity",
+          "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+          "https://www.linkedin.com/products/home",
+          "https://www.linkedin.com/directory/products",
+          "https://www.linkedin.com/products/categories/e-commerce-platforms",
+          "https://www.linkedin.com/products/categories/customer-relationship-management-software",
+          "https://www.linkedin.com/products/categories/human-resources-management-systems",
+          "https://www.linkedin.com/products/categories/recruiting-software",
+          "https://www.linkedin.com/products/categories/sales-intelligence-software"
+        ],
+        "curated_sample": [
+          "https://www.linkedin.com",
+          "https://www.linkedin.com/products",
+          "https://www.linkedin.com/top-content/productivity",
+          "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+          "https://www.linkedin.com/products/home",
+          "https://www.linkedin.com/company/linkedin/jobs",
+          "https://www.linkedin.com/top-content",
+          "https://www.linkedin.com/games",
+          "https://www.linkedin.com/login",
+          "https://www.linkedin.com/signup",
+          "https://www.linkedin.com/learning",
+          "https://www.linkedin.com/jobs",
+          "https://www.linkedin.com/services",
+          "https://www.linkedin.com/accessibility",
+          "https://www.linkedin.com/legal/user-agreement"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://www.linkedin.com",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://www.linkedin.com/products",
+            "depth": 1,
+            "archetype": "product"
+          },
+          {
+            "url": "https://www.linkedin.com/top-content/productivity",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://www.linkedin.com/products/home",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://www.linkedin.com/company/linkedin/jobs",
+            "depth": 3,
+            "archetype": "about"
+          },
+          {
+            "url": "https://www.linkedin.com/top-content",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/games",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/login",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/signup",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/learning",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/jobs",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/services",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/accessibility",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-09-19",
+          "days_remaining": 12,
+          "issuer": "DigiCert Inc, DigiCert Global G2 TLS RSA SHA256 2020 CA1",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 404,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://www.linkedin.com/sitemap.xml",
+        "sitemap_status": 404,
+        "candidate_sitemaps_tested": [
+          "https://www.linkedin.com/sitemap.xml",
+          "https://www.linkedin.com/sitemap_index.xml"
+        ],
+        "total_discovered_urls": 130,
+        "pages_visited": [
+          {
+            "url": "https://www.linkedin.com",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 3389.0,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 3207.5,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 3448.2,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 404,
+            "elapsed_ms": 3467.6,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.linkedin.com/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 1590.4,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.linkedin.com/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.linkedin.com/sitemap.xml)",
+            "status": 404,
+            "elapsed_ms": 687.6,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.linkedin.com/sitemap_index.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.linkedin.com/sitemap_index.xml)",
+            "status": 404,
+            "elapsed_ms": 1541.8,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /legal/user-agreement)",
+            "status": 200,
+            "elapsed_ms": 1228.6,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /legal/user-agreement)",
+            "status": 200,
+            "elapsed_ms": 1402.9,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/legal/privacy-policy",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /legal/privacy-policy)",
+            "status": 200,
+            "elapsed_ms": 1659.9,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/legal/privacy-policy",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /legal/privacy-policy)",
+            "status": 200,
+            "elapsed_ms": 3491.8,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/legal/cookie-policy",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /legal/cookie-policy)",
+            "status": 200,
+            "elapsed_ms": 885.4,
+            "error": null
+          },
+          {
+            "url": "https://www.linkedin.com/legal/cookie-policy",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /legal/cookie-policy)",
+            "status": 200,
+            "elapsed_ms": 1332.9,
+            "error": null
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.linkedin.com",
+      "audited_at": "2026-09-07T11:56:10Z",
+      "summary": {
+        "total_findings": 11,
+        "critical": 0,
+        "high": 1,
+        "medium": 10,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (5 blocks) are missing from raw HTML on /jobs/product-management-jobs-pune-division",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 15 sentences (84.8% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Get notified when a new job is posted. , Privacy Policy , and Cookie Policy . Manager-Product Lines and Market Intelligence - SKF Automotive Business\"\nSection 2: \"Manager-Product Lines and Market Intelligence - SKF Automotive Business Manager, Technical Product Management - Treasury Manager, Technical Product Management - Treasury\"\nSection 3: \"Johnson & Johnson Innovative Medicine Payments - AVP Product Owner Payments - AVP Product Owner\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (5 URLs) are locked inside client JavaScript on /jobs/product-management-jobs-pune-division",
+          "severity": "medium",
+          "evidence": "5 internal links exist only in the rendered DOM (e.g., https://www.linkedin.com/company/jnjinnovativemedicine, https://www.linkedin.com/company/omnixm, https://www.linkedin.com/company/zeapl).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5221ms) exceeds crawl time budget on /company/linkedin/jobs",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5221ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (4633ms) exceeds crawl time budget on /top-content",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 4633ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (0.0% parity) on /login",
+          "severity": "high",
+          "evidence": "Pass B rendered 4 sentences, but Pass A only contained 0 in raw HTML (4 missing sentences, 0.0% parity).\nActual Missing Content from Browser DOM:\nSection 1: \"By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy . By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .\"\nSection 2: \"LinkedIn Corporation \u00a9 2026 LinkedIn Corporation \u00a9 2026\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (4762ms) exceeds crawl time budget on /login",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 4762ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (1 blocks) are missing from raw HTML on /signup",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 1 sentences (66.7% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"By clicking Agree & Join or Continue, you agree to the LinkedIn User Agreement , Privacy Policy , and Cookie Policy .\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6218ms) exceeds crawl time budget on /learning",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6218ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (29 URLs) are locked inside client JavaScript on /jobs",
+          "severity": "medium",
+          "evidence": "29 internal links exist only in the rendered DOM (e.g., https://www.linkedin.com/jobs/real-estate-jobs-pune-division, https://www.linkedin.com/jobs/marketing-jobs-pune-division, https://www.linkedin.com/jobs/administrative-jobs-pune-division).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6013ms) exceeds crawl time budget on /services",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6013ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6729ms) exceeds crawl time budget on /legal/user-agreement",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6729ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 15,
+        "per_page_metrics": [
+          {
+            "url": "https://www.linkedin.com",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1124.8,
+              "pass_b_latency_ms": 4035.5,
+              "parity_pct": 96.8,
+              "sentences_pass_a": 31,
+              "sentences_pass_b": 31,
+              "pass_a_excerpt": "Grow your professional network and discover jobs and career tips  Sign in with email  By clicking Continue to join or sign in, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .  New to LinkedIn? Join now   Explore top Link",
+              "pass_b_excerpt": "Find your dream job and build your career\r  Sign in with email\r  By clicking Continue to join or sign in, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .\r  New to LinkedIn? Join now \r  Explore top LinkedIn content\r  Disc",
+              "missing_sentences_count": 1,
+              "missing_content_blocks": [
+                "Find your dream job and build your career"
+              ],
+              "missing_snippets_sample": [
+                "Find your dream job and build your career"
+              ],
+              "depth": 0
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/products",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1573.8,
+              "pass_b_latency_ms": 3642.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 7,
+              "sentences_pass_b": 7,
+              "pass_a_excerpt": "Discover products used by a trusted network of professionals  Choose the right tool for the job from 30,000 products on LinkedIn  Clear text   Popular Product Categories  Online Course Platforms  Customer Relationship Management (CRM) Software  Human",
+              "pass_b_excerpt": "Discover products used by a trusted network of professionals\r  Choose the right tool for the job from 30,000 products on LinkedIn\r  Clear text \r  Popular Product Categories\r  Online Course Platforms\r  Customer Relationship Management (CRM) Software",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/top-content/productivity",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2287.6,
+              "pass_b_latency_ms": 3353.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 350,
+              "sentences_pass_b": 350,
+              "pass_a_excerpt": "Top Content  Productivity Explore top LinkedIn content from expert professionals.  Pascal BORNET  #1 AI & Automation Thought Leader | Award-Winning Expert | Best-Selling Author | Recognized Keynote Speaker | Agentic AI Pioneer | Forbes Tech Council |",
+              "pass_b_excerpt": "Top Content \r Productivity Explore top LinkedIn content from expert professionals.  Pascal BORNET\r  #1 AI & Automation Thought Leader | Award-Winning Expert | Best-Selling Author | Recognized Keynote Speaker | Agentic AI Pioneer | Forbes Tech Council",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2195.4,
+              "pass_b_latency_ms": 3989.7,
+              "parity_pct": 84.8,
+              "sentences_pass_a": 99,
+              "sentences_pass_b": 99,
+              "pass_a_excerpt": "Get notified about new Product Management jobs in Pune .  Sign in to create job alert  1,000+ Product Management Jobs in Pune   Technical Product Manager  Technical Product Manager  NorthStar HR Consultants  Pune District, Maharashtra, India  2 weeks",
+              "pass_b_excerpt": "Get notified when a new job is posted. \r  Set alert\r  Password\r  Show \r  Forgot password? \r  Sign in\r  Sign in with Email \r  , Privacy Policy , and Cookie Policy .\r  1,000+ Product Management Jobs in Pune \r  Technical Product Manager\r  Technical Prod",
+              "missing_sentences_count": 15,
+              "missing_content_blocks": [
+                "Get notified when a new job is posted. , Privacy Policy , and Cookie Policy . Manager-Product Lines and Market Intelligence - SKF Automotive Business",
+                "Manager-Product Lines and Market Intelligence - SKF Automotive Business Manager, Technical Product Management - Treasury Manager, Technical Product Management - Treasury",
+                "Johnson & Johnson Innovative Medicine Payments - AVP Product Owner Payments - AVP Product Owner",
+                "Unit Manager - Digital Platforms and Consumer AI Unit Manager - Digital Platforms and Consumer AI Product Lead- Cloud Finops"
+              ],
+              "missing_snippets_sample": [
+                "Get notified when a new job is posted.",
+                ", Privacy Policy , and Cookie Policy .",
+                "Manager-Product Lines and Market Intelligence - SKF Automotive Business"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/products/home",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1010.1,
+              "pass_b_latency_ms": 4273.7,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 7,
+              "sentences_pass_b": 7,
+              "pass_a_excerpt": "Discover products used by a trusted network of professionals  Choose the right tool for the job from 30,000 products on LinkedIn  Clear text   Popular Product Categories  Online Course Platforms  Customer Relationship Management (CRM) Software  Human",
+              "pass_b_excerpt": "Discover products used by a trusted network of professionals\r  Choose the right tool for the job from 30,000 products on LinkedIn\r  Clear text \r  Popular Product Categories\r  Online Course Platforms\r  Customer Relationship Management (CRM) Software",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/company/linkedin/jobs",
+            "depth": 3,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2280.3,
+              "pass_b_latency_ms": 5221.0,
+              "parity_pct": 97.7,
+              "sentences_pass_a": 44,
+              "sentences_pass_b": 44,
+              "pass_a_excerpt": "LinkedIn  Software Development  Sunnyvale, CA 34,293,106 followers  See jobs  Follow  View all 23,700 employees  Report this company  Jobs at LinkedIn  Account Executive (German) - Scaled Sales - LinkedIn Marketing Solutions  Account Executive (Germa",
+              "pass_b_excerpt": "LinkedIn\r  Software Development\r  Sunnyvale, CA 34,293,106 followers\r  See jobs\r  Follow\r  View all 23,717 employees\r  Report this company\r  Jobs at LinkedIn\r  Account Executive (German) - Scaled Sales - LinkedIn Marketing Solutions\r  Account Executi",
+              "missing_sentences_count": 1,
+              "missing_content_blocks": [
+                "View all 23,717 employees"
+              ],
+              "missing_snippets_sample": [
+                "View all 23,717 employees"
+              ],
+              "depth": 3
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/top-content",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 867.2,
+              "pass_b_latency_ms": 4632.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 14,
+              "sentences_pass_b": 14,
+              "pass_a_excerpt": "What topics do you want to explore?  \ud83d\udcda Tips for Managing Stressors with Mental Toughness  \ud83d\udcac How to Navigate Difficult Conversations for Personal Growth  \ud83d\udca1 Top Emerging AI Use Cases and Their Capabilities  \ud83d\ude0a How Leaders Foster Psychological Safety  \ud83d\ude80\ufe0f",
+              "pass_b_excerpt": "What topics do you want to explore?\r  \ud83d\udcda Tips for Managing Stressors with Mental Toughness\r  \ud83d\udcac How to Navigate Difficult Conversations for Personal Growth\r  \ud83d\udca1 Top Emerging AI Use Cases and Their Capabilities\r  \ud83d\ude0a How Leaders Foster Psychological Safety",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/games",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1195.8,
+              "pass_b_latency_ms": 3536.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 3,
+              "sentences_pass_b": 3,
+              "pass_a_excerpt": "Connect over fun, daily games  Prep your mind for the workday and compare results.  Weave through words  Wend  Piece it together  Patches  The classic game, made mini  Mini Sudoku  Complete the path  Zip  Harmonize the grid  Tango  Crown each region",
+              "pass_b_excerpt": "Connect over fun, daily games\r  Prep your mind for the workday and compare results.\r  Weave through words\r  Wend\r  Piece it together\r  Patches\r  The classic game, made mini\r  Mini Sudoku\r  Complete the path\r  Zip\r  Harmonize the grid\r  Tango\r  Crown",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/login",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 712.9,
+              "pass_b_latency_ms": 4762.3,
+              "parity_pct": 0.0,
+              "sentences_pass_a": 6,
+              "sentences_pass_b": 4,
+              "pass_a_excerpt": "Sign in  Stay updated on your professional world.  Email or phone  Password  Show  Forgot password?  Sign in  or   By clicking Continue, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .  Sign in with Apple  Sign in with a",
+              "pass_b_excerpt": "Sign in New to LinkedIn?  Join now   Sign in with Microsoft   Sign in with Apple  By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy . or Email or phone Password  Forgot password?  Keep me signed in  Sign in  S",
+              "missing_sentences_count": 4,
+              "missing_content_blocks": [
+                "By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy . By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .",
+                "LinkedIn Corporation \u00a9 2026 LinkedIn Corporation \u00a9 2026"
+              ],
+              "missing_snippets_sample": [
+                "By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .",
+                "By continuing, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .",
+                "LinkedIn Corporation \u00a9 2026"
+              ],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/signup",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 719.9,
+              "pass_b_latency_ms": 4090.4,
+              "parity_pct": 66.7,
+              "sentences_pass_a": 3,
+              "sentences_pass_b": 3,
+              "pass_a_excerpt": "Not you?  Email or phone number   Password   Show   First name   Last name   Agree & Join LinkedIn  By clicking Continue, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .  By clicking Next, you agree to the LinkedIn User",
+              "pass_b_excerpt": "Not you?\r  Email or phone number \r  Password \r  Show \r  Remember me \r  First name \r  Last name \r  Agree & Join LinkedIn\r  By clicking Continue, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .\r  By clicking Agree & Join o",
+              "missing_sentences_count": 1,
+              "missing_content_blocks": [
+                "By clicking Agree & Join or Continue, you agree to the LinkedIn User Agreement , Privacy Policy , and Cookie Policy ."
+              ],
+              "missing_snippets_sample": [
+                "By clicking Agree & Join or Continue, you agree to the LinkedIn User Agreement , Privacy Policy , and Cookie Policy ."
+              ],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/learning",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1752.0,
+              "pass_b_latency_ms": 6218.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 78,
+              "sentences_pass_b": 78,
+              "pass_a_excerpt": "Develop skills that move your career forward  Get guidance to develop the critical skills you need to advance your career from the only learning platform informed by the world's largest talent marketplace.  Start my free month  Buy for my team  Perso",
+              "pass_b_excerpt": "Develop skills that move your career forward\r  Get guidance to develop the critical skills you need to advance your career from the only learning platform informed by the world's largest talent marketplace.\r  Start my free month\r  Buy for my team\r  P",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/jobs",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1183.9,
+              "pass_b_latency_ms": 3267.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 25,
+              "sentences_pass_b": 25,
+              "pass_a_excerpt": "Millions of jobs and people hiring  Email or phone  Password  Show   Forgot password?   Sign in  or  By clicking Continue to join or sign in, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .  New to LinkedIn? Join now  Fi",
+              "pass_b_excerpt": "Millions of jobs and people hiring\r  Email or phone\r  Password\r  Show \r  Forgot password? \r  Sign in\r  or\r  By clicking Continue to join or sign in, you agree to LinkedIn's User Agreement , Privacy Policy , and Cookie Policy .\r  New to LinkedIn? Join",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/services",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1336.1,
+              "pass_b_latency_ms": 6012.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 139,
+              "sentences_pass_b": 139,
+              "pass_a_excerpt": "Take your projects from to\u2011do to done   Search for services on LinkedIn   Clear text   Popular Services  Graphic Design  Marketing Strategy  Public Relations  iOS Development  Accounting  Financial Analysis  Virtual Assistance  Business Law  See all",
+              "pass_b_excerpt": "Take your projects from to\u2011do to done \r  Search for services on LinkedIn \r  Clear text \r  Popular Services\r  Graphic Design\r  Marketing Strategy\r  Public Relations\r  iOS Development\r  Accounting\r  Financial Analysis\r  Virtual Assistance\r  Business La",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/accessibility",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1223.6,
+              "pass_b_latency_ms": 4283.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 22,
+              "sentences_pass_b": 22,
+              "pass_a_excerpt": "No two LinkedIn members are the same\u2014and it's that diversity which makes our community so great. We're on a journey to make accessibility and inclusive design part of our core principles, building accessibility from the ground up and testing our prod",
+              "pass_b_excerpt": "No two LinkedIn members are the same\u2014and it's that diversity which makes our community so great. We're on a journey to make accessibility and inclusive design part of our core principles, building accessibility from the ground up and testing our prod",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1860.5,
+              "pass_b_latency_ms": 6729.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 144,
+              "sentences_pass_b": 144,
+              "pass_a_excerpt": "Effective on November 3, 2025  Our mission is to connect the world's professionals to allow them to be more productive and successful. Our services are designed to promote economic opportunity for our members by enabling you and millions of other pro",
+              "pass_b_excerpt": "Effective on November 3, 2025  Our mission is to connect the world's professionals to allow them to be more productive and successful. Our services are designed to promote economic opportunity for our members by enabling you and millions of other pro",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.linkedin.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 1,
+        "medium": 1,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+          "severity": "HIGH",
+          "url": "https://www.linkedin.com/",
+          "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+          "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "10 Organization entities lack description property on /top-content/productivity",
+          "severity": "MEDIUM",
+          "url": "https://www.linkedin.com/top-content/productivity",
+          "evidence": "10 instances of Organization (LinkedIn, LinkedIn, LinkedIn...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 15,
+        "pages_with_schema": 1,
+        "schema_coverage_pct": 6.7,
+        "pages": [
+          {
+            "url": "https://www.linkedin.com/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/products",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/top-content/productivity",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "BreadcrumbList",
+              "CollectionPage",
+              "ImageObject",
+              "InteractionCounter",
+              "ListItem",
+              "Organization",
+              "Person",
+              "SocialMediaPosting",
+              "WebPage"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/products/home",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/company/linkedin/jobs",
+            "depth": 3,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/top-content",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/games",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/signup",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/learning",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/jobs",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/services",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/accessibility",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.linkedin.com",
+      "summary": {
+        "total_findings": 4,
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
+        "info": 3
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.linkedin.com/top-content/productivity",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-002",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.linkedin.com/services",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-003",
+          "code": "RAG_SECTION_CONTENT_FLOODING",
+          "title": "Section '' contains continuous prose flooding (492 words)",
+          "severity": "MEDIUM",
+          "url": "https://www.linkedin.com/legal/user-agreement",
+          "evidence": "Section contains 492 words of continuous prose without subheadings, bullet lists, or tables, triggering 'Lost in the Middle' attention degradation in LLM retrieval.\nSection Opening Excerpt:\n  \"Others may offer their own products and services through our Services, and we aren\u2019t responsible for those third-party activities. Others\u2019 Content: By using the Services, you may encounter content or other information that might be inaccurate, incomplete, dela...\"",
+          "suggested_action": "Break this section into self-contained 40-80 word paragraphs and introduce subheadings (<h3>) or bulleted lists."
+        },
+        {
+          "id": "CNT-004",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.linkedin.com/legal/user-agreement",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 524,
+        "total_words_audited": 16430,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.linkedin.com/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 20,
+            "word_count": 534,
+            "headings": [
+              "Grow your professional network and discover jobs and career tips",
+              "Explore top LinkedIn content",
+              "Find the right job or internship for you",
+              "Post your job for millions of people to see",
+              "Discover the best software tools",
+              "Keep your mind sharp with games",
+              "Let the right people know you\u2019re open to work",
+              "Conversations today could lead to opportunity tomorrow",
+              "Stay up to date on your industry",
+              "Connect with people who can help",
+              "Learn the skills you need to succeed",
+              "Who is LinkedIn for?",
+              "In it to chase my dream",
+              "Check out Gayatri\u2019s story of finding a new job on LinkedIn",
+              "Join your colleagues, classmates, and friends on LinkedIn",
+              "General",
+              "Browse LinkedIn",
+              "Business Solutions",
+              "Directories"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/products",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 25,
+            "word_count": 67,
+            "headings": [
+              "Discover products used by a trusted network of professionals",
+              "Choose the right tool for the job from 30,000 products on LinkedIn",
+              "Popular Product Categories",
+              "Products people are talking about",
+              "LinkedIn Sales Navigator",
+              "Sales Intelligence Software",
+              "LinkedIn Hiring Pro",
+              "Job Boards Software",
+              "LinkedIn Interview Prep AI",
+              "AI-Powered Coaching Software",
+              "LinkedIn Learning AI-powered Coaching",
+              "AI-Powered Coaching Software",
+              "Facebook",
+              "Social Networking Software",
+              "LinkedIn Ads",
+              "Native Advertising Software",
+              "LinkedIn Learning",
+              "",
+              "LinkedIn Talent Insights",
+              "Talent Intelligence Software",
+              "Instagram",
+              "Social Networking Software",
+              "IBM Cognos Analytics",
+              "Business Intelligence (BI) Software",
+              "Showcase your products to the world's largest professional community and drive leads"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/top-content/productivity",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 4,
+            "word_count": 4317,
+            "headings": [
+              "Productivity",
+              "More in Productivity",
+              "Explore categories"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/jobs/product-management-jobs-pune-division",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 124,
+            "word_count": 839,
+            "headings": [
+              "1,000+ Product Management Jobs in Pune",
+              "Technical Product Manager",
+              "NorthStar HR Consultants",
+              "Lead Technical Product Manager - (IIT/IIM Preferred) - Product Management",
+              "Wolters Kluwer",
+              "Product Manager",
+              "Siemens Healthineers",
+              "Product Manager",
+              "Druva",
+              "Senior Product Manager",
+              "QAD",
+              "Product Manager (Core Platform and Infrastructure)",
+              "Sibros",
+              "Product Manager - AI",
+              "EPAM Systems",
+              "Senior Global Product Manager (Sleep Therapy)",
+              "Philips",
+              "Senior Technology Product Manager",
+              "Wolters Kluwer",
+              "Senior Product Manager",
+              "Showpad",
+              "Generative AI Product Manager Pune, India",
+              "mvue.ai",
+              "Product Manager -Technical (Life Insurance & Annuity)",
+              "Zinnia",
+              "Senior Technical Product Manager",
+              "Revun",
+              "Senior Product Manager (Technical) - Identity & Access Management",
+              "Zinnia",
+              "Senior Product Manager \u2013 Lawful Interception Platform",
+              "Cognyte",
+              "Product Management, Manager",
+              "athenahealth",
+              "Senior Product Manager",
+              "Zendesk",
+              "Senior Product Manager",
+              "Publicis Sapient",
+              "Product Manager",
+              "Copeland",
+              "Global Product Manager",
+              "Philips",
+              "Product Manager-II",
+              "Finarkein",
+              "Product Manager",
+              "Cognyte",
+              "Vice President, POM Product Owner",
+              "BNY",
+              "Vice President, POM Technical Product Management - Developer Marketplace",
+              "BNY",
+              "Product Manager",
+              "HackerOne",
+              "Technical Product Manager",
+              "LotusFlare",
+              "Principal Product Manager",
+              "Zendesk",
+              "Product Manager",
+              "Sonata Software",
+              "Associate Product Manager",
+              "Qualys",
+              "Senior Product Manager, AI Experience",
+              "Avalara",
+              "Product Manager",
+              "Careernet",
+              "Lead Product Manager- Technical",
+              "Mastercard",
+              "Software Product Owner",
+              "Emerson",
+              "Product Manager- Mobile",
+              "MoxiWorks",
+              "Network Product manager WAN",
+              "Tata Consultancy Services",
+              "Director Product Management - Source-to-Pay",
+              "QAD",
+              "Technical Product Manager",
+              "TransPerfect",
+              "Senior Product Managemer / Product Development / Product Owner",
+              "Quest Global",
+              "VP Product Owner - Demand and Deposit Accounting (DDA)",
+              "Barclays",
+              "Product Owner - Virtual Interlining",
+              "tripstack",
+              "Technical Product Manager",
+              "Optum India",
+              "Automotive Product Manager - (HW, SW, Mech, HUD/Display, GTM)",
+              "HARMAN India",
+              "Principal Product Mgr",
+              "Qualys",
+              "Senior PMT",
+              "Mastercard",
+              "Product Line Manager - Greases, Maintenance and Power transmission Products",
+              "SKF Group",
+              "Product Manager",
+              "EPAM Systems",
+              "Associate Director, Product Management - AI and Agentic Platform",
+              "PubMatic",
+              "Product Manager",
+              "Armor Defense",
+              "Associate Product Manager",
+              "omniXM",
+              "Manager-Product Lines and Market Intelligence - SKF Automotive Business",
+              "SKF ISEAM",
+              "Manager, Technical Product Management - Treasury",
+              "Johnson & Johnson Innovative Medicine",
+              "Payments - AVP Product Owner",
+              "Barclays",
+              "Product Lead",
+              "zeapl.ai",
+              "Unit Manager - Digital Platforms and Consumer AI",
+              "Bajaj Finserv",
+              "Product Owner",
+              "Siemens",
+              "Product Lead- Cloud Finops",
+              "ITC Infotech",
+              "Product Manager",
+              "Signify",
+              "Product Manager",
+              "Venxr",
+              "Technical Product Owner (Cloud-Native Insurance Platforms) - VOIS",
+              "VOIS",
+              "Technology Product Manager AI & Data Strategy",
+              "Citi",
+              "You\u2019re signed out",
+              "Sign in for the full experience."
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/products/home",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 25,
+            "word_count": 67,
+            "headings": [
+              "Discover products used by a trusted network of professionals",
+              "Choose the right tool for the job from 30,000 products on LinkedIn",
+              "Popular Product Categories",
+              "Products people are talking about",
+              "LinkedIn Sales Navigator",
+              "Sales Intelligence Software",
+              "LinkedIn Hiring Pro",
+              "Job Boards Software",
+              "LinkedIn Interview Prep AI",
+              "AI-Powered Coaching Software",
+              "LinkedIn Learning AI-powered Coaching",
+              "AI-Powered Coaching Software",
+              "Facebook",
+              "Social Networking Software",
+              "LinkedIn Ads",
+              "Native Advertising Software",
+              "LinkedIn Learning",
+              "",
+              "LinkedIn Talent Insights",
+              "Talent Intelligence Software",
+              "Instagram",
+              "Social Networking Software",
+              "IBM Cognos Analytics",
+              "Business Intelligence (BI) Software",
+              "Showcase your products to the world's largest professional community and drive leads"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/company/linkedin/jobs",
+            "depth": 3,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 90,
+            "word_count": 461,
+            "headings": [
+              "Sign in to see who you already know at LinkedIn",
+              "LinkedIn",
+              "Software Development",
+              "Sunnyvale, CA 34,293,116 followers",
+              "Jobs at LinkedIn",
+              "Account Executive (German) - Scaled Sales - LinkedIn Marketing Solutions",
+              "LinkedIn",
+              "Principal Staff Software Engineer, Linkedin Learning Solutions",
+              "LinkedIn",
+              "Principal Staff Software Engineer, AI Advertiser Growth",
+              "LinkedIn",
+              "Senior Deal Desk Strategist, Partner and Alliance Go-to-Market [Fixed Term Contract]",
+              "LinkedIn",
+              "Automation Developer",
+              "LinkedIn",
+              "Associate Engineer, Data Center",
+              "LinkedIn",
+              "Mid-Market Account Director, Talent Solutions",
+              "LinkedIn",
+              "Finance Project Manager, Finance Project Management",
+              "LinkedIn",
+              "Account Executive (Nordics) - Sales Solutions",
+              "LinkedIn",
+              "Affiliated pages",
+              "Zip, a puzzle by LinkedIn",
+              "LinkedIn News",
+              "Patches, a puzzle by LinkedIn",
+              "LinkedIn Guide to Networking",
+              "Tango, a puzzle by LinkedIn",
+              "Queens, a puzzle by LinkedIn",
+              "Mini Sudoku, a puzzle by LinkedIn",
+              "LinkedIn Guide to Creating",
+              "Wend, a puzzle by LinkedIn",
+              "LinkedIn for Marketing",
+              "LinkedIn Learning",
+              "LinkedIn Talent Solutions",
+              "LinkedIn for Sales",
+              "LinkedIn for Small Business",
+              "LinkedIn for Nonprofits",
+              "LinkedIn's Economic Graph",
+              "Lynda.com",
+              "Pinpoint, a puzzle by LinkedIn",
+              "Crossclimb, a puzzle by LinkedIn",
+              "LinkedIn Life",
+              "LinkedIn Social Impact",
+              "LinkedIn Skill Pages",
+              "The B2B Institute",
+              "LinkedIn Engineering",
+              "LinkedIn WIT",
+              "LinkedIn Help",
+              "LinkedIn Design",
+              "LinkedIn Learning AI-powered Coaching",
+              "AI in Action",
+              "The CEO Playbook",
+              "Small Business Builders",
+              "Shows by LinkedIn",
+              "The Founder\u2019s Blueprint",
+              "Similar pages",
+              "Google",
+              "Microsoft",
+              "Amazon",
+              "Meta",
+              "Netflix",
+              "Apple",
+              "Deloitte",
+              "IBM",
+              "OpenAI",
+              "Salesforce",
+              "Browse jobs",
+              "LinkedIn jobs",
+              "Engineer jobs",
+              "Analyst jobs",
+              "Manager jobs",
+              "Intern jobs",
+              "Associate jobs",
+              "Project Manager jobs",
+              "Developer jobs",
+              "Director jobs",
+              "Scientist jobs",
+              "Assistant jobs",
+              "Executive jobs",
+              "Account Executive jobs",
+              "Account Manager jobs",
+              "Marketing Manager jobs",
+              "Software Engineer jobs",
+              "Specialist jobs",
+              "Customer Service Representative jobs",
+              "Human Resources Specialist jobs",
+              "Recruiter jobs"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/top-content",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 3,
+            "word_count": 325,
+            "headings": [
+              "What topics do you want to explore?",
+              "Editor\u2019s Picks",
+              "Topic Categories"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/games",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 1,
+            "word_count": 56,
+            "headings": []
+          },
+          {
+            "url": "https://www.linkedin.com/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 2,
+            "word_count": 96,
+            "headings": [
+              "Sign in",
+              "We\u2019ve emailed a one-time link to your primary email address"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/signup",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 3,
+            "word_count": 70,
+            "headings": [
+              "Join LinkedIn now \u2014 it\u2019s free!",
+              "",
+              "Security verification"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/learning",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 69,
+            "word_count": 784,
+            "headings": [
+              "Develop skills that move your career forward",
+              "Get guidance to develop the critical skills you need to advance your career from the only learning platform informed by the world\u2019s largest talent marketplace.",
+              "Personalize your learning",
+              "Guided learning that fits your career",
+              "Global skill development for your current role and your next one",
+              "Explore courses",
+              "Trending Courses",
+              "What Is Generative AI?",
+              "Learning Data Analytics: 1 Foundations",
+              "Electronics Foundations: Basic Circuits",
+              "Expert Tips for Answering Common Interview Questions",
+              "Ethics in the Age of Generative AI",
+              "Electronics Foundations: Fundamentals",
+              "Critical Thinking for Better Judgment and Decision-Making",
+              "Prompt Engineering: How to Talk to the AIs (2023)",
+              "Construction Management: Managing Risk",
+              "Find the right course for you",
+              "Trending Business Courses",
+              "What Is Generative AI?",
+              "Expert Tips for Answering Common Interview Questions",
+              "Critical Thinking for Better Judgment and Decision-Making",
+              "Critical Thinking",
+              "Project Management Foundations",
+              "Agile Foundations",
+              "How to Use LinkedIn Learning",
+              "Time Management: Working from Home (2018)",
+              "Diversity, Inclusion, and Belonging",
+              "Find the right course for you",
+              "Trending Technology Courses",
+              "Learning Data Analytics: 1 Foundations",
+              "Electronics Foundations: Basic Circuits",
+              "Ethics in the Age of Generative AI",
+              "Prompt Engineering: How to Talk to the AIs (2023)",
+              "Excel: Creating a Basic Dashboard",
+              "Electronics Foundations: Fundamentals",
+              "Programming Foundations: Fundamentals",
+              "Python Essential Training",
+              "Excel Data Visualization: Mastering 20+ Charts and Graphs",
+              "Find the right course for you",
+              "Trending Creative Courses",
+              "Electronics Foundations: Basic Circuits",
+              "Electronics Foundations: Fundamentals",
+              "Construction Management: Managing Risk",
+              "Discover the Possibilities of Generative AI",
+              "Thinking Creatively",
+              "Practical Engineering",
+              "Psychological Safety: Clear Blocks to Innovation, Collaboration, and Risk-Taking",
+              "Graphic Design Tips & Tricks",
+              "AI and Digital Marketing Trends",
+              "Find the right course for you",
+              "Hands-on practice",
+              "Easily digestible learning formats",
+              "Credentials & Certifications",
+              "\u201cI believe that LinkedIn Learning had a significant impact on my promotion. I have everything that I need to grow my career in one platform - its almost vital to my success. Without it, I would not be where I am today.\u201d",
+              "\u201cLinkedIn Learning has given me confidence - I have a great tool to help me discover and learn anytime, anywhere. My learning experience has become fun and exciting. I am always looking for ways to use LinkedIn Learning throughout the day.\u201d",
+              "\u201cLinkedIn Learning is not only a wonderful learning option for self-guided, curious adult learners, but it is also an amazing flexible tool for us as an organisation to customise specific content at a specific time. LinkedIn Learning gives us the ability to reach a large number of people with focused, impactful content in an extremely efficient manner.\u201d",
+              "\u201cLinkedIn Learning is a great way to get started with new concepts and technologies. It\u2019s especially interesting for exploring management topics and soft skills. I\u2019ve often found myself spending eight to ten hours a month on the platform, covering a range of different topics.\u201d",
+              "\u201cWhen it came to finding the right online learning supplier, LinkedIn Learning was light years ahead. Other vendors didn\u2019t come close to the range and accessibility of the content.\u201d",
+              "\u201cWe realise that people learn in different ways in the modern workplace, and we are on a journey to innovate what we offer and motivate people to explore what\u2019s available. LinkedIn Learning is a big part of that.\u201d",
+              "\u201cWhen it came to training, we wanted something broad. The days of spoon-feeding people training are gone. The days of putting everybody in a classroom are over. We asked. \u2018How do we empower people to develop themselves?\u2019\u201d",
+              "Trusted by over 78% of Fortune 100 companies",
+              "Explore Business Topics",
+              "Explore Creative Topics",
+              "Explore Technology Topics",
+              "General",
+              "Browse LinkedIn",
+              "Business Solutions",
+              "Directories"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/jobs",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 18,
+            "word_count": 474,
+            "headings": [
+              "Millions of jobs and people hiring",
+              "Find the right job or internship for you",
+              "Keep your mind sharp with games",
+              "Post your job for millions of people to see",
+              "Let the right people know you\u2019re open to work",
+              "Conversations today could lead to opportunity tomorrow",
+              "Stay up to date on your industry",
+              "Connect with people who can help",
+              "Learn the skills you need to succeed",
+              "Who is LinkedIn for?",
+              "3 ways to find your job",
+              "Check out these steps to help you get started.",
+              "Join your colleagues, classmates, and friends on LinkedIn",
+              "General",
+              "Browse LinkedIn",
+              "Business Solutions",
+              "Directories"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/services",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 72,
+            "word_count": 2679,
+            "headings": [
+              "Take your projects from to\u2011do to done Search for services on LinkedIn",
+              "Popular Services",
+              "Are you a provider?",
+              "Grow your business with a free Service Page",
+              "How it works",
+              "Discover",
+              "Review",
+              "Hire",
+              "Dive Deeper",
+              "Learn more about Services Marketplace and how to get started with our guides and resources",
+              "Success Story",
+              "Getting Started: Offer your services",
+              "Getting Started: Discover the right provider",
+              "Services Marketplace Help",
+              "Tips for discovering providers",
+              "LinkedIn for Small Business Page",
+              "Small Business Learning Courses",
+              "Get proposals from trusted providers",
+              "Search providers",
+              "Hire with ease and flexibility",
+              "Featured providers",
+              "Professor Nez",
+              "\ud83c\uddfa\ud83c\uddf8Make Common Sense Go Viral \ud83c\uddfa\ud83c\uddf8 Over 250 Million Views & 700K Subscribers on YouTube",
+              "Los Angeles Metropolitan Area",
+              "Services",
+              "Ryan Kahn",
+              "Career Coach | Nationally Recognized Job Expert, Speaker, Author, & TV Personality",
+              "Newport Beach, CA",
+              "Services",
+              "Kevin D. Turner",
+              "Executive Positioning & Outplacement Partner, Eliminating Personal Blanding\u2122: 7K+ Profiles & 4K+ Resumes Built for AI Discoverability & Human Understanding, LinkedIn & AI Beta Tester, Turning Talent into Market Relevance",
+              "Dallas-Fort Worth Metroplex",
+              "Services",
+              "Sonja Berger",
+              "LinkedIn Trainer | LinkedIn for Job Seekers & Recruiter | Personal Branding | Career Coaching | AI & HR Workshops in DE/EN | Generative AI | Active Sourcing | Employer Branding | Corporate Influencing",
+              "Z\u00fcrich Metropolitan Area",
+              "Services",
+              "Chris Atkie",
+              "Founder | Sales Leader | Top LinkedIn Sales Voice | Top 12 LinkedIn Certified ProFinder",
+              "Los Angeles Metropolitan Area",
+              "Services",
+              "Dr Amanda Hamilton-Attwell ABC \u23ae CPRP \u23ae IABC Fellow",
+              "Augmenting business growth and profitability through effective Stakeholder Communication and customer service",
+              "Pretoria",
+              "Services",
+              "Karen Suarez, MA, CMCS, CPRW",
+              "Certified Career Coach | Certified Master of Career Services | Certified Professional Resume Writer | Job Search Strategist | Mock Interview Specialist | Top LinkedIn Service Provider",
+              "Los Angeles Metropolitan Area",
+              "Services",
+              "MIKE MOORE",
+              "Retired Keynote Speaker, Leadership, Peak Performance, Sales and Employee Development Coach. Co-Author of Build Trust. Builder & Developer Magazine\u2019s Who\u2019s Who in Homebuilding!",
+              "Los Angeles Metropolitan Area",
+              "Services",
+              "Support for any project",
+              "Browse services across various categories on LinkedIn",
+              "Finance",
+              "Operations",
+              "Accounting",
+              "Writing",
+              "Real Estate",
+              "Law",
+              "Photography",
+              "Consulting",
+              "Insurance",
+              "Software Development",
+              "Events",
+              "Marketing",
+              "Design",
+              "Home Improvement",
+              "Information Technology",
+              "Coaching & Mentoring"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/accessibility",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 6,
+            "word_count": 450,
+            "headings": [
+              "LinkedIn is a place where every member of the global workforce can find opportunity",
+              "Whatever your goals, ideas, and abilities are, we\u2019re here to help you succeed.",
+              "Our Disability Answer Desk",
+              "Accessibility @ LinkedIn",
+              "Read more about our Accessibility journey",
+              "Want even more info?"
+            ]
+          },
+          {
+            "url": "https://www.linkedin.com/legal/user-agreement",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 62,
+            "word_count": 5211,
+            "headings": [
+              "User Agreement",
+              "Table of Contents:",
+              "Introduction",
+              "1.1 Contract",
+              "",
+              "Services",
+              "LinkedIn and other Key Terms",
+              "1.2 Members and Visitors",
+              "",
+              "1.3 Changes",
+              "",
+              "2. Obligations",
+              "2.1 Service Eligibility",
+              "",
+              "",
+              "2.2 Your Account",
+              "",
+              "",
+              "2.3 Payment",
+              "",
+              "",
+              "2.4 Notices and Messages",
+              "",
+              "2.5 Sharing",
+              "",
+              "3. Rights and Limits",
+              "3.1. Your License to LinkedIn",
+              "",
+              "",
+              "",
+              "",
+              "3.2 Service Availability",
+              "",
+              "3.3 Other Content, Sites and Apps",
+              "",
+              "",
+              "3.4 Limits",
+              "",
+              "3.5 Intellectual Property Rights",
+              "",
+              "3.6 Recommendations and Automated Processing",
+              "",
+              "4. Disclaimer and Limit of Liability",
+              "4.1 No Warranty",
+              "",
+              "4.2 Exclusion of Liability",
+              "",
+              "4.3 Basis of the Bargain; Exclusions",
+              "5. Termination",
+              "",
+              "6. Governing Law and Dispute Resolution",
+              "",
+              "7. General Terms",
+              "",
+              "8. LinkedIn \u201cDos and Don\u2019ts\u201d",
+              "",
+              "8.1. Dos",
+              "8.2. Don\u2019ts",
+              "9. Complaints Regarding Content",
+              "",
+              "10. How To Contact Us",
+              ""
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

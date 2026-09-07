@@ -1,8 +1,8 @@
 {
   "target": "https://docs.rs/",
   "domain": "docs.rs",
-  "audited_at": "2026-09-06T10:10:55Z",
-  "total_runtime_seconds": 23.92,
+  "audited_at": "2026-09-06T10:51:42Z",
+  "total_runtime_seconds": 41.68,
   "summary": {
     "total_findings": 2,
     "critical": 0,
@@ -13,7 +13,7 @@
   "skills": {
     "skill_1": {
       "site": "docs.rs",
-      "audited_at": "2026-09-06T10:10:42Z",
+      "audited_at": "2026-09-06T10:51:23Z",
       "summary": {
         "total_findings": 1,
         "critical": 0,
@@ -35,26 +35,17 @@
       ],
       "sampled_pages": {
         "homepage": "https://docs.rs",
-        "total_discovered": 38676,
-        "doc_pages": [
-          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
-          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
-          "https://docs.rs/api/latest/api/",
-          "https://docs.rs/api/latest/api/all.html"
-        ],
+        "total_discovered": 0,
+        "doc_pages": [],
         "blog_pages": [],
         "curated_sample": [
-          "https://docs.rs",
-          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
-          "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
-          "https://docs.rs/api/latest/api/",
-          "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/"
+          "https://docs.rs"
         ]
       }
     },
     "skill_2": {
       "site": "docs.rs",
-      "audited_at": "2026-09-06T10:10:54Z",
+      "audited_at": "2026-09-06T10:51:32Z",
       "summary": {
         "total_findings": 0,
         "critical": 0,
@@ -65,76 +56,18 @@
       "findings": [],
       "render_profile": {
         "browser_engine": "chrome.exe",
-        "pages_audited": 5,
+        "pages_audited": 1,
         "per_page_metrics": [
           {
             "url": "https://docs.rs",
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 354.1,
-              "pass_b_latency_ms": 1869.2,
-              "parity_pct": 90.0,
-              "sentences_pass_a": 10,
-              "sentences_pass_b": 10,
-              "missing_sentences_count": 1,
-              "missing_snippets_sample": [
-                "Matter device control CLI \u2014 drives a native Rust Matter controller in-process and emits pure structured JSON"
-              ]
-            }
-          },
-          {
-            "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/",
-            "metrics": {
-              "pass_a_status": 200,
-              "pass_b_status": 200,
-              "pass_a_latency_ms": 304.6,
-              "pass_b_latency_ms": 1996.7,
+              "pass_a_latency_ms": 353.3,
+              "pass_b_latency_ms": 8284.7,
               "parity_pct": 100.0,
-              "sentences_pass_a": 19,
-              "sentences_pass_b": 19,
-              "missing_sentences_count": 0,
-              "missing_snippets_sample": []
-            }
-          },
-          {
-            "url": "https://docs.rs/apss-v1-0003-documentation/latest/documentation/all.html",
-            "metrics": {
-              "pass_a_status": 200,
-              "pass_b_status": 200,
-              "pass_a_latency_ms": 321.4,
-              "pass_b_latency_ms": 2119.8,
-              "parity_pct": 100.0,
-              "sentences_pass_a": 0,
-              "sentences_pass_b": 0,
-              "missing_sentences_count": 0,
-              "missing_snippets_sample": []
-            }
-          },
-          {
-            "url": "https://docs.rs/api/latest/api/",
-            "metrics": {
-              "pass_a_status": 200,
-              "pass_b_status": 200,
-              "pass_a_latency_ms": 292.9,
-              "pass_b_latency_ms": 2247.6,
-              "parity_pct": 100.0,
-              "sentences_pass_a": 8,
-              "sentences_pass_b": 8,
-              "missing_sentences_count": 0,
-              "missing_snippets_sample": []
-            }
-          },
-          {
-            "url": "https://docs.rs/adk-doc-audit/latest/adk_doc_audit/",
-            "metrics": {
-              "pass_a_status": 200,
-              "pass_b_status": 200,
-              "pass_a_latency_ms": 286.3,
-              "pass_b_latency_ms": 1669.6,
-              "parity_pct": 100.0,
-              "sentences_pass_a": 25,
-              "sentences_pass_b": 25,
+              "sentences_pass_a": 12,
+              "sentences_pass_b": 12,
               "missing_sentences_count": 0,
               "missing_snippets_sample": []
             }
@@ -167,9 +100,38 @@
         "root_entity_detected": false,
         "root_entity_types": [],
         "same_as_authorities": [],
-        "pages_audited": 5,
+        "pages_audited": 1,
         "pages_with_schema": 0,
         "schema_coverage_pct": 0.0
+      }
+    },
+    "skill_4": {
+      "site": "docs.rs",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "content_profile": {
+        "pages_audited": 1,
+        "total_sections_audited": 2,
+        "total_words_audited": 285,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://docs.rs/",
+            "archetype": "homepage",
+            "sections_count": 2,
+            "word_count": 285,
+            "headings": [
+              "Docs.rs"
+            ]
+          }
+        ]
       }
     }
   }

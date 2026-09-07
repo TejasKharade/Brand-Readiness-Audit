@@ -62,3 +62,40 @@ The following optimizations are deferred to the final polish phase to avoid mult
   * Conversely, the probe confirmed that entity ambiguity (the Garage problem) is real: small/niche tools without `sameAs` grounding lose citations to third-party mirrors (`docs.rs`).
 * **Final Optimization Plan**:
   * Evaluate potential light `INFO` suggestions for `SoftwareApplication` or `FAQPage` on interior pages where structured data can provide instant answers without making it a blocking penalty.
+
+---
+
+## 6. Full-Content Section Audit & Anti-Overfitting Safeguards (Skill 4)
+
+* **Decision**: Audits the entire page body section-by-section without skipping paragraphs or deep subsections, while applying strict anti-overfitting rules:
+  1. **Dropped `CITABILITY_SOURCE_AUTHENTICITY` domain whitelist**: Hardcoded domain tiering would falsely flag legitimate research blogs (e.g. Dan Luu, Martin Fowler, custom engineering domains). Substantive links are trusted without arbitrary whitelists.
+  2. **Dropped `TEMPORAL_ANCHORING_STALE` duplication**: Freshness and date checks belong exclusively to Skill 3 (structured data and metadata) to prevent duplicate findings.
+  3. **Archetype-Calibrated Flooding**: 400-word flooding threshold applies strictly to `/blog/*` and `/guides/*`. Technical documentation (`/docs/*`) is raised to 800+ words to accommodate legitimate API and flag reference listings.
+  4. **Deterministic Heading Lexicon**: Low-entropy headings (`Overview`, `Details`, `Features`, `Introduction`) are mechanically matched against an explicit reference list in `references/content_quality_rules.md`.
+
+---
+
+## 7. E-Commerce Platform Calibration & Multi-Variant Safeguards
+
+* **Tested Platform**: `allbirds.com` (Headless Shopify Plus architecture with heavy dynamic bundles, 760+ pages, and multi-variant product schemas).
+* **Key Calibrations**:
+  1. **Sitemap Child Unwrapping**: Fixed substring false-match where `"item" in "sitemap"` caused the scraper to pick the first child sitemap indiscriminately. Added explicit regex word boundary pattern `re.search(r"[_\-/](products?|items?|goods?)[_\-\./\?]", u, re.I)` to discover and sample product pages alongside docs and blogs.
+  2. **Multi-Variant Inventory Aggregation**: In real-world e-commerce, multi-variant products (e.g. shoes with 15 size options) legitimately contain both `InStock` and `OutOfStock` offers. Previous logic fired 8 duplicate `SCHEMA_AVAILABILITY_CONTRADICTION` errors on the same page. Calibrated the check to aggregate across all variant offers—only triggering when structured data uniformly declares one status while page text announces the exact opposite.
+  3. **Per-URL Finding De-duplication**: Guarded `_add_finding` against duplicate finding codes on the same URL to prevent multi-offer spam on catalog pages.
+
+---
+
+## 8. Plain-English Verbose Logging & Audit Telemetry Overhaul
+
+* **Context**: The terminal audit pipeline runner (`test_pipeline.py`) was overhauled to provide deep visibility into every step of the audit without requiring users to parse raw JSON logs or decipher cryptic error codes.
+* **Key Implementations**:
+  1. **Plain-English Explanations Registry**: Created an explicit registry mapping all audit finding codes across Gates 1–4 to four standardized fields:
+     - **What Happened**: Simple, non-jargon explanation of the technical condition.
+     - **Why It Matters for AI**: Real-world causal impact on search citation, brand visibility, or hallucination in ChatGPT Search, Perplexity, Claude, and Gemini.
+     - **Technical Evidence**: Verifiable HTTP status codes, headers, sentence diffs, or JSON-LD snippets.
+     - **How to Fix It**: Concrete, step-by-step remediation instructions for webmasters and developers.
+  2. **Comprehensive Request Logging (Visited Pages)**: Every single network request across all skills is logged with its HTTP response status, elapsed latency in milliseconds, target URL, and operational purpose (e.g. `Root URL (AI Search Bot)`, `Robots Directives (/robots.txt)`, `XML Sitemap`, `Interior Sample Page`).
+  3. **Network Error Resiliency & Unbuffered I/O**:
+     - Added automatic retry loops (2 attempts with backoff) and native `gzip`/`deflate` response decompression to `fetch_raw_html` in Skills 3 and 4 to handle transient socket drops or compressed payloads.
+     - Added explicit `PAGE_FETCH_ERROR` finding generation so network failures are never silently dropped.
+     - Integrated `sys.stdout.flush()` across all terminal outputs to eliminate line-interleaving or delayed buffering on Windows PowerShell consoles.

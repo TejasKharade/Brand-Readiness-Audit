@@ -1,0 +1,280 @@
+{
+  "target": "http://team-bhp.com/",
+  "domain": "team-bhp.com",
+  "audited_at": "2026-09-07T11:21:23Z",
+  "total_runtime_seconds": 33.81,
+  "skills": {
+    "skill_1": {
+      "site": "team-bhp.com",
+      "audited_at": "2026-09-07T11:21:17Z",
+      "summary": {
+        "total_findings": 3,
+        "critical": 1,
+        "high": 0,
+        "medium": 1,
+        "low": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "BOT_UA_DISCRIMINATION",
+          "title": "Active AI Search Bot Discrimination (WAF Block)",
+          "severity": "critical",
+          "evidence": "GET http://team-bhp.com resulted in HTTP 403 to OAI-SearchBot but returned HTTP 200 to standard Desktop Browser.",
+          "suggested_action": {
+            "summary": "Update firewall / CDN rules (Cloudflare, Akamai, WAF) to permit AI search crawler user-agents on public pages.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "ACC-002",
+          "code": "AI_TRAINING_BOT_BLOCKED",
+          "title": "AI model training scraper restricted: OpenAI Model Training",
+          "severity": "low",
+          "evidence": "robots.txt disallows gptbot on '/'. This limits bulk model training but does not prevent live search citation.",
+          "suggested_action": {
+            "summary": "Informational: Keep disallow if copyright protection is desired; allow if you wish OpenAI Model Training to pre-train on your public docs.",
+            "priority": "low"
+          }
+        },
+        {
+          "id": "ACC-003",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET http://team-bhp.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "http://team-bhp.com",
+        "total_discovered": 0,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "http://team-bhp.com"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "http://team-bhp.com",
+            "depth": 0,
+            "archetype": "homepage"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": null,
+        "origin_status": 403,
+        "robots_txt_status": 200,
+        "llms_txt_status": 404,
+        "ai_txt_status": 404,
+        "sitemap_target": null,
+        "sitemap_status": 403,
+        "candidate_sitemaps_tested": [
+          "https://www.team-bhp.com/forum/sitemap_index.xml.gz",
+          "https://www.team-bhp.com/googlenews.xml",
+          "https://www.team-bhp.com/new-cars/sitemap.xml",
+          "https://www.team-bhp.com/new-bikes/sitemap.xml"
+        ],
+        "total_discovered_urls": 0,
+        "pages_visited": [
+          {
+            "url": "http://team-bhp.com",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 403,
+            "elapsed_ms": 1604.0,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "http://team-bhp.com",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 7490.5,
+            "error": null
+          },
+          {
+            "url": "http://team-bhp.com/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 4623.3,
+            "error": null
+          },
+          {
+            "url": "http://team-bhp.com/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 404,
+            "elapsed_ms": 7520.2,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "http://team-bhp.com/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 3837.7,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.team-bhp.com/forum/sitemap_index.xml.gz",
+            "depth": 2,
+            "purpose": "XML Sitemap (https://www.team-bhp.com/forum/sitemap_index.xml.gz)",
+            "status": 403,
+            "elapsed_ms": 870.3,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.team-bhp.com/googlenews.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://www.team-bhp.com/googlenews.xml)",
+            "status": 403,
+            "elapsed_ms": 522.8,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.team-bhp.com/new-cars/sitemap.xml",
+            "depth": 2,
+            "purpose": "XML Sitemap (https://www.team-bhp.com/new-cars/sitemap.xml)",
+            "status": 403,
+            "elapsed_ms": 721.6,
+            "error": "HTTP Error 403: Forbidden"
+          },
+          {
+            "url": "https://www.team-bhp.com/new-bikes/sitemap.xml",
+            "depth": 2,
+            "purpose": "XML Sitemap (https://www.team-bhp.com/new-bikes/sitemap.xml)",
+            "status": 403,
+            "elapsed_ms": 746.0,
+            "error": "HTTP Error 403: Forbidden"
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "team-bhp.com",
+      "audited_at": "2026-09-07T11:21:20Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 403: HTTP Error 403: Forbidden.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 1,
+        "per_page_metrics": [
+          {
+            "url": "http://team-bhp.com",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 403,
+              "pass_b_status": 200,
+              "parity_pct": 0.0,
+              "depth": 0
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "team-bhp.com",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch /: HTTP 403 (Forbidden)",
+          "severity": "HIGH",
+          "url": "http://team-bhp.com/",
+          "evidence": "Request to http://team-bhp.com/ failed: HTTP 403 (Forbidden)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 1,
+        "pages_with_schema": 0,
+        "schema_coverage_pct": 0.0,
+        "pages": [
+          {
+            "url": "http://team-bhp.com/",
+            "depth": 0,
+            "status": 0,
+            "error": "HTTP 403 (Forbidden)",
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "team-bhp.com",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "PAGE_FETCH_ERROR",
+          "title": "Failed to fetch content on /: HTTP 403 (Forbidden)",
+          "severity": "HIGH",
+          "url": "http://team-bhp.com/",
+          "evidence": "Request to http://team-bhp.com/ failed: HTTP 403 (Forbidden)",
+          "suggested_action": "Ensure the server is responsive and that firewalls do not block automated search crawler requests."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 1,
+        "total_sections_audited": 0,
+        "total_words_audited": 0,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "http://team-bhp.com/",
+            "depth": 0,
+            "status": 0,
+            "error": "HTTP 403 (Forbidden)",
+            "archetype": "unknown",
+            "sections_count": 0,
+            "word_count": 0,
+            "headings": []
+          }
+        ]
+      }
+    }
+  }
+}

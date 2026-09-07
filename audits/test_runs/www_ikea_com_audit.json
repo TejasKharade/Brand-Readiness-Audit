@@ -1,0 +1,328 @@
+{
+  "target": "https://www.ikea.com/in/en/",
+  "domain": "www.ikea.com",
+  "audited_at": "2026-09-06T13:20:39Z",
+  "total_runtime_seconds": 111.43,
+  "summary": {
+    "total_findings": 9,
+    "critical": 0,
+    "high": 0,
+    "medium": 9,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "www.ikea.com",
+      "audited_at": "2026-09-06T13:20:05Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.ikea.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.ikea.com",
+        "total_discovered": 12862,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [
+          "https://www.ikea.com/ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+          "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+          "https://www.ikea.com/ee/et/p/yucca-elephantipes-potitaim-yucca-elepantipes-kahevarreline-10329308/",
+          "https://www.ikea.com/ee/et/p/yucca-elephantipes-potitaim-yucca-elepantipes-80623702/",
+          "https://www.ikea.com/ee/et/p/ytlaege-laelamp-valge-70540019/"
+        ],
+        "curated_sample": [
+          "https://www.ikea.com",
+          "https://www.ikea.com/ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+          "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.ikea.com",
+      "audited_at": "2026-09-06T13:20:26Z",
+      "summary": {
+        "total_findings": 3,
+        "critical": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (4545ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 4545ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5895ms) exceeds crawl time budget on /ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5895ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6237ms) exceeds crawl time budget on /ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6237ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 3,
+        "per_page_metrics": [
+          {
+            "url": "https://www.ikea.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1072.3,
+              "pass_b_latency_ms": 4544.6,
+              "parity_pct": 84.6,
+              "sentences_pass_a": 22,
+              "sentences_pass_b": 26,
+              "missing_sentences_count": 4,
+              "missing_snippets_sample": [
+                "Pause video of seven creators installing their KONSTRUNDA objects in a gallery setting.",
+                "Go shopping at IKEA dot i n, or use the store selector to search for another store Go shopping",
+                "Pause slideshow of people in their homes with colourful transition."
+              ]
+            }
+          },
+          {
+            "url": "https://www.ikea.com/ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1206.1,
+              "pass_b_latency_ms": 5895.2,
+              "parity_pct": 88.9,
+              "sentences_pass_a": 25,
+              "sentences_pass_b": 18,
+              "missing_sentences_count": 2,
+              "missing_snippets_sample": [
+                "Leia k\u00f5ik valikud tellimuse vormistamisel",
+                "Sisesta number v\u00f5i kasuta koguse muutmiseks noolt \u00fcles v\u00f5i noolt alla."
+              ]
+            }
+          },
+          {
+            "url": "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2054.5,
+              "pass_b_latency_ms": 6237.2,
+              "parity_pct": 86.7,
+              "sentences_pass_a": 19,
+              "sentences_pass_b": 15,
+              "missing_sentences_count": 2,
+              "missing_snippets_sample": [
+                "Leia k\u00f5ik valikud tellimuse vormistamisel",
+                "Sisesta number v\u00f5i kasuta koguse muutmiseks noolt \u00fcles v\u00f5i noolt alla."
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.ikea.com",
+      "summary": {
+        "total_findings": 3,
+        "critical": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks primary Organization or SoftwareApplication entity",
+          "severity": "MEDIUM",
+          "url": "https://www.ikea.com/in/en/",
+          "evidence": "Homepage declared generic schema types (WebSite, OnlineStore, ImageObject, Country, ContactPoint, Country, Person, Place) but lacks an explicit Organization, Brand, or SoftwareApplication definition.",
+          "suggested_action": "Nest an Organization or SoftwareApplication schema in your homepage JSON-LD to ground your brand in AI Knowledge Graphs."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('IKEA')) lacks description property on /ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+          "severity": "MEDIUM",
+          "url": "https://www.ikea.com/ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+          "evidence": "The Brand ('IKEA') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('IKEA')) lacks description property on /ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+          "severity": "MEDIUM",
+          "url": "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+          "evidence": "The Brand ('IKEA') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Organization"
+        ],
+        "same_as_authorities": [
+          "https://linkedin.com/company/ikea",
+          "https://x.com/ikea"
+        ],
+        "pages_audited": 4,
+        "pages_with_schema": 4,
+        "schema_coverage_pct": 100.0
+      }
+    },
+    "skill_4": {
+      "site": "www.ikea.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://www.ikea.com/in/en/",
+          "evidence": "Page contains 98 links, but 100% of them point back to www.ikea.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-002",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+          "evidence": "Page contains 2 links, but 100% of them point back to www.ikea.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 4,
+        "total_sections_audited": 48,
+        "total_words_audited": 1909,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.ikea.com/in/en/",
+            "archetype": "general",
+            "sections_count": 15,
+            "word_count": 755,
+            "headings": [
+              "Welcome to IKEA India",
+              "Offers by category",
+              "Make space for what you love",
+              "What\u2019s hot & trending?",
+              "Handpicked bundles for your home",
+              "15% off* on Modular Kitchens above Rs. 2.5 lakhs.",
+              "Explore over 600 new arrivals",
+              "Today's best deals",
+              "IKEA Family offers",
+              "Introducing Rewards from IKEA Family!",
+              "More from IKEA India",
+              "Looks by you",
+              "Design inspiration and modern home ideas",
+              "Explore our furniture & home furnishing range"
+            ]
+          },
+          {
+            "url": "https://www.ikea.com",
+            "archetype": "homepage",
+            "sections_count": 4,
+            "word_count": 404,
+            "headings": [
+              "Welcome to IKEA Global!",
+              "Back at it!",
+              "Designer stories"
+            ]
+          },
+          {
+            "url": "https://www.ikea.com/ee/et/p/zebrasaev-laelamp-valge-plast-10522481/",
+            "archetype": "general",
+            "sections_count": 17,
+            "word_count": 297,
+            "headings": [
+              "ZEBRAS\u00c4V Laelamp, valge/plast, 46 cm",
+              "T\u00e4ienda",
+              "SOLHETTA LED-lambipirn E27, 806 lm",
+              "Kuidas seda osta?",
+              "Materjal",
+              "Kokkupanekujuhised",
+              "Soovitused ja hooldusjuhised",
+              "Materjal",
+              "Kokkupanekujuhised",
+              "Soovitused ja hooldusjuhised",
+              "1 \u00d7 ZEBRAS\u00c4V",
+              "Seotud tooted",
+              "Avasta rohkem v\u00f5imalusi",
+              "Sulle soovitatud",
+              "\u2013 vaata k\u00f5iki tooteid",
+              "Lisad tootele ZEBRAS\u00c4V"
+            ]
+          },
+          {
+            "url": "https://www.ikea.com/ee/et/p/yuppienalle-mobiiltelefonihoidja-hall-20503887/",
+            "archetype": "general",
+            "sections_count": 12,
+            "word_count": 453,
+            "headings": [
+              "YUPPIENALLE Mobiiltelefonihoidja, hall",
+              "Kuidas seda osta?",
+              "Materjal",
+              "Hooldus",
+              "Materjal",
+              "Hooldus",
+              "1 \u00d7 YUPPIENALLE",
+              "Seotud tooted",
+              "Sulle soovitatud",
+              "\u2013 vaata k\u00f5iki tooteid",
+              "Lisad tootele YUPPIENALLE"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

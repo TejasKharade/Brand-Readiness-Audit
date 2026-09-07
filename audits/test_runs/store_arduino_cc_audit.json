@@ -1,0 +1,2465 @@
+{
+  "target": "https://store.arduino.cc/",
+  "domain": "store.arduino.cc",
+  "audited_at": "2026-09-07T11:25:49Z",
+  "total_runtime_seconds": 322.55,
+  "skills": {
+    "skill_1": {
+      "site": "store.arduino.cc",
+      "audited_at": "2026-09-07T11:21:03Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [],
+      "sampled_pages": {
+        "homepage": "https://store.arduino.cc",
+        "total_discovered": 350,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [
+          "https://store.arduino.cc/products/arduino-nano",
+          "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+          "https://store.arduino.cc/products/arduino-micro",
+          "https://store.arduino.cc/products/arduino-due-without-headers",
+          "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+          "https://store.arduino.cc/products/arduino-due",
+          "https://store.arduino.cc/products/arduino-uno-rev3",
+          "https://store.arduino.cc/products/arduino-micro-without-headers",
+          "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+          "https://store.arduino.cc/products/mkr2uno-adapter"
+        ],
+        "curated_sample": [
+          "https://store.arduino.cc",
+          "https://store.arduino.cc/products/arduino-nano",
+          "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+          "https://store.arduino.cc/products/arduino-micro",
+          "https://store.arduino.cc/products/arduino-due-without-headers",
+          "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+          "https://store.arduino.cc/products/arduino-due",
+          "https://store.arduino.cc/products/arduino-uno-rev3",
+          "https://store.arduino.cc/products/arduino-micro-without-headers",
+          "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+          "https://store.arduino.cc/products/mkr2uno-adapter",
+          "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+          "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+          "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+          "https://store.arduino.cc/products/arduino-zero"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://store.arduino.cc",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+            "depth": 2,
+            "archetype": "product"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+            "depth": 2,
+            "archetype": "general"
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-zero",
+            "depth": 2,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-11-02",
+          "days_remaining": 55,
+          "issuer": "Let's Encrypt, YE2",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 200,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://store.arduino.cc/sitemap.xml",
+        "sitemap_status": 200,
+        "candidate_sitemaps_tested": [
+          "https://store.arduino.cc/sitemap.xml"
+        ],
+        "total_discovered_urls": 350,
+        "pages_visited": [
+          {
+            "url": "https://store.arduino.cc",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 3499.4,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 3008.3,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 787.0,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 200,
+            "elapsed_ms": 2106.5,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 2174.3,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://store.arduino.cc/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://store.arduino.cc/sitemap.xml)",
+            "status": 200,
+            "elapsed_ms": 1735.0,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/sitemap_products_1.xml?from=5473686749335&to=15546090619255",
+            "depth": 1,
+            "purpose": "Child Sitemap (https://store.arduino.cc/sitemap_products_1.xml?from=5473686749335&to=15546090619255)",
+            "status": 200,
+            "elapsed_ms": 1231.0,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/sitemap_pages_1.xml?from=81612308631&to=704123142519",
+            "depth": 1,
+            "purpose": "Child Sitemap (https://store.arduino.cc/sitemap_pages_1.xml?from=81612308631&to=704123142519)",
+            "status": 200,
+            "elapsed_ms": 747.1,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /products/arduino-nano)",
+            "status": 200,
+            "elapsed_ms": 2629.9,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /products/arduino-nano)",
+            "status": 200,
+            "elapsed_ms": 2183.4,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /products/arduino-leonardo-without-headers)",
+            "status": 200,
+            "elapsed_ms": 3963.6,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /products/arduino-leonardo-without-headers)",
+            "status": 200,
+            "elapsed_ms": 4490.6,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /products/arduino-micro)",
+            "status": 200,
+            "elapsed_ms": 3700.8,
+            "error": null
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /products/arduino-micro)",
+            "status": 200,
+            "elapsed_ms": 3216.0,
+            "error": null
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "store.arduino.cc",
+      "audited_at": "2026-09-07T11:25:05Z",
+      "summary": {
+        "total_findings": 37,
+        "critical": 0,
+        "high": 2,
+        "medium": 35,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (17688ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 17688ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (6 blocks) are missing from raw HTML on /products/arduino-nano",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 13 sentences (77.2% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"in stock, ready to be shipped Enhance your experience, add to your cart: Nano Screw Terminal Adapter\"\nSection 2: \"Inspired by your shopping trends Select this product to display a comparison dialog. It has a low power consumption digital chip LSM6DS3 and power supply regulator which features high sensitivity and ...\"\nSection 3: \"It can be configured to different levels of sensitivity to... Select this product to display a comparison dialog. Arduino Micro without headers\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/arduino-nano",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-mkr-zero-i2s-bus-sd-for-sound-music-digital-audio-data, https://store.arduino.cc/products/arduino-micro-without-headers, https://store.arduino.cc/collections/vendors).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (13068ms) exceeds crawl time budget on /products/arduino-nano",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 13068ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (3 blocks) are missing from raw HTML on /products/arduino-leonardo-without-headers",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 9 sentences (84.7% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Enhance your experience, add to your cart: Inspired by your shopping trends Select this product to display a comparison dialog.\"\nSection 2: \"Select this product to display a comparison dialog. Select this product to display a comparison dialog. USB Cable Type A Male to Micro Type B Male\"\nSection 3: \"This cable is needed to connect your PC to a board that uses this kind of connector. Select this product to display a comparison dialog. Arduino Micro without headers\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (13590ms) exceeds crawl time budget on /products/arduino-leonardo-without-headers",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 13590ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (5 blocks) are missing from raw HTML on /products/arduino-micro",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 13 sentences (82.4% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Enhance your experience, add to your cart: Arduino Pro Opta Ext A0602 If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board.\"\nSection 2: \"Inspired by your shopping trends Select this product to display a comparison dialog. Select this product to display a comparison dialog.\"\nSection 3: \"Arduino Leonardo without Headers Select this product to display a comparison dialog. 10 jumper wires 150mm male\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (5 URLs) are locked inside client JavaScript on /products/arduino-micro",
+          "severity": "medium",
+          "evidence": "5 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/10-jumper-wires-150mm-male, https://store.arduino.cc/products/arduino-leonardo-without-headers, https://store.arduino.cc/products/opta-ext-a0602).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (16398ms) exceeds crawl time budget on /products/arduino-micro",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 16398ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/arduino-due-without-headers",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-zero, https://store.arduino.cc/products/usb-cable-type-a-male-to-micro-type-b-male, https://store.arduino.cc/products/arduino-uno-rev3-smd).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (10672ms) exceeds crawl time budget on /products/arduino-due-without-headers",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 10672ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (4 blocks) are missing from raw HTML on /products/arduino-leonardo-with-headers",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 10 sentences (83.1% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"in stock, ready to be shipped Enhance your experience, add to your cart: Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. Select this product to display a comparison dialog. Select this product to display a comparison dialog.\"\nSection 3: \"The possibilities are infinite with this Kit of essential Arduino components.Prototype with the solderless breadboard to control sensors and actuators with Arduino. You'll need some materials of yo...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (13971ms) exceeds crawl time budget on /products/arduino-leonardo-with-headers",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 13971ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (6 blocks) are missing from raw HTML on /products/arduino-due",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 15 sentences (86.7% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"in stock, ready to be shipped Enhance your experience, add to your cart: Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. The Zero is a simple and powerful 32-bit extension of the platform established by the UNO. The Zero board expands the family by providing increased ...\"\nSection 3: \"Select this product to display a comparison dialog. Arduino Due without Headers It has 54 digital input/output pin...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/arduino-due",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-due-without-headers, https://store.arduino.cc/products/arduino-zero, https://store.arduino.cc/products/nano-esp32-with-headers).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7902ms) exceeds crawl time budget on /products/arduino-due",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7902ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (5 URLs) are locked inside client JavaScript on /products/arduino-uno-rev3",
+          "severity": "medium",
+          "evidence": "5 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-micro, https://store.arduino.cc/products/arduino-uno-rev3-smd, https://store.arduino.cc/products/usb-2-0-cable-type-a-b).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8849ms) exceeds crawl time budget on /products/arduino-uno-rev3",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8849ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (5 blocks) are missing from raw HTML on /products/arduino-micro-without-headers",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 12 sentences (83.8% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Enhance your experience, add to your cart: If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board. Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. Select this product to display a comparison dialog. Arduino Leonardo without Headers\"\nSection 3: \"Select this product to display a comparison dialog. 10 jumper wires 150mm male These are a long flexible jumpers wires of 150 mm with a male connectors on the ends.\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (19388ms) exceeds crawl time budget on /products/arduino-micro-without-headers",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 19388ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (54.2% parity) on /products/usb-2-0-cable-type-a-b",
+          "severity": "high",
+          "evidence": "Pass B rendered 24 sentences, but Pass A only contained 13 in raw HTML (11 missing sentences, 54.2% parity).\nActual Missing Content from Browser DOM:\nSection 1: \"Enhance your experience, add to your cart: USB Cable Type A Male to Micro Type B Male Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. Select this product to display a comparison dialog. Arduino USB 2.0 CABLE TYPE A/B 1M\"\nSection 3: \"Select this product to display a comparison dialog. The Arduino Mega 2560 is a microcontroller board based on the ATmega2560. Select this product to display a comparison dialog.\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/usb-2-0-cable-type-a-b",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/usb-2-0-cable-type-a-micro, https://store.arduino.cc/products/usb-cable-type-a-male-to-micro-type-b-male, https://store.arduino.cc/products/arduino-mega-2560-rev3).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (13332ms) exceeds crawl time budget on /products/usb-2-0-cable-type-a-b",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 13332ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (54.8% parity) on /products/mkr2uno-adapter",
+          "severity": "high",
+          "evidence": "Pass B rendered 31 sentences, but Pass A only contained 17 in raw HTML (14 missing sentences, 54.8% parity).\nActual Missing Content from Browser DOM:\nSection 1: \"Enhance your experience, add to your cart: USB Cable Type A Male to Micro Type B Male Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. Engineering Kit Motors Backup Arduino Engineering Kit R2 contains all the components students need to complete each project, but we know that in the...\"\nSection 3: \"Select this product to display a comparison dialog. The MKR ZERO brings you the power of a Zero in the smaller format established by the MKR form factor. The MKR ZERO board acts as a great educational...\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/mkr2uno-adapter",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-mkr-zero-i2s-bus-sd-for-sound-music-digital-audio-data, https://store.arduino.cc/products/usb-cable-type-a-male-to-micro-type-b-male, https://store.arduino.cc/products/arduino-mkr-rgb-shield).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (10119ms) exceeds crawl time budget on /products/mkr2uno-adapter",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 10119ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (5 blocks) are missing from raw HTML on /products/dipole-pentaband-waterproof-antenna",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 12 sentences (64.7% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Inspired by your shopping trends Select this product to display a comparison dialog. The Arduino MKR WiFi 1010 is the easiest point of entry to basic IoT and pico-network application design.\"\nSection 2: \"Whether you are looking at building a sensor network connected to your office or home route... Select this product to display a comparison dialog. Arduino MKR Relay Proto Shield\"\nSection 3: \"The MKR Relay Protoshield allows you to easily add relays to your MKR board based project. Select this product to display a comparison dialog. If you are experimenting with monitoring fleets, high-alt...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (5 URLs) are locked inside client JavaScript on /products/dipole-pentaband-waterproof-antenna",
+          "severity": "medium",
+          "evidence": "5 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-mkr-wifi-1010, https://store.arduino.cc/products/usb-cable-type-a-male-to-micro-type-b-male, https://store.arduino.cc/products/arduino-mkr-relay-proto-shield).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (17371ms) exceeds crawl time budget on /products/dipole-pentaband-waterproof-antenna",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 17371ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (6 blocks) are missing from raw HTML on /products/arduino-mega-2560-rev3",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 14 sentences (85.7% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"in stock, ready to be shipped Enhance your experience, add to your cart: Arduino Pro Opta Ext A0602\"\nSection 2: \"Inspired by your shopping trends Select this product to display a comparison dialog. Arduino Ethernet Shield 2\"\nSection 3: \"The Arduino Ethernet Shield 2 connects your Arduino to the internet in mere minutes. Select this product to display a comparison dialog. The Arduino GIGA R1 WiFi is designed for ambitious makers who w...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (5 URLs) are locked inside client JavaScript on /products/arduino-mega-2560-rev3",
+          "severity": "medium",
+          "evidence": "5 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-mega-proto-shield-rev3-pcb, https://store.arduino.cc/products/giga-display-bundle, https://store.arduino.cc/products/arduino-ethernet-shield-2).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (12864ms) exceeds crawl time budget on /products/arduino-mega-2560-rev3",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 12864ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (4 blocks) are missing from raw HTML on /products/arduino-uno-rev3-smd",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 11 sentences (87.9% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Enhance your experience, add to your cart: Inspired by your shopping trends Select this product to display a comparison dialog.\"\nSection 2: \"Arduino Ethernet Shield 2 The Arduino Ethernet Shield 2 connects your Arduino to the internet in mere minutes. Select this product to display a comparison dialog.\"\nSection 3: \"Select this product to display a comparison dialog. The Arduino UNO WiFi Rev.2 is the easiest point of entry to basic IoT with the standard form factor of the UNO family. Whether you are looking at bu...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (12375ms) exceeds crawl time budget on /products/arduino-uno-rev3-smd",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 12375ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "PARTIAL_CONTENT_RENDER_GAP",
+          "title": "Substantive content sections (6 blocks) are missing from raw HTML on /products/arduino-zero",
+          "severity": "medium",
+          "evidence": "Rendered browser DOM produced 14 sentences (84.9% parity) that do not appear in raw HTML.\nActual Missing Content Sections:\nSection 1: \"Enhance your experience, add to your cart: This means that the 'Serial' class responds to the programming port of the board. Inspired by your shopping trends\"\nSection 2: \"Select this product to display a comparison dialog. It is the first Arduino board based on a 32-bit ARM core microcontroller. It has 54 digital input/output pin...\"\nSection 3: \"Select this product to display a comparison dialog. The MKR ZERO brings you the power of a Zero in the smaller format established by the MKR form factor. The MKR ZERO board acts as a great educational...\"",
+          "suggested_action": {
+            "summary": "Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (6 URLs) are locked inside client JavaScript on /products/arduino-zero",
+          "severity": "medium",
+          "evidence": "6 internal links exist only in the rendered DOM (e.g., https://store.arduino.cc/products/arduino-mkr-zero-i2s-bus-sd-for-sound-music-digital-audio-data, https://store.arduino.cc/products/arduino-micro, https://store.arduino.cc/products/nano-esp32-with-headers).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-003",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (9178ms) exceeds crawl time budget on /products/arduino-zero",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 9178ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 15,
+        "per_page_metrics": [
+          {
+            "url": "https://store.arduino.cc",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3357.3,
+              "pass_b_latency_ms": 17687.6,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 58,
+              "sentences_pass_b": 55,
+              "pass_a_excerpt": "Arduino\u00ae VENTUNO\u2122 Q is available now!  WHERE AI TAKES ACTION  Pre-order now  Discover the product  Save up to 25% on boards, kits and bundles!  Your ideas can&#39;t wait. The Back to School Promo ends September 10th  Discover More  Save Now  Arduino\u00ae",
+              "pass_b_excerpt": "Arduino\u00ae VENTUNO\u2122 Q is available now!\r  WHERE AI TAKES ACTION\r  Pre-order now\r  Discover the product\r  Save up to 25% on boards, kits and bundles!\r  Your ideas can't wait. The Back to School Promo ends September 10th\r  Discover More\r  Save Now\r  Ardu",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [
+                "Your ideas can't wait. The Back to School Promo ends September 10th"
+              ],
+              "missing_snippets_sample": [],
+              "depth": 0
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3512.6,
+              "pass_b_latency_ms": 13068.0,
+              "parity_pct": 77.2,
+              "sentences_pass_a": 50,
+              "sentences_pass_b": 57,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Nano  SKU A000005   Barcode 7630049200173   Show more   Weight 0.01 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac27,20  \u20ac27,20   -  \u20ac27,20   Current price   \u20ac2",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Nano\r  &nbsp;(29)   SKU A000005 \r  Barcode 7630049200173 \r  Show more \r  Weight 0.01 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original price",
+              "missing_sentences_count": 13,
+              "missing_content_blocks": [
+                "in stock, ready to be shipped Enhance your experience, add to your cart: Nano Screw Terminal Adapter",
+                "Inspired by your shopping trends Select this product to display a comparison dialog. It has a low power consumption digital chip LSM6DS3 and power supply regulator which features high sensitivity and low noise interference.",
+                "It can be configured to different levels of sensitivity to... Select this product to display a comparison dialog. Arduino Micro without headers",
+                "Select this product to display a comparison dialog. Nano Screw Terminal Adapter Build robust projects with secure and long lasting connection without the need of any soldering combining the Nano Screw Terminal Adapter and any of the boards from the Arduino Nano family."
+              ],
+              "missing_snippets_sample": [
+                "in stock, ready to be shipped",
+                "Enhance your experience, add to your cart:",
+                "Nano Screw Terminal Adapter"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3632.4,
+              "pass_b_latency_ms": 13589.5,
+              "parity_pct": 84.7,
+              "sentences_pass_a": 63,
+              "sentences_pass_b": 59,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Leonardo without Headers  SKU A000052   Barcode 7630049200326   Show more   Weight 0.03 kg   TARIC 85235210   Original price   \u20ac24,15  -  Original price   \u20ac24,15  Original price   \u20ac24,15  \u20ac24,15   -  \u20ac24,15   Cur",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Leonardo without Headers\r  &nbsp;(3)   SKU A000052 \r  Barcode 7630049200326 \r  Show more \r  Weight 0.03 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0 \r  Original price \r  \u20ac24,15\r  -\r  Original price \r  \u20ac24,15",
+              "missing_sentences_count": 9,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: Inspired by your shopping trends Select this product to display a comparison dialog.",
+                "Select this product to display a comparison dialog. Select this product to display a comparison dialog. USB Cable Type A Male to Micro Type B Male",
+                "This cable is needed to connect your PC to a board that uses this kind of connector. Select this product to display a comparison dialog. Arduino Micro without headers"
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "Inspired by your shopping trends",
+                "Select this product to display a comparison dialog."
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2901.2,
+              "pass_b_latency_ms": 16398.1,
+              "parity_pct": 82.4,
+              "sentences_pass_a": 69,
+              "sentences_pass_b": 74,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Micro  SKU A000053   Barcode 7630049200159   Show more   Weight 0.02 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac24,10  \u20ac24,10   -  \u20ac24,10   Current price   \u20ac",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Micro\r  &nbsp;(15)   SKU A000053 \r  Barcode 7630049200159 \r  Show more \r  Weight 0.02 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original price",
+              "missing_sentences_count": 13,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: Arduino Pro Opta Ext A0602 If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board.",
+                "Inspired by your shopping trends Select this product to display a comparison dialog. Select this product to display a comparison dialog.",
+                "Arduino Leonardo without Headers Select this product to display a comparison dialog. 10 jumper wires 150mm male",
+                "These are a long flexible jumpers wires of 150 mm with a male connectors on the ends. They are perfect to use to make projects with your Arduinos and breadboard. Select this product to display a comparison dialog."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "Arduino Pro Opta Ext A0602",
+                "If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board."
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2993.2,
+              "pass_b_latency_ms": 10671.9,
+              "parity_pct": 88.9,
+              "sentences_pass_a": 102,
+              "sentences_pass_b": 108,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Due without Headers  SKU A000056   Barcode 7630049200357   Show more   Weight 0.05 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac51,30  \u20ac51,30   -  \u20ac51,30   Cur",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Due without Headers\r  SKU A000056 \r  Barcode 7630049200357 \r  Show more \r  Weight 0.05 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original price",
+              "missing_sentences_count": 12,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: USB Cable Type A Male to Micro Type B Male Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. It has 54 digital input/output pin... Select this product to display a comparison dialog.",
+                "Arduino Micro without headers Select this product to display a comparison dialog. The Zero is a simple and powerful 32-bit extension of the platform established by the UNO.",
+                "The Zero board expands the family by providing increased performance, enabling a variety of project opport... Select this product to display a comparison dialog. The Arduino Uno Rev3 SMD is a microcontroller board based on the ATmega328."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "USB Cable Type A Male to Micro Type B Male",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3140.5,
+              "pass_b_latency_ms": 13971.3,
+              "parity_pct": 83.1,
+              "sentences_pass_a": 108,
+              "sentences_pass_b": 59,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Leonardo with Headers  SKU A000057   Barcode 8058333491141   Show more   Weight 0.04 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac25,40  \u20ac25,40   -  \u20ac25,40   C",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Leonardo with Headers\r  &nbsp;(19)   SKU A000057 \r  Barcode 8058333491141 \r  Show more \r  Weight 0.04 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  O",
+              "missing_sentences_count": 10,
+              "missing_content_blocks": [
+                "in stock, ready to be shipped Enhance your experience, add to your cart: Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. Select this product to display a comparison dialog. Select this product to display a comparison dialog.",
+                "The possibilities are infinite with this Kit of essential Arduino components.Prototype with the solderless breadboard to control sensors and actuators with Arduino. You'll need some materials of yo...",
+                "Select this product to display a comparison dialog. Arduino Micro without headers"
+              ],
+              "missing_snippets_sample": [
+                "in stock, ready to be shipped",
+                "Enhance your experience, add to your cart:",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2571.5,
+              "pass_b_latency_ms": 7902.4,
+              "parity_pct": 86.7,
+              "sentences_pass_a": 106,
+              "sentences_pass_b": 113,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Due  SKU A000062   Barcode 7630049200487   Show more   Weight 0.06 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac52,50  \u20ac52,50   -  \u20ac52,50   Current price   \u20ac52",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Due\r  &nbsp;(18)   SKU A000062 \r  Barcode 7630049200487 \r  Show more \r  Weight 0.06 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original price \r  \u20ac",
+              "missing_sentences_count": 15,
+              "missing_content_blocks": [
+                "in stock, ready to be shipped Enhance your experience, add to your cart: Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. The Zero is a simple and powerful 32-bit extension of the platform established by the UNO. The Zero board expands the family by providing increased performance, enabling a variety of project opport...",
+                "Select this product to display a comparison dialog. Arduino Due without Headers It has 54 digital input/output pin...",
+                "Select this product to display a comparison dialog. Arduino\u00ae Nano ESP32 with headers Introducing the Nano ESP32, a powerful addition to the Arduino ecosystem that brings the popular ESP32-S3 to the world of Arduino and MicroPython programming."
+              ],
+              "missing_snippets_sample": [
+                "in stock, ready to be shipped",
+                "Enhance your experience, add to your cart:",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3383.0,
+              "pass_b_latency_ms": 8849.1,
+              "parity_pct": 89.1,
+              "sentences_pass_a": 83,
+              "sentences_pass_b": 92,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Uno Rev3  SKU A000066   Barcode 7630049200050   Show more   Weight 0.05 kg   TARIC 854231   Original price   \u20ac29,30  -  Original price   \u20ac29,30  Original price   \u20ac29,30  \u20ac29,30   -  \u20ac29,30   Current price   \u20ac29,3",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Uno Rev3\r  &nbsp;(80)   SKU A000066 \r  Barcode 7630049200050 \r  Show more \r  Weight 0.05 kg \r  TARIC 854231 \r  Original price \r  \u20ac0 \r  Original price \r  \u20ac29,30\r  -\r  Original price \r  \u20ac29,30\r  Original price",
+              "missing_sentences_count": 10,
+              "missing_content_blocks": [
+                "Inspired by your shopping trends Select this product to display a comparison dialog. Use it to connect Arduino Uno, Arduino Mega 2560, Arduino 101 or any board with the USB female A port of your computer.",
+                "Cable lenght is approximately 100cm. Cable color and shape may vary slightly ... Select this product to display a comparison dialog.",
+                "The Arduino Uno Rev3 SMD is a microcontroller board based on the ATmega328. Select this product to display a comparison dialog. Arduino USB 2.0 CABLE TYPE A/B 1M",
+                "Select this product to display a comparison dialog."
+              ],
+              "missing_snippets_sample": [
+                "Inspired by your shopping trends",
+                "Select this product to display a comparison dialog.",
+                "Use it to connect Arduino Uno, Arduino Mega 2560, Arduino 101 or any board with the USB female A port of your computer."
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3285.8,
+              "pass_b_latency_ms": 19387.6,
+              "parity_pct": 83.8,
+              "sentences_pass_a": 71,
+              "sentences_pass_b": 74,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Micro without headers  SKU A000093   Barcode 7630049200333   Show more   Weight 0.016 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac25,40  \u20ac25,40   -  \u20ac25,40",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Micro without headers\r  &nbsp;(1)   SKU A000093 \r  Barcode 7630049200333 \r  Show more \r  Weight 0.016 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  O",
+              "missing_sentences_count": 12,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board. Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. Select this product to display a comparison dialog. Arduino Leonardo without Headers",
+                "Select this product to display a comparison dialog. 10 jumper wires 150mm male These are a long flexible jumpers wires of 150 mm with a male connectors on the ends.",
+                "They are perfect to use to make projects with your Arduinos and breadboard. Select this product to display a comparison dialog. Arduino Leonardo with Headers"
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "If the software can't reset the board, you can always start the bootloader by pressing the reset button on the board.",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2803.0,
+              "pass_b_latency_ms": 13331.6,
+              "parity_pct": 54.2,
+              "sentences_pass_a": 13,
+              "sentences_pass_b": 24,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  USB 2.0 Cable Type A/B  SKU M000006   Barcode 7630049201149   Show more   Weight 0.04 kg   TARIC 85444290   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac8,00  \u20ac8,00   -  \u20ac8,00   Current pri",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  USB 2.0 Cable Type A/B\r  &nbsp;(4)   SKU M000006 \r  Barcode 7630049201149 \r  Show more \r  Weight 0.04 kg \r  TARIC 85444290 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original",
+              "missing_sentences_count": 11,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: USB Cable Type A Male to Micro Type B Male Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. Select this product to display a comparison dialog. Arduino USB 2.0 CABLE TYPE A/B 1M",
+                "Select this product to display a comparison dialog. The Arduino Mega 2560 is a microcontroller board based on the ATmega2560. Select this product to display a comparison dialog.",
+                "Arduino USB 2.0 CABLE TYPE A/MICRO 1M This is the cable you've been looking for."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "USB Cable Type A Male to Micro Type B Male",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2537.3,
+              "pass_b_latency_ms": 10119.1,
+              "parity_pct": 54.8,
+              "sentences_pass_a": 22,
+              "sentences_pass_b": 31,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  MKR2UNO Adapter  Save 25 %  Save 25 %  SKU TSX00005   Barcode 813747020213   Show more   Weight 0.03 kg   TARIC 85235210   Original price   \u20ac16,50  Original price   \u20ac16,50  -  Original price   \u20ac16,50  Original price   \u20ac1",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  MKR2UNO Adapter\r  Save 25 %\r  Save 25 %\r  SKU TSX00005 \r  Barcode 813747020213 \r  Show more \r  Weight 0.03 kg \r  TARIC 85235210 \r  Original price \r  \u20ac16,50 \r  Original price \r  \u20ac16,50\r  -\r  Original price \r  \u20ac16,50\r  O",
+              "missing_sentences_count": 14,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: USB Cable Type A Male to Micro Type B Male Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. Engineering Kit Motors Backup Arduino Engineering Kit R2 contains all the components students need to complete each project, but we know that in the excitement of using the kit, the motors may sometimes burn, break or simply ge...",
+                "Select this product to display a comparison dialog. The MKR ZERO brings you the power of a Zero in the smaller format established by the MKR form factor. The MKR ZERO board acts as a great educational tool for learning about 32-bit application devel...",
+                "Select this product to display a comparison dialog. Write messages and add graphics with this shield. You can use this shield to show..."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "USB Cable Type A Male to Micro Type B Male",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2624.3,
+              "pass_b_latency_ms": 17370.7,
+              "parity_pct": 64.7,
+              "sentences_pass_a": 21,
+              "sentences_pass_b": 34,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Dipole Pentaband Waterproof Antenna  Sold out  SKU X000016   Barcode 813747020114   Show more   Weight 0.01 kg   TARIC 8529106590   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac6,00  \u20ac6,00",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Dipole Pentaband Waterproof Antenna\r  Sold out\r  &nbsp;(2)   SKU X000016 \r  Barcode 813747020114 \r  Show more \r  Weight 0.01 kg \r  TARIC 8529106590 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original p",
+              "missing_sentences_count": 12,
+              "missing_content_blocks": [
+                "Inspired by your shopping trends Select this product to display a comparison dialog. The Arduino MKR WiFi 1010 is the easiest point of entry to basic IoT and pico-network application design.",
+                "Whether you are looking at building a sensor network connected to your office or home route... Select this product to display a comparison dialog. Arduino MKR Relay Proto Shield",
+                "The MKR Relay Protoshield allows you to easily add relays to your MKR board based project. Select this product to display a comparison dialog. If you are experimenting with monitoring fleets, high-altitude scientific experiments, or any kind of project requiring localization of devices, the MKR GPS Shield will offer you the functionality ...",
+                "Select this product to display a comparison dialog. USB Cable Type A Male to Micro Type B Male This cable is needed to connect your PC to a board that uses this kind of connector."
+              ],
+              "missing_snippets_sample": [
+                "Inspired by your shopping trends",
+                "Select this product to display a comparison dialog.",
+                "The Arduino MKR WiFi 1010 is the easiest point of entry to basic IoT and pico-network application design."
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2223.5,
+              "pass_b_latency_ms": 12864.1,
+              "parity_pct": 85.7,
+              "sentences_pass_a": 115,
+              "sentences_pass_b": 98,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Mega 2560 Rev3  SKU A000067   Barcode 7630049200067   Show more   Weight 0.06 kg   TARIC 85235210   Original price   \u20ac52,80  -  Original price   \u20ac52,80  Original price   \u20ac52,80  \u20ac52,80   -  \u20ac52,80   Current price",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Mega 2560 Rev3\r  &nbsp;(36)   SKU A000067 \r  Barcode 7630049200067 \r  Show more \r  Weight 0.06 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0 \r  Original price \r  \u20ac52,80\r  -\r  Original price \r  \u20ac52,80\r  Original",
+              "missing_sentences_count": 14,
+              "missing_content_blocks": [
+                "in stock, ready to be shipped Enhance your experience, add to your cart: Arduino Pro Opta Ext A0602",
+                "Inspired by your shopping trends Select this product to display a comparison dialog. Arduino Ethernet Shield 2",
+                "The Arduino Ethernet Shield 2 connects your Arduino to the internet in mere minutes. Select this product to display a comparison dialog. The Arduino GIGA R1 WiFi is designed for ambitious makers who want to step up their game.",
+                "It levels the playing field for gamers, artists, sound designers and anyone coming to the tech world with b... Select this product to display a comparison dialog. The Arduino Prototyping Shield makes it easy for you to design custom circuits."
+              ],
+              "missing_snippets_sample": [
+                "in stock, ready to be shipped",
+                "Enhance your experience, add to your cart:",
+                "Arduino Pro Opta Ext A0602"
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2509.6,
+              "pass_b_latency_ms": 12374.8,
+              "parity_pct": 87.9,
+              "sentences_pass_a": 82,
+              "sentences_pass_b": 91,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Uno Rev3 SMD  SKU A000073   Barcode 7630049200074   Show more   Weight 0.02 kg   TARIC 85235210   Original price   \u20ac0,00  -  Original price   \u20ac0,00  Original price   \u20ac0,00  \u20ac27,80  \u20ac27,80   -  \u20ac27,80   Current pr",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Uno Rev3 SMD\r  &nbsp;(6)   SKU A000073 \r  Barcode 7630049200074 \r  Show more \r  Weight 0.02 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0,00 \r  Original price \r  \u20ac0,00\r  -\r  Original price \r  \u20ac0,00\r  Original pr",
+              "missing_sentences_count": 11,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: Inspired by your shopping trends Select this product to display a comparison dialog.",
+                "Arduino Ethernet Shield 2 The Arduino Ethernet Shield 2 connects your Arduino to the internet in mere minutes. Select this product to display a comparison dialog.",
+                "Select this product to display a comparison dialog. The Arduino UNO WiFi Rev.2 is the easiest point of entry to basic IoT with the standard form factor of the UNO family. Whether you are looking at building a sensor network connected to your office ...",
+                "Select this product to display a comparison dialog. The Arduino Mega 2560 is a microcontroller board based on the ATmega2560."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "Inspired by your shopping trends",
+                "Select this product to display a comparison dialog."
+              ],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-zero",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2200.1,
+              "pass_b_latency_ms": 9178.5,
+              "parity_pct": 84.9,
+              "sentences_pass_a": 88,
+              "sentences_pass_b": 93,
+              "pass_a_excerpt": "Click to expand  Tap to zoom  Arduino Zero  SKU ABX00003   Barcode 7630049200586   Show more   Weight 0.05 kg   TARIC 85235210   Original price   \u20ac48,90  -  Original price   \u20ac48,90  Original price   \u20ac48,90  \u20ac48,90   -  \u20ac48,90   Current price   \u20ac48,90",
+              "pass_b_excerpt": "Click to expand\r  Tap to zoom\r  Arduino Zero\r  &nbsp;(5)   SKU ABX00003 \r  Barcode 7630049200586 \r  Show more \r  Weight 0.05 kg \r  TARIC 85235210 \r  Original price \r  \u20ac0 \r  Original price \r  \u20ac48,90\r  -\r  Original price \r  \u20ac48,90\r  Original price \r  C",
+              "missing_sentences_count": 14,
+              "missing_content_blocks": [
+                "Enhance your experience, add to your cart: This means that the 'Serial' class responds to the programming port of the board. Inspired by your shopping trends",
+                "Select this product to display a comparison dialog. It is the first Arduino board based on a 32-bit ARM core microcontroller. It has 54 digital input/output pin...",
+                "Select this product to display a comparison dialog. The MKR ZERO brings you the power of a Zero in the smaller format established by the MKR form factor. The MKR ZERO board acts as a great educational tool for learning about 32-bit application devel...",
+                "Select this product to display a comparison dialog. Arduino\u00ae Nano ESP32 with headers Introducing the Nano ESP32, a powerful addition to the Arduino ecosystem that brings the popular ESP32-S3 to the world of Arduino and MicroPython programming."
+              ],
+              "missing_snippets_sample": [
+                "Enhance your experience, add to your cart:",
+                "This means that the 'Serial' class responds to the programming port of the board.",
+                "Inspired by your shopping trends"
+              ],
+              "depth": 2
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "store.arduino.cc",
+      "summary": {
+        "total_findings": 28,
+        "critical": 0,
+        "high": 12,
+        "medium": 16,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks primary Organization or SoftwareApplication entity",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/",
+          "evidence": "Homepage declared generic schema types (WebSite) but lacks an explicit Organization, Brand, or SoftwareApplication definition.",
+          "suggested_action": "Nest an Organization or SoftwareApplication schema in your homepage JSON-LD to ground your brand in AI Knowledge Graphs."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Arduino Official Store')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/",
+          "evidence": "The WebSite ('Arduino Official Store') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($27.2) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-nano",
+          "evidence": "JSON-LD offers.price declares ['$27.2'], but visible on-page text prominently displays ['$0', '$27'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-004",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-nano",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-nano",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-005",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($24.15) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+          "evidence": "JSON-LD offers.price declares ['$24.15'], but visible on-page text prominently displays ['$24'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-006",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-leonardo-without-headers",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-007",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($24.1) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-micro",
+          "evidence": "JSON-LD offers.price declares ['$24.1'], but visible on-page text prominently displays ['$0', '$24'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-008",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-micro",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-micro",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-009",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($51.3) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+          "evidence": "JSON-LD offers.price declares ['$51.3'], but visible on-page text prominently displays ['$0', '$51'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-010",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-due-without-headers",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-011",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($25.4) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+          "evidence": "JSON-LD offers.price declares ['$25.4'], but visible on-page text prominently displays ['$0', '$25'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-012",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-leonardo-with-headers",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-013",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($52.5) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-due",
+          "evidence": "JSON-LD offers.price declares ['$52.5'], but visible on-page text prominently displays ['$0', '$52'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-014",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-due",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-due",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-015",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($29.3) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+          "evidence": "JSON-LD offers.price declares ['$29.3'], but visible on-page text prominently displays ['$29'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-016",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-uno-rev3",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-017",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($25.4) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+          "evidence": "JSON-LD offers.price declares ['$25.4'], but visible on-page text prominently displays ['$0', '$25'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-018",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-micro-without-headers",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-019",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/usb-2-0-cable-type-a-b",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-020",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($12.37) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+          "evidence": "JSON-LD offers.price declares ['$12.37'], but visible on-page text prominently displays ['$16', '$12'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-021",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/mkr2uno-adapter",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-022",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/dipole-pentaband-waterproof-antenna",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-023",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($52.8) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+          "evidence": "JSON-LD offers.price declares ['$52.8'], but visible on-page text prominently displays ['$52'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-024",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-mega-2560-rev3",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-025",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($27.8) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+          "evidence": "JSON-LD offers.price declares ['$27.8'], but visible on-page text prominently displays ['$0', '$27'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-026",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-uno-rev3-smd",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-027",
+          "code": "SCHEMA_PRICE_CONTRADICTION",
+          "title": "Structured data price ($48.9) contradicts visible page pricing",
+          "severity": "HIGH",
+          "url": "https://store.arduino.cc/products/arduino-zero",
+          "evidence": "JSON-LD offers.price declares ['$48.9'], but visible on-page text prominently displays ['$48'].",
+          "suggested_action": "Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users."
+        },
+        {
+          "id": "ENT-028",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Arduino')) lacks description property on /products/arduino-zero",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-zero",
+          "evidence": "The Brand ('Arduino') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 15,
+        "pages_with_schema": 15,
+        "schema_coverage_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://store.arduino.cc/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-zero",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "AggregateRating",
+              "Brand",
+              "BreadcrumbList",
+              "ListItem",
+              "Offer",
+              "Organization",
+              "Product",
+              "Rating",
+              "Review",
+              "WebSite"
+            ]
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "store.arduino.cc",
+      "summary": {
+        "total_findings": 15,
+        "critical": 0,
+        "high": 0,
+        "medium": 14,
+        "low": 0,
+        "info": 1
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-nano",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Nano is a small, complete, and breadboard-friendly board based on the ATmega328 (Arduino Nano 3.x). It has more or less the same functionality of the Arduino Duemilanove, but in a different package. It lacks only a DC power jack, and works with a M...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-002",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Leonardo is a microcontroller board based on the ATmega32u4 ( datasheet ). It has 20 digital input/output pins (of which 7 can be used as PWM outputs and 12 as analog inputs), a 16 MHz crystal oscillator, a micro USB connection, a power jack, an IC...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-003",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-micro",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Micro is a microcontroller board based on the ATmega32U4 ( datasheet ), developed in conjunction with Adafruit . It has 20 digital input/output pins (of which 7 can be used as PWM outputs and 12 as analog inputs), a 16 MHz crystal oscillator, a micro USB c...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-004",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Due is a microcontroller board based on the Atmel SAM3X8E ARM Cortex-M3 CPU . It is the first Arduino board based on a 32-bit ARM core microcontroller. It has 54 digital input/output pins (of which 12 can be used as PWM outputs), 12 analog inputs, ...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-005",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Leonardo is a microcontroller board based on the ATmega32u4 ( datasheet ). It has 20 digital input/output pins (of which 7 can be used as PWM outputs and 12 as analog inputs), a 16 MHz crystal oscillator, a micro USB connection, a power jack, an IC...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-006",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-due",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Due is a microcontroller board based on the Atmel SAM3X8E ARM Cortex-M3 CPU . It is the first Arduino board based on a 32-bit ARM core microcontroller. It has 54 digital input/output pins (of which 12 can be used as PWM outputs), 12 analog inputs, ...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-007",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"Arduino Uno is a microcontroller board based on the ATmega328P ( datasheet ). It has 14 digital input/output pins (of which 6 can be used as PWM outputs), 6 analog inputs, a 16 MHz ceramic resonator (CSTCE16M0V53-R0), a USB connection, a power jack, an ICSP he...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-008",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Micro is a microcontroller board based on the ATmega32U4 ( datasheet ), developed in conjunction with Adafruit . It has 20 digital input/output pins (of which 7 can be used as PWM outputs and 12 as analog inputs), a 16 MHz crystal oscillator, a micro USB c...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-009",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"Use it to connect Arduino Uno, Arduino Mega 2560, Arduino 101 or any board with the USB female A port of your computer. Cable lenght is approximately 100cm. Cable color and shape may vary slightly from image as our stock rotates. If you want to have a closer l...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-010",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-011",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The MKR2UNO Adapter allows you to turn your Arduino UNO form factor based project into a MKR based one without too much effort! You can so upgrade your project with a powerful board with integrated LiPo battery charger. Please note that currently the MKR2UNO a...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-012",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"A single solution to connect your smart devices to the Cloud. The antenna supports the GSM 850 / 900 / 1800 / 1900 MHz and UMTS bands. Designed for small devices, this antenna will work when used as wireless terminal, gateway, or access point. It is a ground p...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-013",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Mega 2560 is a microcontroller board based on the ATmega2560 . It has 54 digital input/output pins (of which 15 can be used as PWM outputs), 16 analog inputs, 4 UARTs (hardware serial ports), a 16 MHz crystal oscillator, a USB connection, a power j...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-014",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Arduino Uno Rev3 SMD is a microcontroller board based on the ATmega328. It has 14 digital input/output pins (of which 6 can be used as PWM outputs), 6 analog inputs, a 16 MHz ceramic resonator (CSTCE16M0V53-R0), a USB connection, a power jack, an ICSP head...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        },
+        {
+          "id": "CNT-015",
+          "code": "RAG_HEADING_LOW_ENTROPY",
+          "title": "Heading 'Overview' has low semantic entropy",
+          "severity": "MEDIUM",
+          "url": "https://store.arduino.cc/products/arduino-zero",
+          "evidence": "Heading 'Overview' provides zero search-intent tokens when prepended to chunk embeddings.\nSection Content Excerpt:\n  \"The Zero is a simple and powerful 32-bit extension of the platform established by the UNO. The Zero board expands the family by providing increased performance, enabling a variety of project opportunities for devices, and acts as a great educational tool for l...\"",
+          "suggested_action": "Rename 'Overview' to include specific topic nouns (e.g., replace 'Overview' with 'System Architecture Overview' or 'Installation Guide')."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 526,
+        "total_words_audited": 36861,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://store.arduino.cc/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 36,
+            "word_count": 1758,
+            "headings": [
+              "Arduino\u00ae VENTUNO\u2122 Q is available now!",
+              "Save up to 25% on boards, kits and bundles!",
+              "Arduino\u00ae UNO\u2122 Q",
+              "Arduino\u00ae UNO\u2122 Q 4GB",
+              "Save up to 25% on Arduino kits, boards and Arduino\u00ae UNO\u2122 Q Bundles!",
+              "Arduino\u00ae UNO\u2122 Q Arcade bundle",
+              "Arduino\u00ae UNO\u2122 Q DIY synth bundle",
+              "Arduino Starter Kit R4",
+              "Arduino Starter Kit R4 Classroom Pack",
+              "Arduino Nesso N1",
+              "Arduino Plug and Make Kit",
+              "Arduino Alvik",
+              "Arduino\u00ae UNO R4 WiFi",
+              "Arduino PLC Starter Kit",
+              "Arduino\u00ae Matter Discovery Bundle",
+              "Arduino Junior Certification Bundle",
+              "Arduino Student Kit",
+              "Explore our innovative solutions",
+              "Boards for creative projects",
+              "STEM Kits for schools and self-learners",
+              "Industrial IoT platform solutions",
+              "Arduino Cloud compatible boards",
+              "Your gateway to Arduino Deals",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-nano",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 36,
+            "word_count": 2058,
+            "headings": [
+              "Arduino Nano",
+              "Overview",
+              "Related Boards",
+              "Getting Started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Programming",
+              "Automatic (Software) Reset",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 40,
+            "word_count": 2559,
+            "headings": [
+              "Arduino Leonardo without Headers",
+              "Overview",
+              "Related Boards",
+              "Getting started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Programming",
+              "Automatic (Software) Reset and Bootloader Initiation",
+              "USB Overcurrent Protection",
+              "Physical Characteristics",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 39,
+            "word_count": 2616,
+            "headings": [
+              "Arduino Micro",
+              "Overview",
+              "Related Boards",
+              "Getting Started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics, Reference Design, Board size",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Programming",
+              "Warnings",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Physical Characteristics",
+              "Automatic (Software) Reset and Bootloader Initiation",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 34,
+            "word_count": 3115,
+            "headings": [
+              "Arduino Due without Headers",
+              "Overview",
+              "Need Help?",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Programming",
+              "USB Overcurrent Protection",
+              "Physical Characteristics and Shield Compatibility",
+              "Learn More",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-leonardo-with-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 40,
+            "word_count": 3160,
+            "headings": [
+              "Arduino Leonardo with Headers",
+              "Overview",
+              "Related Boards",
+              "Getting started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Programming",
+              "Automatic (Software) Reset and Bootloader Initiation",
+              "USB Overcurrent Protection",
+              "Physical Characteristics",
+              "Customer Reviews",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-due",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 35,
+            "word_count": 3257,
+            "headings": [
+              "Arduino Due",
+              "Overview",
+              "Getting Started",
+              "Need Help?",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Programming",
+              "USB Overcurrent Protection",
+              "Physical Characteristics and Shield Compatibility",
+              "Learn More",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 40,
+            "word_count": 2976,
+            "headings": [
+              "Arduino Uno Rev3",
+              "Overview",
+              "Related Boards",
+              "Getting started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Programming",
+              "Warnings",
+              "Differences with other boards",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Automatic (Software) Reset",
+              "Revisions",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-micro-without-headers",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 39,
+            "word_count": 2639,
+            "headings": [
+              "Arduino Micro without headers",
+              "Overview",
+              "Related Boards",
+              "Getting Started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics, Reference Design, Board size",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Programming",
+              "Warnings",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Physical Characteristics",
+              "Automatic (Software) Reset and Bootloader Initiation",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/usb-2-0-cable-type-a-b",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 20,
+            "word_count": 902,
+            "headings": [
+              "USB 2.0 Cable Type A/B",
+              "Overview",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/mkr2uno-adapter",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 24,
+            "word_count": 1099,
+            "headings": [
+              "MKR2UNO Adapter",
+              "Overview",
+              "Need Help?",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/dipole-pentaband-waterproof-antenna",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 24,
+            "word_count": 1086,
+            "headings": [
+              "Dipole Pentaband Waterproof Antenna",
+              "Overview",
+              "List of Compatible Boards",
+              "Tech Specs",
+              "Other characteristics:",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-mega-2560-rev3",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 41,
+            "word_count": 4022,
+            "headings": [
+              "Arduino Mega 2560 Rev3",
+              "Overview",
+              "Related Boards",
+              "Getting Started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Learn More",
+              "Get Inspired",
+              "FAQs",
+              "Programming",
+              "Warnings",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Physical Characteristics and Shield Compatibility",
+              "Automatic (Software) Reset",
+              "Revisions",
+              "Customer Reviews",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-uno-rev3-smd",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 37,
+            "word_count": 2905,
+            "headings": [
+              "Arduino Uno Rev3 SMD",
+              "Overview",
+              "Related Boards",
+              "Getting started",
+              "Need Help?",
+              "Warranty",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "Programming",
+              "Warnings",
+              "Differences with other boards",
+              "Power",
+              "Memory",
+              "Input and Output",
+              "Communication",
+              "Revisions",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          },
+          {
+            "url": "https://store.arduino.cc/products/arduino-zero",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "pricing_product",
+            "sections_count": 41,
+            "word_count": 2709,
+            "headings": [
+              "Arduino Zero",
+              "Overview",
+              "Note",
+              "Getting Started",
+              "Need Help?",
+              "Tech Specs",
+              "Conformities",
+              "Resources for Safety and Products",
+              "Manufacturer Information",
+              "Responsible Person in the EU",
+              "Documentation",
+              "OSH: Schematics",
+              "Pinout Diagram",
+              "Interactive Board Viewer",
+              "ARM Core Benefits",
+              "Atmel Embedded Debugger",
+              "Memory",
+              "Input and Output",
+              "Programming",
+              "JTAG connector for debugging through SWD",
+              "ICSP Connector used for SPI communication",
+              "EEPROM",
+              "Serial ports",
+              "Burn the Bootloader",
+              "USB Overcurrent Protection",
+              "Physical Characteristics",
+              "Learn More",
+              "Get Inspired",
+              "Arduino Newsletter",
+              "Thank you for subscribing!",
+              "Curious to learn more?",
+              "Education",
+              "Professional",
+              "Arduino Survey",
+              "Tell us more!",
+              "Follow us",
+              "Newsletter",
+              "Added to your cart:",
+              "",
+              "Compare products"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

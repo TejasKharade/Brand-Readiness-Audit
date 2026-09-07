@@ -81,12 +81,15 @@ def load_json_multienconding(filepath):
 
 
 def fetch_raw_html(url, timeout=12):
-    """Fetches raw HTML stream simulating AI search crawler."""
+    """Fetches raw HTML stream simulating AI search crawler with gzip and retry support."""
+    import gzip
+    import time
     req = Request(
         url,
         headers={
             "User-Agent": USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate",
             "Accept-Language": "en-US,en;q=0.9"
         }
     )
@@ -94,26 +97,35 @@ def fetch_raw_html(url, timeout=12):
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
 
-    try:
-        with urlopen(req, timeout=timeout, context=ctx) as resp:
-            content_type = resp.headers.get("Content-Type", "")
-            if "text/html" not in content_type and "application/xhtml" not in content_type:
-                return None, f"Non-HTML content type: {content_type}"
-            charset = "utf-8"
-            if "charset=" in content_type:
-                charset = content_type.split("charset=")[-1].split(";")[0].strip()
-            raw_bytes = resp.read()
-            try:
-                text = raw_bytes.decode(charset, errors="replace")
-            except Exception:
-                text = raw_bytes.decode("utf-8", errors="replace")
-            return text, None
-    except HTTPError as e:
-        return None, f"HTTP Error {e.code}: {e.reason}"
-    except URLError as e:
-        return None, f"URL Error: {e.reason}"
-    except Exception as e:
-        return None, f"Network Error: {str(e)}"
+    last_err = None
+    for attempt in range(2):
+        try:
+            with urlopen(req, timeout=timeout, context=ctx) as resp:
+                content_type = resp.headers.get("Content-Type", "")
+                if "text/html" not in content_type and "application/xhtml" not in content_type:
+                    return None, f"Non-HTML content type: {content_type}"
+                charset = "utf-8"
+                if "charset=" in content_type:
+                    charset = content_type.split("charset=")[-1].split(";")[0].strip()
+                raw_bytes = resp.read()
+                if raw_bytes.startswith(b"\x1f\x8b") or resp.headers.get("content-encoding") == "gzip":
+                    try:
+                        raw_bytes = gzip.decompress(raw_bytes)
+                    except Exception:
+                        pass
+                try:
+                    text = raw_bytes.decode(charset, errors="replace")
+                except Exception:
+                    text = raw_bytes.decode("utf-8", errors="replace")
+                return text, None
+        except HTTPError as e:
+            return None, f"HTTP {e.code} ({e.reason})"
+        except Exception as e:
+            last_err = f"Network Error: {str(e)}"
+            if attempt == 0:
+                time.sleep(1)
+                continue
+    return None, last_err or "Connection failed after 2 attempts"
 
 
 def extract_visible_text(html_content):
@@ -238,11 +250,17 @@ def check_sameas_authorities(same_as_list):
     return recognized
 
 
+def get_url_depth(u):
+    p = urlparse(u).path.strip("/")
+    return len([seg for seg in p.split("/") if seg]) if p else 0
+
+
 class SchemaEntityAuditor:
-    def __init__(self, target_url, input_access=None, input_render=None):
+    def __init__(self, target_url, input_access=None, input_render=None, max_pages=15):
         self.target_url = target_url
         self.input_access = input_access
         self.input_render = input_render
+        self.max_pages = max_pages
         self.parsed_url = urlparse(target_url)
         self.domain = self.parsed_url.netloc
         self.findings = []
@@ -252,17 +270,22 @@ class SchemaEntityAuditor:
             "same_as_authorities": [],
             "pages_audited": 0,
             "pages_with_schema": 0,
-            "schema_coverage_pct": 0.0
+            "schema_coverage_pct": 0.0,
+            "pages": []
         }
 
     def _add_finding(self, code, title, severity, evidence, suggested_action, url=None):
+        target_url = url or self.target_url
+        for existing in self.findings:
+            if existing["code"] == code and existing["url"] == target_url:
+                return
         finding_id = f"ENT-{len(self.findings) + 1:03d}"
         self.findings.append({
             "id": finding_id,
             "code": code,
             "title": title,
             "severity": severity,
-            "url": url or self.target_url,
+            "url": target_url,
             "evidence": evidence,
             "suggested_action": suggested_action
         })
@@ -290,8 +313,28 @@ class SchemaEntityAuditor:
                     urls_to_audit.append(u)
                     seen_normalized.add(u.rstrip("/"))
 
-        # Cap audit to at most 6 pages for speed and token economy
-        urls_to_audit = urls_to_audit[:6]
+        # Tier 2 Fallback: If fewer than 5 URLs were supplied (e.g. standalone run or missing upstream sample),
+        # crawl internal links from root HTML to ensure comprehensive multi-page coverage
+        if len(urls_to_audit) < 5:
+            root_html, _ = fetch_raw_html(self.target_url)
+            if root_html:
+                base_domain = self.parsed_url.netloc.lower()
+                for link_match in re.finditer(r'<a\s+[^>]*href=["\']([^"\']+)["\']', root_html, re.I):
+                    href = link_match.group(1).strip()
+                    if href.startswith("#") or href.startswith("javascript:") or href.startswith("mailto:"):
+                        continue
+                    full_u = urljoin(self.target_url, href)
+                    p_u = urlparse(full_u)
+                    if p_u.netloc.lower() == base_domain and p_u.scheme in ("http", "https"):
+                        clean_u = f"{p_u.scheme}://{p_u.netloc}{p_u.path}".rstrip("/")
+                        if clean_u not in seen_normalized:
+                            seen_normalized.add(clean_u)
+                            urls_to_audit.append(clean_u)
+                            if len(urls_to_audit) >= self.max_pages:
+                                break
+
+        # Cap audit to at most max_pages
+        urls_to_audit = urls_to_audit[:self.max_pages]
         self.entity_profile["pages_audited"] = len(urls_to_audit)
 
         # Check Skill 2 render profile for JS-deferred schema handoff
@@ -330,12 +373,40 @@ class SchemaEntityAuditor:
         return self.to_dict()
 
     def _audit_single_page(self, page_url, is_homepage=False):
+        depth = get_url_depth(page_url)
         raw_html, err = fetch_raw_html(page_url)
         if err or not raw_html:
+            self.entity_profile.setdefault("pages", []).append({
+                "url": page_url,
+                "depth": depth,
+                "status": 0,
+                "error": err or "Empty response",
+                "schemas_found": []
+            })
+            self._add_finding(
+                code="PAGE_FETCH_ERROR",
+                title=f"Failed to fetch {urlparse(page_url).path or '/'}: {err or 'Empty response'}",
+                severity="HIGH",
+                evidence=f"Request to {page_url} failed: {err or 'Empty response'}",
+                suggested_action="Ensure the server is responsive and that firewalls do not block automated search crawler requests.",
+                url=page_url
+            )
             return
 
         visible_text = extract_visible_text(raw_html)
         schema_nodes, syntax_errors = extract_json_ld(raw_html)
+
+        detected_types = set()
+        for sn in schema_nodes:
+            detected_types.update(get_schema_types(sn))
+
+        self.entity_profile.setdefault("pages", []).append({
+            "url": page_url,
+            "depth": depth,
+            "status": 200,
+            "error": None,
+            "schemas_found": sorted(list(detected_types))
+        })
 
         # Check 1: Syntax Validation
         for syn_err in syntax_errors:
@@ -434,64 +505,71 @@ class SchemaEntityAuditor:
             return
 
         for node in schema_nodes:
-            # 1. Pricing Contradiction Check
+            # 1. Pricing Contradiction Check (Aggregated across variant offers)
             offers = node.get("offers")
             offer_list = offers if isinstance(offers, list) else [offers] if isinstance(offers, dict) else []
+            schema_prices = set()
             for offer in offer_list:
-                price = offer.get("price") if isinstance(offer, dict) else None
-                if price is not None:
+                if isinstance(offer, dict) and offer.get("price") is not None:
                     try:
-                        price_num = float(str(price).replace("$", "").replace(",", "").strip())
-                        # Look for explicit contradictory prices in visible text
-                        visible_prices = re.findall(r"(?:[\$€£]\s*(\d+(?:\.\d{2})?)|(\d+(?:\.\d{2})?)\s*(?:USD|EUR|GBP))", visible_text)
-                        found_numbers = set()
-                        for p1, p2 in visible_prices:
-                            val = p1 or p2
-                            if val:
-                                try:
-                                    found_numbers.add(float(val))
-                                except ValueError:
-                                    pass
-
-                        # If schema claims a non-zero price, but page shows completely different pricing
-                        if price_num > 0 and found_numbers and price_num not in found_numbers:
-                            # Avoid false positives if page mentions other numbers by checking for common price indicators
-                            if len(found_numbers) <= 3:
-                                self._add_finding(
-                                    code="SCHEMA_PRICE_CONTRADICTION",
-                                    title=f"Structured data price (${price_num:g}) contradicts visible page pricing",
-                                    severity="HIGH",
-                                    evidence=f"JSON-LD offers.price claims {price_num:g}, but visible on-page text prominently displays {[f'${n:g}' for n in found_numbers]}.",
-                                    suggested_action="Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users.",
-                                    url=page_url
-                                )
+                        p_val = float(str(offer["price"]).replace("$", "").replace(",", "").strip())
+                        if p_val > 0:
+                            schema_prices.add(p_val)
                     except ValueError:
                         pass
 
-                # 2. Availability Contradiction Check
-                avail = offer.get("availability") if isinstance(offer, dict) else None
-                if avail and isinstance(avail, str):
-                    avail_clean = avail.split("/")[-1].lower()
-                    if "instock" in avail_clean:
-                        if re.search(r"\b(out of stock|sold out|currently unavailable)\b", visible_text, re.IGNORECASE):
-                            self._add_finding(
-                                code="SCHEMA_AVAILABILITY_CONTRADICTION",
-                                title="Structured data claims 'InStock' but page displays 'Out of stock'",
-                                severity="HIGH",
-                                evidence="JSON-LD availability declares InStock, but visible page text contains 'Out of stock' or 'Sold out'.",
-                                suggested_action="Update structured data availability to OutOfStock to prevent AI engines from misleading users on item availability.",
-                                url=page_url
-                            )
-                    elif "outofstock" in avail_clean:
-                        if re.search(r"\b(in stock|available now|ready to ship)\b", visible_text, re.IGNORECASE):
-                            self._add_finding(
-                                code="SCHEMA_AVAILABILITY_CONTRADICTION",
-                                title="Structured data claims 'OutOfStock' but page displays 'In stock'",
-                                severity="HIGH",
-                                evidence="JSON-LD availability declares OutOfStock, but visible page text announces 'In stock' or 'Available now'.",
-                                suggested_action="Synchronize structured data availability to InStock.",
-                                url=page_url
-                            )
+            if schema_prices:
+                visible_prices = re.findall(r"(?:[\$€£]\s*(\d+(?:\.\d{2})?)|(\d+(?:\.\d{2})?)\s*(?:USD|EUR|GBP))", visible_text)
+                found_numbers = set()
+                for p1, p2 in visible_prices:
+                    val = p1 or p2
+                    if val:
+                        try:
+                            found_numbers.add(float(val))
+                        except ValueError:
+                            pass
+
+                if found_numbers and not any(sp in found_numbers for sp in schema_prices) and len(found_numbers) <= 3:
+                    sample_schema_p = sorted(list(schema_prices))[0]
+                    self._add_finding(
+                        code="SCHEMA_PRICE_CONTRADICTION",
+                        title=f"Structured data price (${sample_schema_p:g}) contradicts visible page pricing",
+                        severity="HIGH",
+                        evidence=f"JSON-LD offers.price declares {[f'${p:g}' for p in sorted(list(schema_prices))[:3]]}, but visible on-page text prominently displays {[f'${n:g}' for n in found_numbers]}.",
+                        suggested_action="Synchronize the JSON-LD offers.price with the actual visible pricing displayed to users.",
+                        url=page_url
+                    )
+
+            # 2. Availability Contradiction Check (Aggregated across variant offers)
+            offer_avails = []
+            for offer in offer_list:
+                if isinstance(offer, dict) and offer.get("availability") and isinstance(offer["availability"], str):
+                    offer_avails.append(offer["availability"].split("/")[-1].lower())
+
+            if offer_avails:
+                has_instock = any("instock" in a for a in offer_avails)
+                has_outofstock = any("outofstock" in a for a in offer_avails)
+
+                if has_instock and not has_outofstock:
+                    if re.search(r"\b(out of stock|sold out|currently unavailable)\b", visible_text, re.IGNORECASE):
+                        self._add_finding(
+                            code="SCHEMA_AVAILABILITY_CONTRADICTION",
+                            title="Structured data claims 'InStock' but page displays 'Out of stock'",
+                            severity="HIGH",
+                            evidence="JSON-LD availability declares InStock across all offers, but visible page text contains 'Out of stock' or 'Sold out'.",
+                            suggested_action="Update structured data availability to OutOfStock to prevent AI engines from misleading users on item availability.",
+                            url=page_url
+                        )
+                elif has_outofstock and not has_instock:
+                    if re.search(r"\b(in stock|available now|ready to ship)\b", visible_text, re.IGNORECASE):
+                        self._add_finding(
+                            code="SCHEMA_AVAILABILITY_CONTRADICTION",
+                            title="Structured data claims 'OutOfStock' but page displays 'In stock'",
+                            severity="HIGH",
+                            evidence="JSON-LD availability declares OutOfStock across all offers, but visible page text announces 'In stock' or 'Available now'.",
+                            suggested_action="Synchronize structured data availability to InStock.",
+                            url=page_url
+                        )
 
             # 3. Software Version Contradiction
             version = node.get("softwareVersion") or node.get("version")
@@ -521,6 +599,20 @@ class SchemaEntityAuditor:
                                 )
                         except Exception:
                             pass
+
+            # 4. Temporal Anchoring (dateModified / datePublished)
+            types = get_schema_types(node)
+            if types.intersection({"Article", "TechArticle", "BlogPosting", "NewsArticle"}):
+                date_mod = node.get("dateModified") or node.get("datePublished")
+                if not date_mod:
+                    self._add_finding(
+                        code="SCHEMA_DATE_MODIFIED_MISSING",
+                        title=f"Article schema ({list(types)[0]}) lacks dateModified property on {urlparse(page_url).path or '/'}",
+                        severity="MEDIUM",
+                        evidence=f"Declared {list(types)[0]} has no 'dateModified' or 'datePublished' timestamp. Generative AI engines deprioritize undated articles for freshness-sensitive queries.",
+                        suggested_action="Add an ISO-8601 'dateModified' timestamp (e.g. '2026-01-15T00:00:00Z') so AI engines can verify content freshness.",
+                        url=page_url
+                    )
 
     def _evaluate_description_extractability(self, page_url, schema_nodes):
         """Checks schema descriptions for missing content, extreme brevity, or generic buzzword fluff."""
@@ -620,6 +712,7 @@ def main():
     parser.add_argument("url", help="Target domain or root URL (e.g., https://example.com)")
     parser.add_argument("--input-access", help="Path to Skill 1 output JSON (sampled_pages)")
     parser.add_argument("--input-render", help="Path to Skill 2 output JSON (render_profile & timing)")
+    parser.add_argument("--max-pages", type=int, default=15, help="Maximum pages to audit (default: 15)")
     parser.add_argument("--json", action="store_true", help="Emit raw JSON to stdout")
 
     args = parser.parse_args()
@@ -631,7 +724,8 @@ def main():
     auditor = SchemaEntityAuditor(
         target_url=url,
         input_access=args.input_access,
-        input_render=args.input_render
+        input_render=args.input_render,
+        max_pages=args.max_pages
     )
 
     report = auditor.run()
@@ -640,11 +734,15 @@ def main():
         print(json.dumps(report, indent=2))
     else:
         print(f"\nStructured Data & Entity Audit for: {report['site']}")
-        print(f"Pages Audited: {report['entity_profile']['pages_audited']} (Schema Coverage: {report['entity_profile']['schema_coverage_pct']}%)")
-        print(f"Root Entity: {'Found (' + ', '.join(report['entity_profile']['root_entity_types']) + ')' if report['entity_profile']['root_entity_detected'] else 'Missing'}")
+        print(f"Pages Audited ({report['entity_profile']['pages_audited']}) [Schema Coverage: {report['entity_profile']['schema_coverage_pct']}%]:")
+        for p in report['entity_profile'].get('pages', []):
+            sc_str = ", ".join(p.get("schemas_found", [])) or "None"
+            status_desc = f"HTTP {p.get('status', 0)}" if p.get('status') else f"Failed ({p.get('error', 'Unknown')})"
+            print(f"  • [Depth {p.get('depth', 0)}] {p['url']} → Schemas: [{sc_str}] ({status_desc})")
+        print(f"\nRoot Entity: {'Found (' + ', '.join(report['entity_profile']['root_entity_types']) + ')' if report['entity_profile']['root_entity_detected'] else 'Missing'}")
         if report['entity_profile']['same_as_authorities']:
             print(f"sameAs Authorities: {', '.join(report['entity_profile']['same_as_authorities'])}")
-        print(f"Summary: {report['summary']['total_findings']} total findings "
+        print(f"\nSummary: {report['summary']['total_findings']} total findings "
               f"({report['summary']['critical']} Critical, {report['summary']['high']} High, "
               f"{report['summary']['medium']} Medium, {report['summary']['low']} Low)\n")
 

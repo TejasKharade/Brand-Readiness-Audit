@@ -1,19 +1,19 @@
 {
   "target": "https://frontdeskreview.com/",
   "domain": "frontdeskreview.com",
-  "audited_at": "2026-09-06T10:09:41Z",
-  "total_runtime_seconds": 49.84,
+  "audited_at": "2026-09-06T11:04:23Z",
+  "total_runtime_seconds": 130.43,
   "summary": {
-    "total_findings": 4,
+    "total_findings": 11,
     "critical": 0,
     "high": 0,
-    "medium": 4,
+    "medium": 11,
     "low": 0
   },
   "skills": {
     "skill_1": {
       "site": "frontdeskreview.com",
-      "audited_at": "2026-09-06T10:09:10Z",
+      "audited_at": "2026-09-06T11:02:58Z",
       "summary": {
         "total_findings": 0,
         "critical": 0,
@@ -43,15 +43,49 @@
     },
     "skill_2": {
       "site": "frontdeskreview.com",
-      "audited_at": "2026-09-06T10:09:33Z",
+      "audited_at": "2026-09-06T11:03:50Z",
       "summary": {
-        "total_findings": 0,
+        "total_findings": 3,
         "critical": 0,
         "high": 0,
-        "medium": 0,
+        "medium": 3,
         "low": 0
       },
-      "findings": [],
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (12405ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 12405ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (4588ms) exceeds crawl time budget on /guides/10dlc-registration-fees-business-texting-compared/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 4588ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8853ms) exceeds crawl time budget on /guides/acuity-vs-square-appointments-head-to-head/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8853ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
       "render_profile": {
         "browser_engine": "chrome.exe",
         "pages_audited": 5,
@@ -61,8 +95,8 @@
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 3119.8,
-              "pass_b_latency_ms": 3371.2,
+              "pass_a_latency_ms": 11062.9,
+              "pass_b_latency_ms": 12405.3,
               "parity_pct": 99.0,
               "sentences_pass_a": 95,
               "sentences_pass_b": 96,
@@ -77,8 +111,8 @@
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 1206.2,
-              "pass_b_latency_ms": 2660.3,
+              "pass_a_latency_ms": 5389.8,
+              "pass_b_latency_ms": 2633.9,
               "parity_pct": 85.6,
               "sentences_pass_a": 67,
               "sentences_pass_b": 132,
@@ -95,8 +129,8 @@
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 2089.6,
-              "pass_b_latency_ms": 2094.8,
+              "pass_a_latency_ms": 1674.0,
+              "pass_b_latency_ms": 4587.6,
               "parity_pct": 100.0,
               "sentences_pass_a": 29,
               "sentences_pass_b": 29,
@@ -109,8 +143,8 @@
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 915.7,
-              "pass_b_latency_ms": 2283.8,
+              "pass_a_latency_ms": 817.4,
+              "pass_b_latency_ms": 8853.4,
               "parity_pct": 100.0,
               "sentences_pass_a": 20,
               "sentences_pass_b": 20,
@@ -123,8 +157,8 @@
             "metrics": {
               "pass_a_status": 200,
               "pass_b_status": 200,
-              "pass_a_latency_ms": 828.0,
-              "pass_b_latency_ms": 3625.6,
+              "pass_a_latency_ms": 915.6,
+              "pass_b_latency_ms": 2663.4,
               "parity_pct": 100.0,
               "sentences_pass_a": 9,
               "sentences_pass_b": 9,
@@ -194,6 +228,148 @@
         "pages_audited": 5,
         "pages_with_schema": 5,
         "schema_coverage_pct": 100.0
+      }
+    },
+    "skill_4": {
+      "site": "frontdeskreview.com",
+      "summary": {
+        "total_findings": 8,
+        "critical": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0,
+        "info": 4
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://frontdeskreview.com/guides/",
+          "evidence": "Page contains 6299 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-002",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://frontdeskreview.com/guides/",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-003",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/guides/",
+          "evidence": "Page contains 132 links, but 100% of them point back to frontdeskreview.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-004",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+          "evidence": "Page contains 1033 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-005",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+          "evidence": "Page contains 21 links, but 100% of them point back to frontdeskreview.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-006",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+          "evidence": "Page contains 821 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-007",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+          "evidence": "Page contains 21 links, but 100% of them point back to frontdeskreview.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-008",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://frontdeskreview.com/ai-receptionists/cost/100/",
+          "evidence": "Page contains 51 links, but 100% of them point back to frontdeskreview.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 5,
+        "total_sections_audited": 21,
+        "total_words_audited": 8503,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://frontdeskreview.com/guides/",
+            "archetype": "guide_article",
+            "sections_count": 6,
+            "word_count": 6299,
+            "headings": [
+              "Buyer questions, answered from the data",
+              "AI Receptionists",
+              "Call Tracking",
+              "Business Texting",
+              "Online Booking"
+            ]
+          },
+          {
+            "url": "https://frontdeskreview.com/guides/10dlc-registration-fees-business-texting-compared/",
+            "archetype": "guide_article",
+            "sections_count": 7,
+            "word_count": 1033,
+            "headings": [
+              "10DLC registration is mandatory \u2014 but the billing mechanic is a vendor choice, and six handle it four different ways",
+              "The registration mechanic, side by side",
+              "Itemized: you see the brand and campaign line",
+              "Flat monthly: bundled into a recurring fee",
+              "Absorbed: the \u201cfree\u201d headline that\u2019s actually free \u2014 for some",
+              "How to read this"
+            ]
+          },
+          {
+            "url": "https://frontdeskreview.com/guides/acuity-vs-square-appointments-head-to-head/",
+            "archetype": "guide_article",
+            "sections_count": 6,
+            "word_count": 821,
+            "headings": [
+              "Acuity vs Square Appointments for a salon: the cheaper one depends on how you take payment",
+              "What a single-location salon actually pays",
+              "Where the per-location model bites \u2014 or pays off",
+              "The one line that isn\u2019t about price: HIPAA",
+              "How to read this"
+            ]
+          },
+          {
+            "url": "https://frontdeskreview.com/ai-receptionists/cost/100/",
+            "archetype": "general",
+            "sections_count": 2,
+            "word_count": 350,
+            "headings": [
+              "What AI receptionists really cost at 100 inbound calls a month"
+            ]
+          }
+        ]
       }
     }
   }

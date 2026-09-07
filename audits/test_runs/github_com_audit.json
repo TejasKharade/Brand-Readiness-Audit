@@ -1,0 +1,1480 @@
+{
+  "target": "https://github.com/",
+  "domain": "github.com",
+  "audited_at": "2026-09-07T11:57:17Z",
+  "total_runtime_seconds": 211.98,
+  "skills": {
+    "skill_1": {
+      "site": "github.com",
+      "audited_at": "2026-09-07T11:54:08Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [],
+      "sampled_pages": {
+        "homepage": "https://github.com",
+        "total_discovered": 70,
+        "doc_pages": [],
+        "blog_pages": [
+          "https://github.com/resources/articles/devops-tools-comparison"
+        ],
+        "product_pages": [],
+        "curated_sample": [
+          "https://github.com",
+          "https://github.com/resources/articles/devops-tools-comparison",
+          "https://github.com/security/advanced-security",
+          "https://github.com/about/diversity",
+          "https://github.com/login",
+          "https://github.com/mcp",
+          "https://github.com/why-github",
+          "https://github.com/marketplace",
+          "https://github.com/features",
+          "https://github.com/enterprise",
+          "https://github.com/team",
+          "https://github.com/solutions",
+          "https://github.com/customer-stories",
+          "https://github.com/trust-center",
+          "https://github.com/partners"
+        ],
+        "curated_sample_details": [
+          {
+            "url": "https://github.com",
+            "depth": 0,
+            "archetype": "homepage"
+          },
+          {
+            "url": "https://github.com/resources/articles/devops-tools-comparison",
+            "depth": 3,
+            "archetype": "article"
+          },
+          {
+            "url": "https://github.com/security/advanced-security",
+            "depth": 2,
+            "archetype": "about"
+          },
+          {
+            "url": "https://github.com/about/diversity",
+            "depth": 2,
+            "archetype": "about"
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/mcp",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/why-github",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/marketplace",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/features",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/enterprise",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/team",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/solutions",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/customer-stories",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/trust-center",
+            "depth": 1,
+            "archetype": "general"
+          },
+          {
+            "url": "https://github.com/partners",
+            "depth": 1,
+            "archetype": "general"
+          }
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-11-29",
+          "days_remaining": 83,
+          "issuer": "Sectigo Limited, Sectigo Public Server Authentication CA DV E36",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 200,
+        "ai_txt_status": 406,
+        "sitemap_target": "https://github.com/sitemap.xml",
+        "sitemap_status": 404,
+        "candidate_sitemaps_tested": [
+          "https://github.com/sitemap.xml",
+          "https://github.com/sitemap_index.xml"
+        ],
+        "total_discovered_urls": 70,
+        "pages_visited": [
+          {
+            "url": "https://github.com",
+            "depth": 0,
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 1397.9,
+            "error": null
+          },
+          {
+            "url": "https://github.com",
+            "depth": 0,
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 1142.9,
+            "error": null
+          },
+          {
+            "url": "https://github.com/robots.txt",
+            "depth": 1,
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 602.0,
+            "error": null
+          },
+          {
+            "url": "https://github.com/llms.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 200,
+            "elapsed_ms": 591.2,
+            "error": null
+          },
+          {
+            "url": "https://github.com/ai.txt",
+            "depth": 1,
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 406,
+            "elapsed_ms": 2068.6,
+            "error": "HTTP Error 406: Not Acceptable"
+          },
+          {
+            "url": "https://github.com/sitemap.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://github.com/sitemap.xml)",
+            "status": 406,
+            "elapsed_ms": 737.8,
+            "error": "HTTP Error 406: Not Acceptable"
+          },
+          {
+            "url": "https://github.com/sitemap_index.xml",
+            "depth": 1,
+            "purpose": "XML Sitemap (https://github.com/sitemap_index.xml)",
+            "status": 404,
+            "elapsed_ms": 675.0,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "purpose": "Sample Page (AI Bot: /login)",
+            "status": 200,
+            "elapsed_ms": 593.8,
+            "error": null
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "purpose": "Sample Page (Browser: /login)",
+            "status": 200,
+            "elapsed_ms": 903.5,
+            "error": null
+          },
+          {
+            "url": "https://github.com/features/copilot",
+            "depth": 2,
+            "purpose": "Sample Page (AI Bot: /features/copilot)",
+            "status": 200,
+            "elapsed_ms": 3202.8,
+            "error": null
+          },
+          {
+            "url": "https://github.com/features/copilot",
+            "depth": 2,
+            "purpose": "Sample Page (Browser: /features/copilot)",
+            "status": 200,
+            "elapsed_ms": 2420.2,
+            "error": null
+          },
+          {
+            "url": "https://github.com/features/ai/github-app",
+            "depth": 3,
+            "purpose": "Sample Page (AI Bot: /features/ai/github-app)",
+            "status": 200,
+            "elapsed_ms": 6313.8,
+            "error": null
+          },
+          {
+            "url": "https://github.com/features/ai/github-app",
+            "depth": 3,
+            "purpose": "Sample Page (Browser: /features/ai/github-app)",
+            "status": 200,
+            "elapsed_ms": 1883.7,
+            "error": null
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "github.com",
+      "audited_at": "2026-09-07T11:56:44Z",
+      "summary": {
+        "total_findings": 13,
+        "critical": 0,
+        "high": 0,
+        "medium": 13,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (16996ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 16996ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8067ms) exceeds crawl time budget on /resources/articles/devops-tools-comparison",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8067ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6986ms) exceeds crawl time budget on /security/advanced-security",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6986ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5790ms) exceeds crawl time budget on /about/diversity",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5790ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5183ms) exceeds crawl time budget on /login",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5183ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7114ms) exceeds crawl time budget on /why-github",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7114ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7905ms) exceeds crawl time budget on /marketplace",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7905ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (9472ms) exceeds crawl time budget on /features",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 9472ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8881ms) exceeds crawl time budget on /enterprise",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8881ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5160ms) exceeds crawl time budget on /team",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5160ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (9929ms) exceeds crawl time budget on /solutions",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 9929ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6547ms) exceeds crawl time budget on /trust-center",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6547ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (12094ms) exceeds crawl time budget on /partners",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 12094ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 15,
+        "per_page_metrics": [
+          {
+            "url": "https://github.com",
+            "depth": 0,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1756.4,
+              "pass_b_latency_ms": 16995.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 48,
+              "sentences_pass_b": 48,
+              "pass_a_excerpt": "The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform.  Enter your email   Sign up for GitHub   Download GitHub Copilot app  GitHub features",
+              "pass_b_excerpt": "The future of building happens together Tools and trends evolve, but collaboration endures. With GitHub, developers, agents, and code come together on one platform.  Enter your email   Sign up for GitHub   Download GitHub Copilot app  GitHub features",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 0
+            }
+          },
+          {
+            "url": "https://github.com/resources/articles/devops-tools-comparison",
+            "depth": 3,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3120.7,
+              "pass_b_latency_ms": 8067.3,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 111,
+              "sentences_pass_b": 111,
+              "pass_a_excerpt": "Home to 180M+ developers worldwide From open source projects to enterprise software built by the Fortune 100, GitHub is the home for software development. Join 180M+ developers building the future, together.  Why teams choose GitHub  The gold standar",
+              "pass_b_excerpt": "Home to 180M+ developers worldwide From open source projects to enterprise software built by the Fortune 100, GitHub is the home for software development. Join 180M+ developers building the future, together.  Why teams choose GitHub  The gold standar",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 3
+            }
+          },
+          {
+            "url": "https://github.com/security/advanced-security",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1921.2,
+              "pass_b_latency_ms": 6985.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 44,
+              "sentences_pass_b": 44,
+              "pass_a_excerpt": "GitHub Advanced Security  Security that moves at the speed of development  Request a demo See plans & pricing   Ready to use it in your repositories? Get started now   Secret Protection   Stop leaks before they start Explore Secret Protection   Explo",
+              "pass_b_excerpt": "GitHub Advanced Security  Security that moves at the speed of development  Request a demo See plans & pricing   Ready to use it in your repositories? Get started now   Secret Protection   Stop leaks before they start Explore Secret Protection   Explo",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://github.com/about/diversity",
+            "depth": 2,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1806.5,
+              "pass_b_latency_ms": 5789.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 23,
+              "sentences_pass_b": 23,
+              "pass_a_excerpt": "Diversity, inclusion & belonging  Global diversity, inclusion, and belonging at GitHub  Everyone should have the opportunity to learn, contribute, and grow through software development. We're working to make that possible for developers everywhere.",
+              "pass_b_excerpt": "Diversity, inclusion & belonging  Global diversity, inclusion, and belonging at GitHub  Everyone should have the opportunity to learn, contribute, and grow through software development. We're working to make that possible for developers everywhere.",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 2
+            }
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 502.4,
+              "pass_b_latency_ms": 5182.8,
+              "parity_pct": 50.0,
+              "sentences_pass_a": 3,
+              "sentences_pass_b": 2,
+              "pass_a_excerpt": "Sign in to GitHub {{ message }}  -->   Username or email address  Password  Forgot password?   Uh oh! There was an error while loading. Please reload this page .  New to GitHub?  Create an account   Sign in with a passkey",
+              "pass_b_excerpt": "Sign in to GitHub {{ message }}  -->   Username or email address\r  Password\r  Forgot password? \r  or \r  --> \r  -->   Loading \r  Waiting for input from browser interaction...\r  Continue with passkey \r  --> \r  Continue with Google \r  --> \r  Continue wi",
+              "missing_sentences_count": 1,
+              "missing_content_blocks": [
+                "Waiting for input from browser interaction..."
+              ],
+              "missing_snippets_sample": [
+                "Waiting for input from browser interaction..."
+              ],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/mcp",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2734.1,
+              "pass_b_latency_ms": 3689.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 30,
+              "sentences_pass_b": 30,
+              "pass_a_excerpt": "All MCP servers  250   Markitdown   Install  Convert various file formats (PDF, Word, Excel, images, audio) to Markdown.  Netdata   Install  Real-time infrastructure monitoring with metrics, logs, alerts, and ML-based anomaly detection.  Context7   I",
+              "pass_b_excerpt": "All MCP servers  250   Markitdown   Install  Convert various file formats (PDF, Word, Excel, images, audio) to Markdown.  Netdata   Install  Real-time infrastructure monitoring with metrics, logs, alerts, and ML-based anomaly detection.  Context7   I",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/why-github",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2021.1,
+              "pass_b_latency_ms": 7113.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 33,
+              "sentences_pass_b": 33,
+              "pass_a_excerpt": "Why GitHub  Most of the world's code lives on GitHub. Why not yours?  GitHub empowers developers and enterprises to collaborate, innovate, and build securely. With AI-powered tools, built-in security testing, and seamless integration, it supports tea",
+              "pass_b_excerpt": "Why GitHub  Most of the world's code lives on GitHub. Why not yours?  GitHub empowers developers and enterprises to collaborate, innovate, and build securely. With AI-powered tools, built-in security testing, and seamless integration, it supports tea",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/marketplace",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1955.3,
+              "pass_b_latency_ms": 7905.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 30,
+              "sentences_pass_b": 30,
+              "pass_a_excerpt": "Menu   Render  Continuous integration and deploys with Render, the modern cloud for ambitious developers  App   LovableBot  Keep your Lovable project synced both ways  App   Linear Code  Review code and manage pull requests  App   OpenCode  Login to",
+              "pass_b_excerpt": "Menu   Render  Continuous integration and deploys with Render, the modern cloud for ambitious developers  App   LovableBot  Keep your Lovable project synced both ways  App   Linear Code  Review code and manage pull requests  App   OpenCode  Login to",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/features",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 2426.5,
+              "pass_b_latency_ms": 9472.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 97,
+              "sentences_pass_b": 97,
+              "pass_a_excerpt": "The tools you need to build what you want  Experience AI with Copilot Chat   Learn more   The latest GitHub previews   Learn more  /features Flex - Collaborative Coding - River Breakout  Innovate faster with seamless collaboration.  See the changes y",
+              "pass_b_excerpt": "The tools you need to build what you want  Experience AI with Copilot Chat   Learn more   The latest GitHub previews   Learn more  /features Flex - Collaborative Coding - River Breakout  Innovate faster with seamless collaboration.  See the changes y",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/enterprise",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 4188.6,
+              "pass_b_latency_ms": 8880.8,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 250,
+              "sentences_pass_b": 250,
+              "pass_a_excerpt": "GitHub Enterprise  Bring your DevOps together on one secure platform built for speed, scale, and the agent-driven future of software.   Start a free 30-day trial Contact sales  Logos Security built into every stage of the software lifecycle. GitHub i",
+              "pass_b_excerpt": "GitHub Enterprise  Bring your DevOps together on one secure platform built for speed, scale, and the agent-driven future of software.   Start a free 30-day trial Contact sales  Logos Security built into every stage of the software lifecycle. GitHub i",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/team",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1982.8,
+              "pass_b_latency_ms": 5160.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 55,
+              "sentences_pass_b": 55,
+              "pass_a_excerpt": "GitHub for Teams  Build like the best teams on the planet  With CI/CD, Dependabot, and the world's largest developer community, GitHub gives your team everything they need to ship better software faster.  Get started with Team Compare Plans Ready to",
+              "pass_b_excerpt": "GitHub for Teams\r  Build like the best teams on the planet\r  With CI/CD, Dependabot, and the world's largest developer community, GitHub gives your team everything they need to ship better software faster.\r  Get started with Team\r Compare Plans Ready",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/solutions",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1745.7,
+              "pass_b_latency_ms": 9929.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 19,
+              "sentences_pass_b": 19,
+              "pass_a_excerpt": "AI-powered platform solutions to solve your company's challenges GitHub empowers your team to deliver software faster and more efficiently, while maintaining robust security and compliance.   Start a free trial Contact sales   Enterprises  Build, sca",
+              "pass_b_excerpt": "AI-powered platform solutions to solve your company's challenges GitHub empowers your team to deliver software faster and more efficiently, while maintaining robust security and compliance.   Start a free trial Contact sales   Enterprises  Build, sca",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/customer-stories",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1516.6,
+              "pass_b_latency_ms": 4410.2,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 62,
+              "sentences_pass_b": 62,
+              "pass_a_excerpt": "Customer Stories   Enterprise   Team   All stories   Start a free trial Meet the companies who build with GitHub  See all stories  How GM accelerated software delivery and strengthened engineering culture with GitHub.  Read the story  How AstraZeneca",
+              "pass_b_excerpt": "Customer Stories \r  Enterprise \r  Team \r  All stories \r  Start a free trial\r Meet the companies who build with GitHub  See all stories \r How GM accelerated software delivery and strengthened engineering culture with GitHub.  Read the story \r How Astr",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/trust-center",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 4897.0,
+              "pass_b_latency_ms": 6547.0,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 39,
+              "sentences_pass_b": 39,
+              "pass_a_excerpt": "GitHub Trust Center  Trust at GitHub  Develop, scale, and innovate securely with GitHub.   Explore GitHub Enterprise Contact sales  GitHub Copilot FAQ We enable developers and organizations to maximize their potential by prioritizing security, privac",
+              "pass_b_excerpt": "GitHub Trust Center  Trust at GitHub  Develop, scale, and innovate securely with GitHub.   Explore GitHub Enterprise Contact sales  GitHub Copilot FAQ We enable developers and organizations to maximize their potential by prioritizing security, privac",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          },
+          {
+            "url": "https://github.com/partners",
+            "depth": 1,
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 4996.1,
+              "pass_b_latency_ms": 12094.4,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 19,
+              "sentences_pass_b": 19,
+              "pass_a_excerpt": "GitHub Partner Program  Building stronger solutions together Strengthen your market position, boost differentiation, and get access to specialist guidance across Technology, Service & Channel, Startups, and Education.  Explore Partner Programs  Eleva",
+              "pass_b_excerpt": "GitHub Partner Program  Building stronger solutions together Strengthen your market position, boost differentiation, and get access to specialist guidance across Technology, Service & Channel, Startups, and Education.  Explore Partner Programs  Eleva",
+              "missing_sentences_count": 0,
+              "missing_content_blocks": [],
+              "missing_snippets_sample": [],
+              "depth": 1
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "github.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 1,
+        "medium": 1,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+          "severity": "HIGH",
+          "url": "https://github.com/",
+          "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+          "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /resources/articles/devops-tools-comparison",
+          "severity": "MEDIUM",
+          "url": "https://github.com/resources/articles/devops-tools-comparison",
+          "evidence": "2 instances of Organization (GitHub, GitHub...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 15,
+        "pages_with_schema": 1,
+        "schema_coverage_pct": 6.7,
+        "pages": [
+          {
+            "url": "https://github.com/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/resources/articles/devops-tools-comparison",
+            "depth": 3,
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "Answer",
+              "Article",
+              "BreadcrumbList",
+              "FAQPage",
+              "ListItem",
+              "Organization",
+              "Question"
+            ]
+          },
+          {
+            "url": "https://github.com/security/advanced-security",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/about/diversity",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/mcp",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/why-github",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/marketplace",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/features",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/enterprise",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/team",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/solutions",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/customer-stories",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/trust-center",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          },
+          {
+            "url": "https://github.com/partners",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "schemas_found": []
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "github.com",
+      "summary": {
+        "total_findings": 7,
+        "critical": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0,
+        "info": 3
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://github.com/about/diversity",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-002",
+          "code": "RAG_SECTION_CONTENT_FLOODING",
+          "title": "Section 'All MCP servers' contains continuous prose flooding (426 words)",
+          "severity": "MEDIUM",
+          "url": "https://github.com/mcp",
+          "evidence": "Section contains 426 words of continuous prose without subheadings, bullet lists, or tables, triggering 'Lost in the Middle' attention degradation in LLM retrieval.\nSection Opening Excerpt:\n  \"250 Markitdown Install Convert various file formats (PDF, Word, Excel, images, audio) to Markdown. Netdata Install Real-time infrastructure monitoring with metrics, logs, alerts, and ML-based anomaly detection. Context7 Install Up-to-date code docs for any pro...\"",
+          "suggested_action": "Break this section into self-contained 40-80 word paragraphs and introduce subheadings (<h3>) or bulleted lists."
+        },
+        {
+          "id": "CNT-003",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://github.com/mcp",
+          "evidence": "Page contains 34 links, but 100% of them point back to github.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-004",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://github.com/marketplace",
+          "evidence": "Page contains 30 links, but 100% of them point back to github.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        },
+        {
+          "id": "CNT-005",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://github.com/enterprise",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-006",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://github.com/customer-stories",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-007",
+          "code": "CITABILITY_CIRCULAR_CITATION",
+          "title": "Article relies entirely on circular self-citations with zero external reference links",
+          "severity": "MEDIUM",
+          "url": "https://github.com/customer-stories",
+          "evidence": "Page contains 112 links, but 100% of them point back to github.com. Zero external primary sources or research citations are provided.",
+          "suggested_action": "Integrate outbound citations to authoritative external sources (standards, benchmarks, institutional studies) to establish a verifiable credibility chain for LLMs."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 15,
+        "total_sections_audited": 388,
+        "total_words_audited": 13026,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://github.com/",
+            "depth": 0,
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 21,
+            "word_count": 668,
+            "headings": [
+              "Navigation Menu",
+              "The future of building happens together",
+              "GitHub features",
+              "GitHub customers",
+              "Accelerate your entire workflow",
+              "Your AI partner everywhere. Copilot is ready to work with you at each step of the software development lifecycle.",
+              "Automate your path to production",
+              "Code instantly from anywhere",
+              "Keep momentum on the go",
+              "Shape your toolchain",
+              "Built-in application security where found means fixed",
+              "Apply fixes in seconds. Spend less time debugging and more time building features with Copilot Autofix.",
+              "Work together, achieve more",
+              "Plan with clarity. Organize everything from high-level roadmaps to everyday tasks.",
+              "Keep track of your tasks",
+              "Share ideas and ask questions",
+              "Review code changes together",
+              "Fund open source projects",
+              "From startups to enterprises, GitHub scales with teams of any size in any industry.",
+              "Millions of developers and businesses call GitHub home"
+            ]
+          },
+          {
+            "url": "https://github.com/resources/articles/devops-tools-comparison",
+            "depth": 3,
+            "status": 200,
+            "error": null,
+            "archetype": "guide_article",
+            "sections_count": 17,
+            "word_count": 1643,
+            "headings": [
+              "Navigation Menu",
+              "GitHub vs. GitLab and other DevOps tools",
+              "Home to 180M+ developers worldwide",
+              "Why teams choose GitHub",
+              "What our customers are saying",
+              "GitHub vs GitLab",
+              "GitHub vs Bitbucket (Atlassian)",
+              "GitHub vs Jenkins",
+              "Frequently asked questions",
+              "What are some quick facts about GitHub Enterprise Cloud?",
+              "How rich is GitHub\u2019s documentation and where can I find it?",
+              "How do I migrate to GitHub Enterprise Cloud?",
+              "Does GitHub offer project planning and source code management in one place?",
+              "Does GitHub offer pre-built automation and CI/CD workflow templates?",
+              "Can I use GitHub tools to manage, build, and deploy software to Amazon Web Services (AWS), Microsoft Azure, Google Cloud, or my on-site servers?",
+              "What is the difference between Git and GitHub?"
+            ]
+          },
+          {
+            "url": "https://github.com/security/advanced-security",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 27,
+            "word_count": 550,
+            "headings": [
+              "Navigation Menu",
+              "Security that moves at the speed of development",
+              "Stop leaks before they start Explore Secret Protection",
+              "Fix vulnerabilities in your code Explore Code Security",
+              "Companies using GitHub Advanced Security",
+              "Become a risk reduction warrior",
+              "Become a risk reduction warrior",
+              "Become a risk reduction warrior",
+              "Strengthen your development with AI",
+              "Empower your team with native AppSec",
+              "Two layers of powerful protection",
+              "GitHub Secret Protection",
+              "GitHub Code Security",
+              "Get the most out of GitHub Advanced Security",
+              "Maximize your defenses with industry-leading AppSec",
+              "See how improved security drives business success",
+              "How top teams secure code while moving fast",
+              "Frequently asked questions",
+              "What is GitHub Advanced Security?",
+              "Why choose GitHub Advanced Security instead of a third-party AppSec product?",
+              "What is DevSecOps?",
+              "What is AppSec?",
+              "Can I use GitHub Advanced Security with Microsoft Azure DevOps?",
+              "Where can I find case studies and reference customers?",
+              "Can I review documentation before purchase?",
+              "Does GitHub offer consulting, training, and other deployment services?"
+            ]
+          },
+          {
+            "url": "https://github.com/about/diversity",
+            "depth": 2,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 20,
+            "word_count": 509,
+            "headings": [
+              "Navigation Menu",
+              "Global diversity, inclusion, and belonging at GitHub",
+              "An on-ramp for every developer",
+              "On-ramp the next generation",
+              "Inclusive language",
+              "Amplify new voices",
+              "Teams that reflect the world",
+              "Apply data to hiring",
+              "Hold ourselves accountable",
+              "Support for Hubbers",
+              "Technology as a force for good",
+              "Four key focus areas",
+              "GitHub for Nonprofits",
+              "GitHub Gives",
+              "Build what\u2019s next\u2014with all of us",
+              "Advocating for developers everywhere",
+              "Protect privacy and security",
+              "Champion developer opportunity",
+              "Promote civic engagement"
+            ]
+          },
+          {
+            "url": "https://github.com/login",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 3,
+            "word_count": 104,
+            "headings": [
+              "Sign in to GitHub",
+              "Uh oh!"
+            ]
+          },
+          {
+            "url": "https://github.com/mcp",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 3,
+            "word_count": 501,
+            "headings": [
+              "Navigation Menu",
+              "Connect models to the real world",
+              "All MCP servers"
+            ]
+          },
+          {
+            "url": "https://github.com/why-github",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 20,
+            "word_count": 551,
+            "headings": [
+              "Navigation Menu",
+              "Most of the world's code lives on GitHub. Why not yours?",
+              "Logos for Fidelity Shopify Mercedes Benz American Airlines Adobe Ford Vodafone Spotify Home Depot",
+              "Developer-first",
+              "Enterprise-grade",
+              "AI-powered",
+              "The developer platform that grows with you",
+              "Customizable workflows",
+              "Security at scale",
+              "Your code, your control",
+              "Security throughout the SDLC",
+              "Code security",
+              "Secret protection",
+              "Supply chain security",
+              "The comprehensive platform for high-performance teams",
+              "Speed up your workflows and eliminate bottlenecks",
+              "Get your team in sync, effortlessly",
+              "Work smarter, build faster, innovate with intention",
+              "The platform developers know and love"
+            ]
+          },
+          {
+            "url": "https://github.com/marketplace",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 30,
+            "word_count": 378,
+            "headings": [
+              "Navigation Menu",
+              "Enhance your workflow with extensions",
+              "Render",
+              "LovableBot",
+              "Linear Code",
+              "OpenCode",
+              "CodeRabbit",
+              "Codemagic CI/CD",
+              "View recommended or recent marketplace listings navigation",
+              "Zenhub",
+              "Codacy",
+              "CircleCI",
+              "Qlty Cloud",
+              "Codecov | Code Coverage",
+              "Imgbot",
+              "Rewind Backups for GitHub",
+              "CodeFactor",
+              "Azure Pipelines",
+              "Zube",
+              "POEditor",
+              "Codetree",
+              "Argos Visual Testing",
+              "PullRequest",
+              "Rollbar",
+              "WakaTime",
+              "CodeScene",
+              "AccessLint",
+              "Crowdin",
+              "Coveralls"
+            ]
+          },
+          {
+            "url": "https://github.com/features",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 79,
+            "word_count": 1534,
+            "headings": [
+              "Navigation Menu",
+              "The tools you need to build what you want",
+              "Experience AI with Copilot Chat",
+              "The latest GitHub previews",
+              "Collaborative Coding",
+              "/features Flex - Collaborative Coding - River Breakout",
+              "GitHub Codespaces",
+              "GitHub Copilot",
+              "Pull requests",
+              "Discussions",
+              "Code search & code view",
+              "Code review",
+              "Draft pull requests",
+              "Protected branches",
+              "Automation and CI/CD",
+              "/features Flex - Automation and CI/CD - River Breakout",
+              "GitHub Actions",
+              "GitHub Packages",
+              "APIs",
+              "GitHub Marketplace",
+              "Webhooks",
+              "GitHub-hosted runners",
+              "Self-hosted runners",
+              "Workflow visualization",
+              "Workflow templates",
+              "Application security",
+              "Application security where found means fixed. Powered by GitHub Copilot Autofix.",
+              "Code scanning",
+              "GitHub Copilot Autofix",
+              "Security campaigns",
+              "Secret scanning",
+              "GitHub Copilot secret scanning",
+              "Dependency graph",
+              "Dependabot alerts",
+              "Dependabot security and version updates",
+              "Dependency review",
+              "GitHub security advisories",
+              "Private vulnerability reporting",
+              "GitHub Advisory Database",
+              "Client apps",
+              "Access GitHub anywhere: On Desktop, Mobile, and Command Line.",
+              "GitHub Mobile",
+              "GitHub CLI",
+              "GitHub Desktop",
+              "Project management",
+              "Keep feature requests, bugs, and more organized.",
+              "GitHub Projects",
+              "GitHub Issues",
+              "Milestones",
+              "Charts and insights",
+              "Org dependency insights",
+              "Repository insights",
+              "Wikis",
+              "Governance & administration",
+              "Simplify access and permissions management across your projects and teams.",
+              "Organizations",
+              "Teams",
+              "Team sync",
+              "Custom roles",
+              "Custom repository roles",
+              "Domain verification",
+              "Compliance reports",
+              "Audit log",
+              "Repository rules",
+              "Enterprise accounts",
+              "GitHub Connect",
+              "SAML",
+              "LDAP",
+              "Enterprise Managed Users",
+              "Bring your own identity provider for Enterprise Managed Users",
+              "Community",
+              "Community",
+              "GitHub Sponsors",
+              "GitHub Skills",
+              "Electron",
+              "Education",
+              "GitHub Copilot tutorials",
+              "Ready to get started?"
+            ]
+          },
+          {
+            "url": "https://github.com/enterprise",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 71,
+            "word_count": 3867,
+            "headings": [
+              "Navigation Menu",
+              "GitHub Enterprise",
+              "Logos",
+              "Enterprise-grade by design",
+              "Security built into every stage of the software lifecycle. GitHub integrates automated, developer-first security that keeps teams moving fast.",
+              "Built for your most valuable asset: your developers",
+              "GitHub transforms your engineering team into a high-performing, AI-powered force for innovation and growth.",
+              "The complete development workflow, end to end",
+              "Scale your talent with GitHub Copilot",
+              "Hit the ground coding",
+              "Flexibility to build your way",
+              "From reactive administration to strategic platform leadership",
+              "Manage multiple orgs from one place",
+              "Manage multiple orgs from one place",
+              "Define and enforce policies",
+              "Take command of your AI agents",
+              "Mercado Libre developers code 50% faster with GitHub Copilot",
+              "Wayfair migrates 15,000 repositories to GitHub, saving $150,000 a year",
+              "TELUS saves $16.9 million by unifying DevOps on GitHub",
+              "Start your journey with GitHub",
+              "Get the most out of GitHub Enterprise",
+              "Get executive insights built for leaders and admins",
+              "Stay ahead with our quarterly product roadmap webinar",
+              "Accelerate adoption with proven guidance",
+              "See the cost savings and ROI of GitHub Enterprise Cloud",
+              "GitHub recognized as a Leader by 2026 Gartner\u00ae Magic Quadrant\u2122 for Enterprise AI Coding Agents",
+              "Explore the full documentation for GitHub Enterprise Cloud",
+              "Frequently Asked Questions",
+              "About GitHub Enterprise",
+              "What is GitHub Enterprise?",
+              "Why should organizations use GitHub Enterprise?",
+              "Who uses GitHub Enterprise?",
+              "What is GitHub Enterprise Cloud?",
+              "What is GitHub Enterprise Server?",
+              "How secure is GitHub Enterprise?",
+              "Is GitHub Enterprise free?",
+              "Using GitHub Enterprise",
+              "How can developers collaborate with GitHub Enterprise?",
+              "Can I migrate a repo from Azure DevOps to GitHub Enterprise without disrupting Azure Boards or Pipelines?",
+              "Choosing your plan",
+              "How can organizations get started with GitHub Enterprise?",
+              "What GitHub Enterprise plans are available?",
+              "How much does GitHub Enterprise cost?",
+              "Getting started with enterprise software development platforms",
+              "What is a DevOps platform?",
+              "What is developer experience?",
+              "What is a software development platform?",
+              "What is an application development platform?",
+              "What is software development collaboration?",
+              "About GitHub Enterprise",
+              "What is GitHub Enterprise?",
+              "Why should organizations use GitHub Enterprise?",
+              "Who uses GitHub Enterprise?",
+              "What is GitHub Enterprise Cloud?",
+              "What is GitHub Enterprise Server?",
+              "How secure is GitHub Enterprise?",
+              "Is GitHub Enterprise free?",
+              "Using GitHub Enterprise",
+              "How can developers collaborate with GitHub Enterprise?",
+              "Can I migrate a repo from Azure DevOps to GitHub Enterprise without disrupting Azure Boards or Pipelines?",
+              "Choosing your plan",
+              "How can organizations get started with GitHub Enterprise?",
+              "What GitHub Enterprise plans are available?",
+              "How much does GitHub Enterprise cost?",
+              "Getting started with enterprise software development platforms",
+              "What is a DevOps platform?",
+              "What is developer experience?",
+              "What is a software development platform?",
+              "What is an application development platform?",
+              "What is software development collaboration?"
+            ]
+          },
+          {
+            "url": "https://github.com/team",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 20,
+            "word_count": 720,
+            "headings": [
+              "Navigation Menu",
+              "GitHub for Teams",
+              "Build like the best teams on the planet",
+              "Compare Plans",
+              "GitHub Free",
+              "GitHub Team",
+              "Featured add-ons",
+              "Uh oh!",
+              "Uh oh!",
+              "Collaboration",
+              "Automation",
+              "Security",
+              "Users",
+              "Customer Stories",
+              "Build like the best",
+              "Related resources",
+              "GitHub Actions cheat sheet",
+              "Collaboration is the key to DevOps success",
+              "How healthy teams build better software"
+            ]
+          },
+          {
+            "url": "https://github.com/solutions",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 21,
+            "word_count": 335,
+            "headings": [
+              "Navigation Menu",
+              "AI-powered platform solutions to solve your company\u2019s challenges",
+              "GitHub scales with teams of any size",
+              "Enterprises",
+              "Teams",
+              "Startups",
+              "The enterprise-grade platform that developers know and love.",
+              "Solving industry-specific challenges",
+              "Healthcare",
+              "Financial Services",
+              "Manufacturing",
+              "The solutions you need to build what you want",
+              "Build faster with GitHub Copilot",
+              "Clear the backlog that\u2019s slowing everything down",
+              "Ship with confidence. Maintain without fear.",
+              "Adopted by the world's leading organizations",
+              "3M transforms its software toolchain to bring cutting-edge science to customers, faster.",
+              "Philips builds and deploys digital health technology faster with innersource on GitHub.",
+              "GitHub brings DevOps to life and enables streamlined developer experiences at Procter & Gamble.",
+              "Get started"
+            ]
+          },
+          {
+            "url": "https://github.com/customer-stories",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 23,
+            "word_count": 850,
+            "headings": [
+              "Navigation Menu",
+              "Meet the companies who build with GitHub",
+              "The world's largest developer platform",
+              "GitHub Enterprise provides an end-to-end developer platform to accelerate businesses.",
+              "Wealthsimple",
+              "Etsy",
+              "C.H. Robinson",
+              "EY",
+              "Ita\u00fa",
+              "Plaid",
+              "Duolingo empowers its engineers to be force multipliers for expertise with GitHub Copilot.",
+              "Discover how high-growth companies innovate faster with GitHub Team.",
+              "Buffer",
+              "Cesium",
+              "Front",
+              "Knock",
+              "Modsy",
+              "Netdata",
+              "Here's what software leaders have to say about GitHub Testimonials from our developers.",
+              "What will your story be?",
+              "Free",
+              "Team",
+              "Enterprise"
+            ]
+          },
+          {
+            "url": "https://github.com/trust-center",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 21,
+            "word_count": 559,
+            "headings": [
+              "Navigation Menu",
+              "Trust at GitHub",
+              "Learn about our products",
+              "GitHub Copilot FAQ",
+              "GitHub Enterprise Cloud FAQ",
+              "Let's build together more securely",
+              "Additional resources",
+              "GitHub Advisory Database",
+              "Found means fixed",
+              "GitHub Security Lab",
+              "Frequently Asked Questions",
+              "What is GitHub's commitment to AI?",
+              "What standard does GitHub follow for AI?",
+              "How does GitHub drive Responsible AI practices within its organization?",
+              "What assessments and reviews has GitHub completed for its AI systems?",
+              "Where can I learn more about GitHub's responsible principles in AI development?",
+              "What are GitHub's privacy principles?",
+              "How does GitHub protect privacy?",
+              "How does GitHub ensure trust, control, and transparency with user data?",
+              "How does GitHub handle data in different contexts?",
+              "How is privacy integrated into GitHub's operations?"
+            ]
+          },
+          {
+            "url": "https://github.com/partners",
+            "depth": 1,
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 12,
+            "word_count": 257,
+            "headings": [
+              "Navigation Menu",
+              "Building stronger solutions together",
+              "Elevate your brand",
+              "Sharpen your skillset",
+              "Optimize your solutions",
+              "Why partner with GitHub?",
+              "GitHub Partner programs",
+              "Technology Partners",
+              "Services & Channel Partners",
+              "Startup Partners",
+              "Education Partners",
+              "Ready to grow with GitHub?"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

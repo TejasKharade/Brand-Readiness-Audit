@@ -1,0 +1,344 @@
+{
+  "target": "https://www.allbirds.com",
+  "domain": "www.allbirds.com",
+  "audited_at": "2026-09-06T11:26:03Z",
+  "total_runtime_seconds": 104.64,
+  "summary": {
+    "total_findings": 7,
+    "critical": 0,
+    "high": 3,
+    "medium": 4,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "www.allbirds.com",
+      "audited_at": "2026-09-06T11:24:57Z",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0
+      },
+      "findings": [],
+      "sampled_pages": {
+        "homepage": "https://www.allbirds.com",
+        "total_discovered": 764,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [
+          "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+          "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+          "https://www.allbirds.com/products/womens-wool-runners-natural-white",
+          "https://www.allbirds.com/products/trino-tubers-onyx",
+          "https://www.allbirds.com/products/womens-wool-runners-savanna-night-navy"
+        ],
+        "curated_sample": [
+          "https://www.allbirds.com",
+          "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+          "https://www.allbirds.com/products/womens-wool-runners-natural-black"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.allbirds.com",
+      "audited_at": "2026-09-06T11:25:52Z",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (6752ms) exceeds crawl time budget on /products/mens-wool-runners-natural-white",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 6752ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (18536ms) exceeds crawl time budget on /products/womens-wool-runners-natural-black",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 18536ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 3,
+        "per_page_metrics": [
+          {
+            "url": "https://www.allbirds.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 0,
+              "browser_available": true,
+              "pass_b_error": "Browser rendering timed out after 25s",
+              "raw_sentences_count": 5
+            }
+          },
+          {
+            "url": "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1838.5,
+              "pass_b_latency_ms": 6752.0,
+              "parity_pct": 77.8,
+              "sentences_pass_a": 26,
+              "sentences_pass_b": 18,
+              "missing_sentences_count": 4,
+              "missing_snippets_sample": [
+                "Also available in: Women's Sizes",
+                "Previous Image Next Image",
+                "Select A Size Add to Cart - $110 Notify Me"
+              ]
+            }
+          },
+          {
+            "url": "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 959.1,
+              "pass_b_latency_ms": 18536.3,
+              "parity_pct": 77.8,
+              "sentences_pass_a": 26,
+              "sentences_pass_b": 18,
+              "missing_sentences_count": 4,
+              "missing_snippets_sample": [
+                "Also available in: Men's Sizes",
+                "Previous Image Next Image",
+                "Select A Size Add to Cart - $110 Notify Me"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.allbirds.com",
+      "summary": {
+        "total_findings": 5,
+        "critical": 0,
+        "high": 3,
+        "medium": 2,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "ENTITY_ROOT_GROUNDING_MISSING",
+          "title": "Homepage lacks root entity Schema.org definition (Organization or SoftwareApplication)",
+          "severity": "HIGH",
+          "url": "https://www.allbirds.com",
+          "evidence": "Zero Schema.org metadata found on homepage. AI search engines cannot establish verified brand identity or associate interior pages with an authoritative entity, risking attribution loss to third-party mirrors.",
+          "suggested_action": "Add a <script type='application/ld+json'> declaring your Organization or SoftwareApplication, including name, url, description, and sameAs links to authoritative code and business registries."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_AVAILABILITY_CONTRADICTION",
+          "title": "Structured data claims 'OutOfStock' but page displays 'In stock'",
+          "severity": "HIGH",
+          "url": "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+          "evidence": "JSON-LD availability declares OutOfStock across all offers, but visible page text announces 'In stock' or 'Available now'.",
+          "suggested_action": "Synchronize structured data availability to InStock."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Allbirds')) lacks description property on /products/mens-wool-runners-natural-white",
+          "severity": "MEDIUM",
+          "url": "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+          "evidence": "The Brand ('Allbirds') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-004",
+          "code": "SCHEMA_AVAILABILITY_CONTRADICTION",
+          "title": "Structured data claims 'InStock' but page displays 'Out of stock'",
+          "severity": "HIGH",
+          "url": "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+          "evidence": "JSON-LD availability declares InStock across all offers, but visible page text contains 'Out of stock' or 'Sold out'.",
+          "suggested_action": "Update structured data availability to OutOfStock to prevent AI engines from misleading users on item availability."
+        },
+        {
+          "id": "ENT-005",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (Brand ('Allbirds')) lacks description property on /products/womens-wool-runners-natural-black",
+          "severity": "MEDIUM",
+          "url": "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+          "evidence": "The Brand ('Allbirds') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 3,
+        "pages_with_schema": 2,
+        "schema_coverage_pct": 66.7
+      }
+    },
+    "skill_4": {
+      "site": "www.allbirds.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 2
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        },
+        {
+          "id": "CNT-002",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 3,
+        "total_sections_audited": 87,
+        "total_words_audited": 2313,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.allbirds.com",
+            "archetype": "homepage",
+            "sections_count": 21,
+            "word_count": 754,
+            "headings": [
+              "Men's Shoes",
+              "Customer Favorites",
+              "Apparel & Accessories",
+              "Women's Shoes",
+              "Popular Picks",
+              "Apparel & Accessories",
+              "Men's",
+              "Customer Favorites",
+              "Women's",
+              "Added to Cart",
+              "",
+              "Wildly Comfortable. Super Natural.",
+              "New Arrivals",
+              "Mens",
+              "Womens",
+              "Best Sellers",
+              "Summer Travel Essentials",
+              "New Arrivals",
+              "Fresh Colors For Summer",
+              "Where are we shipping to?"
+            ]
+          },
+          {
+            "url": "https://www.allbirds.com/products/mens-wool-runners-natural-white",
+            "archetype": "pricing_product",
+            "sections_count": 33,
+            "word_count": 793,
+            "headings": [
+              "Men's Shoes",
+              "Customer Favorites",
+              "Apparel & Accessories",
+              "Women's Shoes",
+              "Popular Picks",
+              "Apparel & Accessories",
+              "Men's",
+              "Customer Favorites",
+              "Women's",
+              "Added to Cart",
+              "",
+              "Men's Wool Runner",
+              "Notify me when back in stock",
+              "It's Official",
+              "Oops! Something went wrong. Please try again.",
+              "THE DETAILS",
+              "MATERIALLY BETTER",
+              "WASH & CARE",
+              "SOFT WOOL",
+              "ODOR MINIMIZING",
+              "SUPPORTIVE",
+              "RESPONSIBLY SOURCED",
+              "SOFT WOOL",
+              "ODOR MINIMIZING",
+              "SUPPORTIVE",
+              "RESPONSIBLY SOURCED",
+              "You May Also Like",
+              "Select a size",
+              "Reviews for Men's Wool Runner",
+              "Better Things in a Better Way",
+              "Men's Wool Runner",
+              "Where are we shipping to?"
+            ]
+          },
+          {
+            "url": "https://www.allbirds.com/products/womens-wool-runners-natural-black",
+            "archetype": "pricing_product",
+            "sections_count": 33,
+            "word_count": 766,
+            "headings": [
+              "Men's Shoes",
+              "Customer Favorites",
+              "Apparel & Accessories",
+              "Women's Shoes",
+              "Popular Picks",
+              "Apparel & Accessories",
+              "Men's",
+              "Customer Favorites",
+              "Women's",
+              "Added to Cart",
+              "",
+              "Women's Wool Runner",
+              "Notify me when back in stock",
+              "It's Official",
+              "Oops! Something went wrong. Please try again.",
+              "THE DETAILS",
+              "MATERIALLY BETTER",
+              "WASH & CARE",
+              "SOFT WOOL",
+              "ODOR MINIMIZING",
+              "SUPPORTIVE",
+              "RESPONSIBLY SOURCED",
+              "SOFT WOOL",
+              "ODOR MINIMIZING",
+              "SUPPORTIVE",
+              "RESPONSIBLY SOURCED",
+              "You May Also Like",
+              "Select a size",
+              "Reviews for Women's Wool Runner",
+              "Better Things in a Better Way",
+              "Women's Wool Runner",
+              "Where are we shipping to?"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "target": "https://www.flipkart.com/",
+  "domain": "www.flipkart.com",
+  "audited_at": "2026-09-06T11:40:15Z",
+  "total_runtime_seconds": 81.24,
+  "summary": {
+    "total_findings": 7,
+    "critical": 1,
+    "high": 1,
+    "medium": 5,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "www.flipkart.com",
+      "audited_at": "2026-09-06T11:39:16Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.flipkart.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.flipkart.com",
+        "total_discovered": 21226,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [
+          "https://www.flipkart.com/automotive-accessories/waxpol~brand/pr?sid=1mt",
+          "https://www.flipkart.com/hi/automotive-accessories/waxpol~brand/pr?sid=1mt",
+          "https://www.flipkart.com/automotive-accessories/sony~brand/pr?sid=1mt",
+          "https://www.flipkart.com/hi/automotive-accessories/sony~brand/pr?sid=1mt",
+          "https://www.flipkart.com/automotive-accessories/motopex~brand/pr?sid=1mt"
+        ],
+        "curated_sample": [
+          "https://www.flipkart.com",
+          "https://www.flipkart.com/automotive-accessories/waxpol~brand/pr?sid=1mt",
+          "https://www.flipkart.com/hi/automotive-accessories/waxpol~brand/pr?sid=1mt",
+          "https://www.flipkart.com/hi/vehicles/bikes-scooters/petrol-bikes-scooters/petrol-scooters/scooter/tvs~brand/pr?sid=7dk,0aj,kcq,nf7,dje"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.flipkart.com",
+      "audited_at": "2026-09-06T11:39:57Z",
+      "summary": {
+        "total_findings": 6,
+        "critical": 1,
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (39 URLs) are locked inside client JavaScript on /",
+          "severity": "medium",
+          "evidence": "39 internal links exist only in the rendered DOM (e.g., https://www.flipkart.com/jewellery/~cs-zd7mr76ddy/pr, https://www.flipkart.com/ls-gen-z-26-at-store, https://www.flipkart.com/next-gen-brands-store).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (5788ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 5788ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (4550ms) exceeds crawl time budget on /automotive-accessories/waxpol~brand/pr",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 4550ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /hi/automotive-accessories/waxpol~brand/pr",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 0: <urlopen error [Errno 11001] getaddrinfo failed>.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "CORE_CONTENT_RENDER_GAP",
+          "title": "Significant content render gap (0.0% parity) on /hi/vehicles/bikes-scooters/petrol-bikes-scooters/petrol-scooters/scooter/tvs~brand/pr",
+          "severity": "high",
+          "evidence": "Pass B rendered 4 sentences, but Pass A only contained 0 (4 missing). Example missing: \"This site can\u2019t be reached\"",
+          "suggested_action": {
+            "summary": "Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML.",
+            "priority": "high"
+          }
+        },
+        {
+          "id": "RND-002",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (7172ms) exceeds crawl time budget on /hi/vehicles/bikes-scooters/petrol-bikes-scooters/petrol-scooters/scooter/tvs~brand/pr",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 7172ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 4,
+        "per_page_metrics": [
+          {
+            "url": "https://www.flipkart.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3540.5,
+              "pass_b_latency_ms": 5787.5,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 141,
+              "sentences_pass_b": 144,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://www.flipkart.com/automotive-accessories/waxpol~brand/pr?sid=1mt",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 3378.0,
+              "pass_b_latency_ms": 4549.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 62,
+              "sentences_pass_b": 62,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://www.flipkart.com/hi/automotive-accessories/waxpol~brand/pr?sid=1mt",
+            "metrics": {
+              "pass_a_status": 0,
+              "pass_b_status": 200,
+              "parity_pct": 0.0
+            }
+          },
+          {
+            "url": "https://www.flipkart.com/hi/vehicles/bikes-scooters/petrol-bikes-scooters/petrol-scooters/scooter/tvs~brand/pr?sid=7dk,0aj,kcq,nf7,dje",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 9335.1,
+              "pass_b_latency_ms": 7172.4,
+              "parity_pct": 0.0,
+              "sentences_pass_a": 11,
+              "sentences_pass_b": 4,
+              "missing_sentences_count": 4,
+              "missing_snippets_sample": [
+                "This site can\u2019t be reached",
+                "ice \u2019s DNS address could not be found.",
+                "Try running Windows Network Diagnostics ."
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.flipkart.com",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Organization"
+        ],
+        "same_as_authorities": [
+          "https://x.com/flipkart",
+          "https://in.linkedin.com/company/flipkart",
+          "https://en.wikipedia.org/wiki/Flipkart"
+        ],
+        "pages_audited": 4,
+        "pages_with_schema": 3,
+        "schema_coverage_pct": 75.0
+      }
+    },
+    "skill_4": {
+      "site": "www.flipkart.com",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "content_profile": {
+        "pages_audited": 4,
+        "total_sections_audited": 16,
+        "total_words_audited": 4649,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.flipkart.com/",
+            "archetype": "homepage",
+            "sections_count": 12,
+            "word_count": 3117,
+            "headings": [
+              "For You",
+              "Flipkart: India's Ultimate One-Stop Online Shopping Destination",
+              "What Can You Buy from Flipkart?",
+              "Flipkart Loyalty and Rewards Program",
+              "Payment and Affordability: Shop Smart, Pay Smarter",
+              "Flipkart Flights: Book Your Next Getaway Effortlessly",
+              "Flipkart Minutes: Groceries and Gadgets in a Flash",
+              "Flipkart Reset and Exchange Program: Trade-in Your Old Device",
+              "Flipkart Kilos: Your Online Grocery Supermarket",
+              "Why Choose Flipkart? The Unbeatable Advantages",
+              "Get Exclusive Offers and Deals in Popular Sale Events"
+            ]
+          },
+          {
+            "url": "https://www.flipkart.com/automotive-accessories/waxpol~brand/pr?sid=1mt",
+            "archetype": "general",
+            "sections_count": 2,
+            "word_count": 1216,
+            "headings": [
+              "Waxpol Automotive Accessories"
+            ]
+          },
+          {
+            "url": "https://www.flipkart.com/hi/vehicles/bikes-scooters/petrol-bikes-scooters/petrol-scooters/scooter/tvs~brand/pr?sid=7dk,0aj,kcq,nf7,dje",
+            "archetype": "general",
+            "sections_count": 2,
+            "word_count": 316,
+            "headings": [
+              "Tvs Scooter"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

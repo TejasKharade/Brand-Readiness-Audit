@@ -1,0 +1,369 @@
+{
+  "target": "https://www.apple.com/",
+  "domain": "www.apple.com",
+  "audited_at": "2026-09-07T10:55:51Z",
+  "total_runtime_seconds": 29.81,
+  "skills": {
+    "skill_1": {
+      "site": "www.apple.com",
+      "audited_at": "2026-09-07T10:55:38Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.apple.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.apple.com",
+        "total_discovered": 2569,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.apple.com",
+          "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/"
+        ]
+      },
+      "audit_telemetry": {
+        "tls_result": {
+          "status": "valid",
+          "expires_at": "2026-12-16",
+          "days_remaining": 100,
+          "issuer": "Apple Inc., Apple Public EV Server RSA CA 1 - G1",
+          "error": null
+        },
+        "origin_status": 200,
+        "robots_txt_status": 200,
+        "llms_txt_status": 404,
+        "ai_txt_status": 404,
+        "sitemap_target": "https://www.apple.com/newsroom/sitemap.xml",
+        "sitemap_status": 200,
+        "candidate_sitemaps_tested": [
+          "https://www.apple.com/shop/sitemap.xml",
+          "https://www.apple.com/autopush/sitemap/sitemap-index.xml",
+          "https://www.apple.com/newsroom/sitemap.xml",
+          "https://www.apple.com/retail/sitemap/sitemap.xml"
+        ],
+        "total_discovered_urls": 2569,
+        "pages_visited": [
+          {
+            "url": "https://www.apple.com",
+            "purpose": "Root URL (AI Search Bot)",
+            "status": 200,
+            "elapsed_ms": 777.3,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com",
+            "purpose": "Root URL (Desktop Browser)",
+            "status": 200,
+            "elapsed_ms": 761.4,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/robots.txt",
+            "purpose": "Robots Directives (/robots.txt)",
+            "status": 200,
+            "elapsed_ms": 182.9,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/llms.txt",
+            "purpose": "AI Manifest (/llms.txt)",
+            "status": 404,
+            "elapsed_ms": 1000.2,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.apple.com/ai.txt",
+            "purpose": "AI Manifest (/ai.txt)",
+            "status": 404,
+            "elapsed_ms": 1009.2,
+            "error": "HTTP Error 404: Not Found"
+          },
+          {
+            "url": "https://www.apple.com/shop/sitemap.xml",
+            "purpose": "XML Sitemap (https://www.apple.com/shop/sitemap.xml)",
+            "status": 200,
+            "elapsed_ms": 725.7,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/autopush/sitemap/sitemap-index.xml",
+            "purpose": "XML Sitemap (https://www.apple.com/autopush/sitemap/sitemap-index.xml)",
+            "status": 200,
+            "elapsed_ms": 485.6,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/sitemap.xml",
+            "purpose": "XML Sitemap (https://www.apple.com/newsroom/sitemap.xml)",
+            "status": 200,
+            "elapsed_ms": 2774.1,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+            "purpose": "Sample Page (AI Bot: /newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/)",
+            "status": 200,
+            "elapsed_ms": 722.2,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+            "purpose": "Sample Page (Browser: /newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/)",
+            "status": 200,
+            "elapsed_ms": 1752.7,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/apple-introduces-new-mac-studio-with-m5-max-and-m5-ultra/",
+            "purpose": "Sample Page (AI Bot: /newsroom/2026/08/apple-introduces-new-mac-studio-with-m5-max-and-m5-ultra/)",
+            "status": 200,
+            "elapsed_ms": 1681.1,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/apple-introduces-new-mac-studio-with-m5-max-and-m5-ultra/",
+            "purpose": "Sample Page (Browser: /newsroom/2026/08/apple-introduces-new-mac-studio-with-m5-max-and-m5-ultra/)",
+            "status": 200,
+            "elapsed_ms": 1254.6,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/apple-unveils-a-more-powerful-mac-mini-featuring-the-all-new-m6-and-m5-pro/",
+            "purpose": "Sample Page (AI Bot: /newsroom/2026/08/apple-unveils-a-more-powerful-mac-mini-featuring-the-all-new-m6-and-m5-pro/)",
+            "status": 200,
+            "elapsed_ms": 3004.4,
+            "error": null
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/apple-unveils-a-more-powerful-mac-mini-featuring-the-all-new-m6-and-m5-pro/",
+            "purpose": "Sample Page (Browser: /newsroom/2026/08/apple-unveils-a-more-powerful-mac-mini-featuring-the-all-new-m6-and-m5-pro/)",
+            "status": 200,
+            "elapsed_ms": 792.3,
+            "error": null
+          }
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.apple.com",
+      "audited_at": "2026-09-07T10:55:47Z",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (94 URLs) are locked inside client JavaScript on /",
+          "severity": "medium",
+          "evidence": "94 internal links exist only in the rendered DOM (e.g., https://www.apple.com/us/shop/goto/iphone/accessories, https://www.apple.com/apple-watch-series-11, https://www.apple.com/us/shop/goto/buy_tv/apple_tv_4k).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "INTERNAL_LINK_DISCOVERY_GAP",
+          "title": "Navigation links (102 URLs) are locked inside client JavaScript on /newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+          "severity": "medium",
+          "evidence": "102 internal links exist only in the rendered DOM (e.g., https://www.apple.com/us/shop/goto/iphone/accessories, https://www.apple.com/in/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade, https://www.apple.com/apple-watch-series-11).",
+          "suggested_action": {
+            "summary": "Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 2,
+        "per_page_metrics": [
+          {
+            "url": "https://www.apple.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1050.2,
+              "pass_b_latency_ms": 3025.1,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 17,
+              "sentences_pass_b": 14,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 713.3,
+              "pass_b_latency_ms": 3151.9,
+              "parity_pct": 100.0,
+              "sentences_pass_a": 60,
+              "sentences_pass_b": 60,
+              "missing_sentences_count": 0,
+              "missing_snippets_sample": []
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.apple.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /",
+          "severity": "MEDIUM",
+          "url": "https://www.apple.com/",
+          "evidence": "2 instances of Organization (Apple, Apple Support...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "2 Organization entities lack description property on /newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+          "severity": "MEDIUM",
+          "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+          "evidence": "2 instances of Organization (Apple, Apple Support...) have no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description for each entity explaining its capabilities and purpose."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Organization"
+        ],
+        "same_as_authorities": [
+          "http://www.wikidata.org/entity/Q312",
+          "https://www.linkedin.com/company/apple",
+          "https://www.twitter.com/Apple"
+        ],
+        "pages_audited": 2,
+        "pages_with_schema": 2,
+        "schema_coverage_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.apple.com/",
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "ContactPoint",
+              "Organization",
+              "SearchAction",
+              "WebPage",
+              "WebSite"
+            ]
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+            "status": 200,
+            "error": null,
+            "schemas_found": [
+              "ContactPoint",
+              "ImageObject",
+              "NewsArticle",
+              "Organization",
+              "VideoObject"
+            ]
+          }
+        ]
+      }
+    },
+    "skill_4": {
+      "site": "www.apple.com",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 1
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "STRUCTURE_TABULAR_SUGGESTION",
+          "title": "Consider presenting comparative pricing options in a structured table",
+          "severity": "INFO",
+          "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+          "evidence": "Page contains multiple pricing indicators but 0 <table> elements. LLMs quote structured tables at a significantly higher rate than narrative prose.",
+          "suggested_action": "Structure plan comparisons into an HTML <table> with rows and columns for plan names, prices, and features."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 2,
+        "total_sections_audited": 15,
+        "total_words_audited": 1525,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://www.apple.com/",
+            "status": 200,
+            "error": null,
+            "archetype": "homepage",
+            "sections_count": 11,
+            "word_count": 281,
+            "headings": [
+              "Apple",
+              "Surprise and shine.",
+              "College, sorted.",
+              "iPhone",
+              "Mac mini",
+              "MacBook Air",
+              "iPad Air",
+              "iPad Pro",
+              "Apple Trade In",
+              "Apple Card",
+              "Endless entertainment."
+            ]
+          },
+          {
+            "url": "https://www.apple.com/newsroom/2026/08/exciting-updates-for-sneaky-sasquatch-come-to-apple-arcade/",
+            "status": 200,
+            "error": null,
+            "archetype": "general",
+            "sections_count": 4,
+            "word_count": 1244,
+            "headings": [
+              "Sneaky Sasquatch fans are in for a big treat on Apple Arcade with an exciting crossover, a new sneaky adventure, and birthday stickers in Messages",
+              "Media",
+              "Press Contacts"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -25,6 +25,7 @@ import subprocess
 from urllib.parse import urlparse, urljoin
 import urllib.request
 import urllib.error
+import html as html_lib
 
 BOT_UA = "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)"
 
@@ -131,7 +132,7 @@ def fetch_pass_a(url, timeout=15):
         "error": str(last_err)
     }
 
-def fetch_pass_b(url, browser_bin, timeout=15):
+def fetch_pass_b(url, browser_bin, timeout=25):
     """Pass B: Rendered DOM capture via native system headless browser."""
     if not browser_bin:
         return {
@@ -206,11 +207,11 @@ def extract_features(html, base_url):
 
     # 1. Extract <title>
     title_match = re.search(r"<title[^>]*>(.*?)</title>", html, re.I | re.DOTALL)
-    title = re.sub(r"\s+", " ", title_match.group(1)).strip() if title_match else ""
+    title = html_lib.unescape(re.sub(r"\s+", " ", title_match.group(1)).strip()) if title_match else ""
 
     # 2. Extract <h1> tags
     h1_matches = re.findall(r"<h1[^>]*>(.*?)</h1>", html, re.I | re.DOTALL)
-    h1_list = [re.sub(r"<[^>]+>", "", h).strip() for h in h1_matches]
+    h1_list = [html_lib.unescape(re.sub(r"<[^>]+>", "", h)).strip() for h in h1_matches]
     h1_list = [re.sub(r"\s+", " ", h) for h in h1_list if h]
 
     # 3. Extract JSON-LD Schema types
@@ -266,8 +267,17 @@ def extract_features(html, base_url):
 
     # Strip all remaining HTML tags
     raw_text = re.sub(r"<[^>]+>", " ", content_html)
-    clean_text = re.sub(r"[ \t]+", " ", raw_text)
+    clean_text = html_lib.unescape(raw_text)
+    clean_text = clean_text.replace('\xa0', ' ').replace('&nbsp;', ' ')
+    clean_text = clean_text.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+    clean_text = re.sub(r"[ \t]+", " ", clean_text)
     clean_text = re.sub(r"\n\s*\n+", "\n", clean_text).strip()
+    # Extract substantive paragraphs (chunks of text >= 40 chars and >= 6 words)
+    paragraphs = []
+    for p in clean_text.split("\n"):
+        p = p.strip()
+        if len(p) >= 40 and len(p.split()) >= 6 and not re.search(r"[{};()=<>|\\]", p):
+            paragraphs.append(p)
 
     # Extract substantive sentences (>= 25 chars, >= 4 words, not code/garbage)
     candidate_sentences = re.split(r"(?<=[.!?])\s+|\n+", clean_text)
@@ -285,6 +295,7 @@ def extract_features(html, base_url):
         "schema_types": list(set(schema_types)),
         "internal_links": internal_links,
         "clean_text": clean_text,
+        "paragraphs": paragraphs,
         "sentences": sentences
     }
 
@@ -319,10 +330,12 @@ def audit_render_parity(target_url, browser_bin):
 
     # Check 0: HTTP status failure on Pass A
     if res_a["status"] == 0 or res_a["status"] >= 400:
+        is_homepage = urlparse(target_url).path in ("", "/")
+        sev = "critical" if is_homepage else "high"
         add_finding(
             code="RAW_FETCH_FAILURE",
             title=f"Direct HTTP fetch failed on {urlparse(target_url).path or '/'}",
-            severity="critical",
+            severity=sev,
             evidence=f"Raw fetch returned HTTP {res_a['status']}: {res_a['error']}.",
             action_summary="Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots."
         )
@@ -352,23 +365,42 @@ def audit_render_parity(target_url, browser_bin):
             "findings": findings,
             "metrics": {
                 "pass_a_status": res_a["status"],
-                "pass_b_status": 0,
-                "browser_available": False,
+                "pass_b_status": res_b["status"] if res_b else 0,
+                "browser_available": bool(browser_bin),
+                "pass_b_error": res_b.get("error") if res_b else "No browser binary detected",
                 "raw_sentences_count": len(feat_a["sentences"])
             }
         }
 
-    # 1. Core Sentence Parity Comparison
+    # 1. Core Sentence & Paragraph Parity Comparison
     missing_sentences = []
-    text_a_lower = feat_a["clean_text"].lower()
+    text_a_clean = re.sub(r"\s+", " ", feat_a["clean_text"].lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"'))
     for s in feat_b["sentences"]:
-        # Normalize and check containment
-        s_clean = re.sub(r"\s+", " ", s.lower()).strip()
-        # Take key 4-word ngram to allow for minor whitespace / quote formatting differences
+        s_clean = re.sub(r"\s+", " ", s.lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')).strip()
         words = s_clean.split()
         probe = " ".join(words[:min(6, len(words))])
-        if probe not in text_a_lower:
+        if probe not in text_a_clean:
             missing_sentences.append(s)
+
+    # Group missing text into coherent missing content blocks/sections
+    missing_content_blocks = []
+    current_block = []
+    for s in missing_sentences:
+        current_block.append(s)
+        if len(" ".join(current_block)) >= 180 or len(current_block) >= 3:
+            missing_content_blocks.append(" ".join(current_block))
+            current_block = []
+    if current_block:
+        missing_content_blocks.append(" ".join(current_block))
+
+    # Also extract full paragraphs present in Pass B absent from Pass A
+    for p in feat_b.get("paragraphs", []):
+        p_clean = re.sub(r"\s+", " ", p.lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')).strip()
+        p_words = p_clean.split()
+        probe = " ".join(p_words[:min(7, len(p_words))])
+        if probe not in text_a_clean:
+            if not any(p in b or b in p for b in missing_content_blocks):
+                missing_content_blocks.append(p)
 
     total_b_sentences = len(feat_b["sentences"])
     if total_b_sentences > 0:
@@ -376,25 +408,49 @@ def audit_render_parity(target_url, browser_bin):
     else:
         parity_pct = 100.0
 
+    # Format actual missing text sections for evidence
+    missing_evidence_lines = []
+    for idx_b, b in enumerate(missing_content_blocks[:3], 1):
+        b_clean = b.strip()
+        snippet = b_clean if len(b_clean) <= 200 else b_clean[:200] + "..."
+        missing_evidence_lines.append(f"Section {idx_b}: \"{snippet}\"")
+    missing_evidence_str = "\n".join(missing_evidence_lines) if missing_evidence_lines else "No substantive text blocks missing."
+
     # Flag: EMPTY_SHELL_SPA (Critical)
     if total_b_sentences >= 2 and len(feat_a["sentences"]) == 0 and parity_pct < 15.0:
-        sample_missing = f'"{missing_sentences[0]}"' if missing_sentences else "dynamic text"
         add_finding(
             code="EMPTY_SHELL_SPA",
             title=f"Core content is client-rendered and invisible in raw HTML: {urlparse(target_url).path or '/'}",
             severity="critical",
-            evidence=f"Raw HTTP response delivered 0 text sentences, while rendered DOM produced {total_b_sentences} sentences (Parity: {parity_pct}%). Example missing: {sample_missing}",
+            evidence=(
+                f"Raw HTTP response delivered 0 text sentences, while rendered browser DOM produced {total_b_sentences} sentences (Parity: {parity_pct}%).\n"
+                f"Actual Missing Content from Browser DOM:\n{missing_evidence_str}"
+            ),
             action_summary="Pre-render primary page content using SSR (Next.js/Nuxt) or SSG so search crawlers can index and cite it without executing JavaScript."
         )
     # Flag: CORE_CONTENT_RENDER_GAP (High)
     elif total_b_sentences >= 3 and parity_pct < 60.0:
-        sample_missing = f'"{missing_sentences[0]}"' if missing_sentences else "multiple sentences"
         add_finding(
             code="CORE_CONTENT_RENDER_GAP",
             title=f"Significant content render gap ({parity_pct}% parity) on {urlparse(target_url).path or '/'}",
             severity="high",
-            evidence=f"Pass B rendered {total_b_sentences} sentences, but Pass A only contained {total_b_sentences - len(missing_sentences)} ({len(missing_sentences)} missing). Example missing: {sample_missing}",
+            evidence=(
+                f"Pass B rendered {total_b_sentences} sentences, but Pass A only contained {total_b_sentences - len(missing_sentences)} in raw HTML ({len(missing_sentences)} missing sentences, {parity_pct}% parity).\n"
+                f"Actual Missing Content from Browser DOM:\n{missing_evidence_str}"
+            ),
             action_summary="Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML."
+        )
+    # Flag: PARTIAL_CONTENT_RENDER_GAP (Medium)
+    elif total_b_sentences >= 3 and parity_pct < 88.0 and missing_content_blocks:
+        add_finding(
+            code="PARTIAL_CONTENT_RENDER_GAP",
+            title=f"Substantive content sections ({len(missing_content_blocks)} blocks) are missing from raw HTML on {urlparse(target_url).path or '/'}",
+            severity="medium",
+            evidence=(
+                f"Rendered browser DOM produced {len(missing_sentences)} sentences ({parity_pct}% parity) that do not appear in raw HTML.\n"
+                f"Actual Missing Content Sections:\n{missing_evidence_str}"
+            ),
+            action_summary="Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript."
         )
 
     # 2. Heading & Topic Mutation
@@ -431,6 +487,16 @@ def audit_render_parity(target_url, browser_bin):
             action_summary="Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages."
         )
 
+    # 5. Time-to-Content-Complete Budgeting
+    if res_b["elapsed_ms"] > 4500:
+        add_finding(
+            code="RENDER_LATENCY_EXCEEDED",
+            title=f"Headless render latency ({res_b['elapsed_ms']:.0f}ms) exceeds crawl time budget on {urlparse(target_url).path or '/'}",
+            severity="medium",
+            evidence=f"Hydration and DOM stabilization took {res_b['elapsed_ms']:.0f}ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+            action_summary="Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds."
+        )
+
     metrics = {
         "pass_a_status": res_a["status"],
         "pass_b_status": res_b["status"],
@@ -439,7 +505,10 @@ def audit_render_parity(target_url, browser_bin):
         "parity_pct": parity_pct,
         "sentences_pass_a": len(feat_a["sentences"]),
         "sentences_pass_b": total_b_sentences,
+        "pass_a_excerpt": feat_a["clean_text"][:250].replace("\n", " ").strip(),
+        "pass_b_excerpt": feat_b["clean_text"][:250].replace("\n", " ").strip(),
         "missing_sentences_count": len(missing_sentences),
+        "missing_content_blocks": missing_content_blocks[:4],
         "missing_snippets_sample": missing_sentences[:3]
     }
 
@@ -449,7 +518,11 @@ def audit_render_parity(target_url, browser_bin):
         "metrics": metrics
     }
 
-def audit_render(target_input, input_json_path=None, max_pages=8):
+def get_url_depth(u):
+    p = urlparse(u).path.strip("/")
+    return len([seg for seg in p.split("/") if seg]) if p else 0
+
+def audit_render(target_input, input_json_path=None, max_pages=15):
     """
     Main entrypoint for Skill 2. Can audit a standalone URL or consume Skill 1's output JSON.
     """
@@ -480,6 +553,20 @@ def audit_render(target_input, input_json_path=None, max_pages=8):
             target_url = target_input
         urls_to_audit = [target_url]
 
+    # Tier 2 Fallback: If fewer than 5 URLs were supplied (e.g. standalone run or missing upstream sample),
+    # crawl internal links from homepage HTML to ensure rich multi-page coverage
+    if len(urls_to_audit) < 5:
+        first_url = urls_to_audit[0]
+        res_sample = fetch_pass_a(first_url)
+        if res_sample.get("status") == 200:
+            feat_sample = extract_features(res_sample.get("html", ""), first_url)
+            discovered_internals = sorted(list(feat_sample.get("internal_links", set())), key=get_url_depth)
+            for d_url in discovered_internals:
+                if len(urls_to_audit) >= max_pages:
+                    break
+                if d_url not in urls_to_audit:
+                    urls_to_audit.append(d_url)
+
     parsed = urlparse(urls_to_audit[0])
     site_domain = parsed.netloc
 
@@ -487,11 +574,15 @@ def audit_render(target_input, input_json_path=None, max_pages=8):
     per_page_metrics = []
 
     for url in urls_to_audit:
+        depth = get_url_depth(url)
         res = audit_render_parity(url, browser_bin)
         all_findings.extend(res["findings"])
+        m = res["metrics"]
+        m["depth"] = depth
         per_page_metrics.append({
             "url": url,
-            "metrics": res["metrics"]
+            "depth": depth,
+            "metrics": m
         })
 
     # Summary counts
@@ -531,7 +622,7 @@ def main():
         if idx + 1 < len(sys.argv):
             input_json_path = sys.argv[idx + 1]
 
-    max_pages = 8
+    max_pages = 15
     if "--max-pages" in sys.argv:
         idx = sys.argv.index("--max-pages")
         if idx + 1 < len(sys.argv):
@@ -550,7 +641,7 @@ def main():
         print(f"Pages Audited ({result['render_profile']['pages_audited']}):")
         for p in result['render_profile']['per_page_metrics']:
             m = p['metrics']
-            print(f"  • {p['url']} → Parity: {m.get('parity_pct', 0)}% (Pass A: {m.get('pass_a_latency_ms', 0)}ms, Pass B: {m.get('pass_b_latency_ms', 0)}ms)")
+            print(f"  • [Depth {p.get('depth', 0)}] {p['url']} → Parity: {m.get('parity_pct', 0)}% (Pass A: {m.get('pass_a_latency_ms', 0)}ms, Pass B: {m.get('pass_b_latency_ms', 0)}ms)")
         print(f"\nSummary: {result['summary']['total_findings']} total findings "
               f"({result['summary']['critical']} Critical, {result['summary']['high']} High, "
               f"{result['summary']['medium']} Medium)\n")

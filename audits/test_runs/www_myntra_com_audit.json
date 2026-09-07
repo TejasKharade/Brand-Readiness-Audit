@@ -1,0 +1,136 @@
+{
+  "target": "https://www.myntra.com",
+  "domain": "www.myntra.com",
+  "audited_at": "2026-09-06T13:03:05Z",
+  "total_runtime_seconds": 87.4,
+  "summary": {
+    "total_findings": 3,
+    "critical": 2,
+    "high": 0,
+    "medium": 1,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "www.myntra.com",
+      "audited_at": "2026-09-06T13:02:06Z",
+      "summary": {
+        "total_findings": 2,
+        "critical": 1,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "BOT_UA_DISCRIMINATION",
+          "title": "Active AI Search Bot Discrimination (WAF Block)",
+          "severity": "critical",
+          "evidence": "GET https://www.myntra.com resulted in silent network drop / timeout (The read operation timed out) to OAI-SearchBot but returned HTTP 200 to standard Desktop Browser.",
+          "suggested_action": {
+            "summary": "Update firewall / CDN rules (Cloudflare, Akamai, WAF) to permit AI search crawler user-agents on public pages.",
+            "priority": "critical"
+          }
+        },
+        {
+          "id": "ACC-002",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://www.myntra.com/llms.txt returned HTTP 0 and /ai.txt returned HTTP 0.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://www.myntra.com",
+        "total_discovered": 0,
+        "doc_pages": [],
+        "blog_pages": [],
+        "product_pages": [],
+        "curated_sample": [
+          "https://www.myntra.com"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "www.myntra.com",
+      "audited_at": "2026-09-06T13:02:40Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RAW_FETCH_FAILURE",
+          "title": "Direct HTTP fetch failed on /",
+          "severity": "critical",
+          "evidence": "Raw fetch returned HTTP 0: The read operation timed out.",
+          "suggested_action": {
+            "summary": "Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots.",
+            "priority": "critical"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 1,
+        "per_page_metrics": [
+          {
+            "url": "https://www.myntra.com",
+            "metrics": {
+              "pass_a_status": 0,
+              "pass_b_status": 200,
+              "parity_pct": 0.0
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "www.myntra.com",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "entity_profile": {
+        "root_entity_detected": false,
+        "root_entity_types": [],
+        "same_as_authorities": [],
+        "pages_audited": 1,
+        "pages_with_schema": 0,
+        "schema_coverage_pct": 0.0
+      }
+    },
+    "skill_4": {
+      "site": "www.myntra.com",
+      "summary": {
+        "total_findings": 0,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [],
+      "content_profile": {
+        "pages_audited": 1,
+        "total_sections_audited": 0,
+        "total_words_audited": 0,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": []
+      }
+    }
+  }
+}

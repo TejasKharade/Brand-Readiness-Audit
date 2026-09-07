@@ -1,0 +1,323 @@
+{
+  "target": "https://docker.com",
+  "domain": "docker.com",
+  "audited_at": "2026-09-06T11:33:46Z",
+  "total_runtime_seconds": 54.66,
+  "summary": {
+    "total_findings": 7,
+    "critical": 0,
+    "high": 0,
+    "medium": 7,
+    "low": 0
+  },
+  "skills": {
+    "skill_1": {
+      "site": "docker.com",
+      "audited_at": "2026-09-06T11:33:14Z",
+      "summary": {
+        "total_findings": 1,
+        "critical": 0,
+        "high": 0,
+        "medium": 1
+      },
+      "findings": [
+        {
+          "id": "ACC-001",
+          "code": "LLMS_TXT_MISSING",
+          "title": "Missing /llms.txt or /ai.txt AI context manifest",
+          "severity": "medium",
+          "evidence": "GET https://docker.com/llms.txt returned HTTP 404 and /ai.txt returned HTTP 404.",
+          "suggested_action": {
+            "summary": "Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "sampled_pages": {
+        "homepage": "https://docker.com",
+        "total_discovered": 201,
+        "doc_pages": [],
+        "blog_pages": [
+          "https://www.docker.com/blog/",
+          "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "https://www.docker.com/blog/minio-end-of-life-how-to-stay-patched-and-audit-ready-with-docker-els/",
+          "https://www.docker.com/blog/moving-from-minimus-to-docker-hardened-images/",
+          "https://www.docker.com/blog/docker-verified-publisher-applications-are-now-self-serve/"
+        ],
+        "product_pages": [],
+        "curated_sample": [
+          "https://docker.com",
+          "https://www.docker.com/blog/",
+          "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/"
+        ]
+      }
+    },
+    "skill_2": {
+      "site": "docker.com",
+      "audited_at": "2026-09-06T11:33:41Z",
+      "summary": {
+        "total_findings": 3,
+        "critical": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0
+      },
+      "findings": [
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8226ms) exceeds crawl time budget on /",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8226ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8097ms) exceeds crawl time budget on /blog/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8097ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        },
+        {
+          "id": "RND-001",
+          "code": "RENDER_LATENCY_EXCEEDED",
+          "title": "Headless render latency (8187ms) exceeds crawl time budget on /blog/the-3cs-a-framework-for-ai-agent-security/",
+          "severity": "medium",
+          "evidence": "Hydration and DOM stabilization took 8187ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+          "suggested_action": {
+            "summary": "Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds.",
+            "priority": "medium"
+          }
+        }
+      ],
+      "render_profile": {
+        "browser_engine": "chrome.exe",
+        "pages_audited": 3,
+        "per_page_metrics": [
+          {
+            "url": "https://docker.com",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 1080.1,
+              "pass_b_latency_ms": 8226.1,
+              "parity_pct": 93.0,
+              "sentences_pass_a": 53,
+              "sentences_pass_b": 57,
+              "missing_sentences_count": 4,
+              "missing_snippets_sample": [
+                "$ brew install docker/tap/sbx",
+                "Tapping docker/tap and installing sbx ...",
+                "\u2847 Mounting workspace: /usr/local/bin"
+              ]
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 600.4,
+              "pass_b_latency_ms": 8097.4,
+              "parity_pct": 96.4,
+              "sentences_pass_a": 27,
+              "sentences_pass_b": 28,
+              "missing_sentences_count": 1,
+              "missing_snippets_sample": [
+                "Learn what it is, why it\u2019s risky, and how to run it safely."
+              ]
+            }
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "metrics": {
+              "pass_a_status": 200,
+              "pass_b_status": 200,
+              "pass_a_latency_ms": 761.5,
+              "pass_b_latency_ms": 8186.6,
+              "parity_pct": 96.9,
+              "sentences_pass_a": 92,
+              "sentences_pass_b": 97,
+              "missing_sentences_count": 3,
+              "missing_snippets_sample": [
+                "Curate: Define the Agent\u2019s Environment",
+                "Curate: Define the Agent\u2019s Environment",
+                "Learn what it is, why it\u2019s risky, and how to run it safely."
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "skill_3": {
+      "site": "docker.com",
+      "summary": {
+        "total_findings": 3,
+        "critical": 0,
+        "high": 0,
+        "medium": 3,
+        "low": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "id": "ENT-001",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /",
+          "severity": "MEDIUM",
+          "url": "https://docker.com",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-002",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        },
+        {
+          "id": "ENT-003",
+          "code": "SCHEMA_DESCRIPTION_MISSING",
+          "title": "Schema entity (WebSite ('Docker')) lacks description property on /blog/the-3cs-a-framework-for-ai-agent-security/",
+          "severity": "MEDIUM",
+          "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "evidence": "The WebSite ('Docker') entity has no 'description' field. AI summarizers rely on this field for atomic entity synthesis.",
+          "suggested_action": "Provide a factual, 1-2 sentence description explaining what the entity is, who uses it, and its core capabilities."
+        }
+      ],
+      "entity_profile": {
+        "root_entity_detected": true,
+        "root_entity_types": [
+          "Corporation"
+        ],
+        "same_as_authorities": [
+          "https://x.com/docker",
+          "https://www.linkedin.com/company/docker",
+          "https://github.com/docker"
+        ],
+        "pages_audited": 3,
+        "pages_with_schema": 3,
+        "schema_coverage_pct": 100.0
+      }
+    },
+    "skill_4": {
+      "site": "docker.com",
+      "summary": {
+        "total_findings": 2,
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 2
+      },
+      "findings": [
+        {
+          "id": "CNT-001",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/",
+          "evidence": "Page contains 367 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        },
+        {
+          "id": "CNT-002",
+          "code": "CITABILITY_STATISTICAL_SUGGESTION",
+          "title": "Consider adding quantitative metrics to improve AI citation probability",
+          "severity": "INFO",
+          "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+          "evidence": "Page contains 1064 words but 0 explicit numeric statistics or benchmarks.",
+          "suggested_action": "The Princeton GEO study demonstrated that adding verifiable statistics increases AI citation probability by +37%. Consider integrating benchmark data or concrete metrics."
+        }
+      ],
+      "content_profile": {
+        "pages_audited": 3,
+        "total_sections_audited": 49,
+        "total_words_audited": 1975,
+        "autonomous_chunk_ratio_pct": 100.0,
+        "pages": [
+          {
+            "url": "https://docker.com",
+            "archetype": "homepage",
+            "sections_count": 23,
+            "word_count": 544,
+            "headings": [
+              "Accelerate agent adoption, safely.",
+              "Docker Sandboxes",
+              "Docker AI Governance",
+              "Docker Hardened Images",
+              "Invisible to developers. Total control for security.",
+              "Your laptop. One command.",
+              "Your console. Zero checks .",
+              "The runtime under every agent",
+              "Isolation you can trust",
+              "Nothing to rip and replace",
+              "Start local. Scale anywhere.",
+              "No lock-in. Ever.",
+              "Unlock the Autonomy of Agents, Safely",
+              "Lower cost through trusted autonomy.",
+              "Ship faster. Without the breach.",
+              "Compliant by default.",
+              "From the company that secured the developer laptop for the enterprise.",
+              "91%",
+              "20B+",
+              "20M+",
+              "Docker Desktop",
+              "Build better, together"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/",
+            "archetype": "guide_article",
+            "sections_count": 11,
+            "word_count": 367,
+            "headings": [
+              "Docker Blog",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World",
+              "Secure by default is your only way forward",
+              "Moving from Minimus to Docker Hardened Images",
+              "MinIO End of Life: How to Stay Patched and Audit-Ready with Docker ELS",
+              "Running AI agents in GitHub Actions with Docker Sandboxes",
+              "Docker Verified Publisher Applications Are Now Self-Serve"
+            ]
+          },
+          {
+            "url": "https://www.docker.com/blog/the-3cs-a-framework-for-ai-agent-security/",
+            "archetype": "guide_article",
+            "sections_count": 15,
+            "word_count": 1064,
+            "headings": [
+              "The 3Cs: A Framework for AI Agent Security",
+              "The Unattended Laptop Problem",
+              "Why AI Agents Break Existing Governance",
+              "AI Governance and the Execution Layer: The Three Cs Framework",
+              "Contain: Bound the Blast Radius",
+              "Curate: Define the Agent\u2019s Environment",
+              "Control: Enforce Boundaries in Real Time",
+              "Putting the 3Cs Into Practice",
+              "About the Authors",
+              "Related Posts",
+              "17,600 Actions: Agent Security Is a Systems Problem",
+              "YOLO Mode: Agent Autonomy Without the Guardrails",
+              "Building Reproducible AI Evaluation Workflows with Docker Sandboxes",
+              "Below the Harness: Governing a Multi-Model, Multi-Harness World"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
