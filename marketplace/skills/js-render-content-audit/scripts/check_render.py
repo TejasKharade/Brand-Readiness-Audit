@@ -3,531 +3,40 @@
 JavaScript Rendering & Semantic Parity Audit Tool (Pure Standard Library)
 Zero external dependencies. Portable, deterministic, and sandbox-safe.
 
-Performs a true Two-Pass Comparative Evaluation:
-- Pass A: Raw HTTP GET via AI SearchBot User-Agent (what OAI-SearchBot sees)
-- Pass B: Hydrated DOM render via host headless browser (--headless --dump-dom)
-
-Evaluates:
-- Core content parity (substantive sentences present in Pass B vs Pass A)
-- Heading & Title mutation (did JS inject or alter the h1?)
-- Structured data timing (did client JS dynamically inject JSON-LD?)
-- Internal link discovery (are internal navigation links trapped in JS?)
-- Deep-link route pre-rendering
+Entrypoint orchestrator coordinating Pass A (raw HTTP) and Pass B (hydrated DOM)
+semantic parity audits across discovered site archetypes.
 """
 
 import sys
 import os
-import re
 import json
 import time
-import shutil
-import subprocess
-from urllib.parse import urlparse, urljoin
-import urllib.request
-import urllib.error
-import html as html_lib
+from urllib.parse import urlparse
 
-BOT_UA = "Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)"
+try:
+    from .browser_runner import find_headless_browser
+    from .http_fetcher import fetch_pass_a
+    from .feature_extractor import extract_features
+    from .parity_evaluator import audit_render_parity
+except (ImportError, ValueError):
+    from browser_runner import find_headless_browser
+    from http_fetcher import fetch_pass_a
+    from feature_extractor import extract_features
+    from parity_evaluator import audit_render_parity
 
-def find_headless_browser():
-    """
-    Auto-detects host system headless browser binary across Windows, Linux, and macOS.
-    Does not require Playwright or bundled Chromium binaries.
-    """
-    # 1. Standard executable names on PATH
-    candidates = [
-        "google-chrome", "google-chrome-stable", "chromium",
-        "chromium-browser", "chrome", "msedge", "microsoft-edge"
-    ]
-    for c in candidates:
-        path = shutil.which(c)
-        if path:
-            return path
-            
-    # 2. Windows specific default installation paths
-    if sys.platform == "win32":
-        win_paths = [
-            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-            os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
-            os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe")
-        ]
-        for p in win_paths:
-            if os.path.exists(p):
-                return p
-
-    # 3. macOS specific application paths
-    if sys.platform == "darwin":
-        mac_paths = [
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-            "/Applications/Chromium.app/Contents/MacOS/Chromium"
-        ]
-        for p in mac_paths:
-            if os.path.exists(p):
-                return p
-
-    # 4. Linux specific common paths
-    if sys.platform.startswith("linux"):
-        linux_paths = [
-            "/usr/bin/google-chrome",
-            "/usr/bin/google-chrome-stable",
-            "/usr/bin/chromium",
-            "/usr/bin/chromium-browser",
-            "/snap/bin/chromium"
-        ]
-        for p in linux_paths:
-            if os.path.exists(p):
-                return p
-
-    return None
-
-def fetch_pass_a(url, timeout=15):
-    """Pass A: Fast raw HTTP GET from the perspective of an AI SearchBot."""
-    req = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": BOT_UA,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9"
-        }
-    )
-    last_err = None
-    for attempt in range(2):
-        t0 = time.perf_counter()
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = resp.read()
-                elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
-                html = data.decode("utf-8", errors="replace")
-                return {
-                    "status": resp.status,
-                    "html": html,
-                    "final_url": resp.url,
-                    "elapsed_ms": elapsed_ms,
-                    "error": None
-                }
-        except urllib.error.HTTPError as e:
-            elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
-            data = e.read() if hasattr(e, "read") else b""
-            html = data.decode("utf-8", errors="replace")
-            return {
-                "status": e.code,
-                "html": html,
-                "final_url": getattr(e, "url", url),
-                "elapsed_ms": elapsed_ms,
-                "error": str(e)
-            }
-        except Exception as e:
-            last_err = e
-            time.sleep(0.5)
-
-    return {
-        "status": 0,
-        "html": "",
-        "final_url": url,
-        "elapsed_ms": 0,
-        "error": str(last_err)
-    }
-
-def fetch_pass_b(url, browser_bin, timeout=25):
-    """Pass B: Rendered DOM capture via native system headless browser."""
-    if not browser_bin:
-        return {
-            "status": 0,
-            "html": "",
-            "elapsed_ms": 0,
-            "error": "No host headless browser detected on system."
-        }
-    cmd = [
-        browser_bin,
-        "--headless",
-        "--disable-gpu",
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--blink-settings=imagesEnabled=false",
-        "--disable-remote-fonts",
-        "--disable-background-networking",
-        "--disable-sync",
-        "--mute-audio",
-        "--dump-dom",
-        url
-    ]
-    t0 = time.perf_counter()
-    try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
-        elapsed_ms = round((time.perf_counter() - t0) * 1000, 1)
-        stdout_text = proc.stdout.decode("utf-8", errors="replace") if proc.stdout else ""
-        stderr_text = proc.stderr.decode("utf-8", errors="replace") if proc.stderr else ""
-        if proc.returncode == 0 and stdout_text:
-            return {
-                "status": 200,
-                "html": stdout_text,
-                "elapsed_ms": elapsed_ms,
-                "error": None
-            }
-        else:
-            return {
-                "status": 0,
-                "html": "",
-                "elapsed_ms": elapsed_ms,
-                "error": f"Headless browser exited with code {proc.returncode}: {stderr_text[:200]}"
-            }
-    except subprocess.TimeoutExpired:
-        return {
-            "status": 0,
-            "html": "",
-            "elapsed_ms": timeout * 1000,
-            "error": f"Browser rendering timed out after {timeout}s"
-        }
-    except Exception as e:
-        return {
-            "status": 0,
-            "html": "",
-            "elapsed_ms": 0,
-            "error": str(e)
-        }
-
-def extract_features(html, base_url):
-    """
-    Extracts structural and semantic elements while stripping non-content boilerplate.
-    Focuses on: title, h1, json-ld schemas, internal links, and substantive sentences.
-    """
-    if not html:
-        return {
-            "title": "",
-            "h1_list": [],
-            "schema_types": [],
-            "internal_links": set(),
-            "clean_text": "",
-            "sentences": []
-        }
-
-    # 1. Extract <title>
-    title_match = re.search(r"<title[^>]*>(.*?)</title>", html, re.I | re.DOTALL)
-    title = html_lib.unescape(re.sub(r"\s+", " ", title_match.group(1)).strip()) if title_match else ""
-
-    # 2. Extract <h1> tags
-    h1_matches = re.findall(r"<h1[^>]*>(.*?)</h1>", html, re.I | re.DOTALL)
-    h1_list = [html_lib.unescape(re.sub(r"<[^>]+>", "", h)).strip() for h in h1_matches]
-    h1_list = [re.sub(r"\s+", " ", h) for h in h1_list if h]
-
-    # 3. Extract JSON-LD Schema types
-    schema_types = []
-    for script_match in re.finditer(r'<script\s+[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', html, re.I | re.DOTALL):
-        try:
-            data = json.loads(script_match.group(1).strip())
-            if isinstance(data, dict):
-                stype = data.get("@type")
-                if stype:
-                    schema_types.append(stype if isinstance(stype, str) else str(stype))
-                if "@graph" in data and isinstance(data["@graph"], list):
-                    for item in data["@graph"]:
-                        if isinstance(item, dict) and "@type" in item:
-                            schema_types.append(str(item["@type"]))
-            elif isinstance(data, list):
-                for item in data:
-                    if isinstance(item, dict) and "@type" in item:
-                        schema_types.append(str(item["@type"]))
-        except Exception:
-            pass
-
-    # 4. Extract internal <a href> links
-    parsed_base = urlparse(base_url)
-    base_domain = parsed_base.netloc.lower()
-    internal_links = set()
-    for link_match in re.finditer(r'<a\s+[^>]*href=["\']([^"\']+)["\']', html, re.I):
-        href = link_match.group(1).strip()
-        if href.startswith("#") or href.startswith("javascript:") or href.startswith("mailto:"):
-            continue
-        full_url = urljoin(base_url, href)
-        parsed_link = urlparse(full_url)
-        if parsed_link.netloc.lower() == base_domain:
-            norm_link = f"{parsed_link.scheme}://{parsed_link.netloc}{parsed_link.path}".rstrip("/")
-            if norm_link:
-                internal_links.add(norm_link)
-
-    # 5. Clean boilerplate noise
-    cleaned = html
-    # Remove script, style, svg, noscript
-    cleaned = re.sub(r"<(script|style|svg|noscript)[^>]*>.*?</\1>", " ", cleaned, flags=re.I | re.DOTALL)
-    # Remove header, nav, footer, aside
-    cleaned = re.sub(r"<(header|nav|footer|aside)[^>]*>.*?</\1>", " ", cleaned, flags=re.I | re.DOTALL)
-    # Remove modal/dialog/consent containers
-    cleaned = re.sub(r'<[^>]+(?:id|class)=["\'][^"\']*(?:cookie|consent|modal|banner|overlay|dialog)[^"\']*["\'][^>]*>.*?</[^>]+>', " ", cleaned, flags=re.I | re.DOTALL)
-
-    # Prioritize <main> or <article> if available
-    main_match = re.search(r"<(main|article)[^>]*>(.*?)</\1>", cleaned, re.I | re.DOTALL)
-    content_html = main_match.group(2) if main_match else cleaned
-
-    # Insert newlines around block tags so separate elements don't merge into one giant line
-    content_html = re.sub(r"<(/?(?:div|p|li|tr|th|td|h[1-6]|br|hr)[^>]*)>", r"\n<\1>\n", content_html, flags=re.I)
-
-    # Strip all remaining HTML tags
-    raw_text = re.sub(r"<[^>]+>", " ", content_html)
-    clean_text = html_lib.unescape(raw_text)
-    clean_text = clean_text.replace('\xa0', ' ').replace('&nbsp;', ' ')
-    clean_text = clean_text.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
-    clean_text = re.sub(r"[ \t]+", " ", clean_text)
-    clean_text = re.sub(r"\n\s*\n+", "\n", clean_text).strip()
-    # Extract substantive paragraphs (chunks of text >= 40 chars and >= 6 words)
-    paragraphs = []
-    for p in clean_text.split("\n"):
-        p = p.strip()
-        if len(p) >= 40 and len(p.split()) >= 6 and not re.search(r"[{};()=<>|\\]", p):
-            paragraphs.append(p)
-
-    # Extract substantive sentences (>= 25 chars, >= 4 words, not code/garbage)
-    candidate_sentences = re.split(r"(?<=[.!?])\s+|\n+", clean_text)
-    sentences = []
-    for s in candidate_sentences:
-        s = s.strip()
-        if len(s) >= 25 and len(s.split()) >= 4:
-            # Filter obvious CSS/JS leftovers
-            if not re.search(r"[{};()=<>|\\]", s):
-                sentences.append(s)
-
-    return {
-        "title": title,
-        "h1_list": h1_list,
-        "schema_types": list(set(schema_types)),
-        "internal_links": internal_links,
-        "clean_text": clean_text,
-        "paragraphs": paragraphs,
-        "sentences": sentences
-    }
-
-def audit_render_parity(target_url, browser_bin):
-    """
-    Executes Pass A vs Pass B diff on a specific URL and returns findings and parity metrics.
-    """
-    res_a = fetch_pass_a(target_url)
-    res_b = fetch_pass_b(target_url, browser_bin) if browser_bin else None
-
-    feat_a = extract_features(res_a["html"], target_url)
-    feat_b = extract_features(res_b["html"], target_url) if (res_b and res_b["status"] == 200) else None
-
-    findings = []
-    finding_counter = 1
-
-    def add_finding(code, title, severity, evidence, action_summary, action_priority=None):
-        nonlocal finding_counter
-        f_id = f"RND-{finding_counter:03d}"
-        finding_counter += 1
-        findings.append({
-            "id": f_id,
-            "code": code,
-            "title": title,
-            "severity": severity,
-            "evidence": evidence,
-            "suggested_action": {
-                "summary": action_summary,
-                "priority": action_priority or severity
-            }
-        })
-
-    # Check 0: HTTP status failure on Pass A
-    if res_a["status"] == 0 or res_a["status"] >= 400:
-        is_homepage = urlparse(target_url).path in ("", "/")
-        sev = "critical" if is_homepage else "high"
-        add_finding(
-            code="RAW_FETCH_FAILURE",
-            title=f"Direct HTTP fetch failed on {urlparse(target_url).path or '/'}",
-            severity=sev,
-            evidence=f"Raw fetch returned HTTP {res_a['status']}: {res_a['error']}.",
-            action_summary="Fix server routing or permissions to ensure the URL returns HTTP 200 to AI search bots."
-        )
-        return {
-            "url": target_url,
-            "findings": findings,
-            "metrics": {
-                "pass_a_status": res_a["status"],
-                "pass_b_status": res_b["status"] if res_b else 0,
-                "parity_pct": 0.0
-            }
-        }
-
-    # If no browser was available on the host machine, gracefully fallback
-    if not feat_b:
-        # Fallback static checks for obvious empty shells
-        if len(feat_a["sentences"]) == 0 and ("<div id=\"root\">" in res_a["html"] or "<div id=\"app\">" in res_a["html"]):
-            add_finding(
-                code="EMPTY_SHELL_SPA_SUSPECTED",
-                title="Probable empty-shell Single Page Application (SPA)",
-                severity="high",
-                evidence="Raw HTML contains an empty mounting container (<div id='root'> or #app) with 0 extracted sentences.",
-                action_summary="Implement Server-Side Rendering (SSR) or Static Site Generation (SSG) to ensure content is delivered in raw HTML."
-            )
-        return {
-            "url": target_url,
-            "findings": findings,
-            "metrics": {
-                "pass_a_status": res_a["status"],
-                "pass_b_status": res_b["status"] if res_b else 0,
-                "browser_available": bool(browser_bin),
-                "pass_b_error": res_b.get("error") if res_b else "No browser binary detected",
-                "raw_sentences_count": len(feat_a["sentences"])
-            }
-        }
-
-    # 1. Core Sentence & Paragraph Parity Comparison
-    missing_sentences = []
-    text_a_clean = re.sub(r"\s+", " ", feat_a["clean_text"].lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"'))
-    for s in feat_b["sentences"]:
-        s_clean = re.sub(r"\s+", " ", s.lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')).strip()
-        words = s_clean.split()
-        probe = " ".join(words[:min(6, len(words))])
-        if probe not in text_a_clean:
-            missing_sentences.append(s)
-
-    # Group missing text into coherent missing content blocks/sections
-    missing_content_blocks = []
-    current_block = []
-    for s in missing_sentences:
-        current_block.append(s)
-        if len(" ".join(current_block)) >= 180 or len(current_block) >= 3:
-            missing_content_blocks.append(" ".join(current_block))
-            current_block = []
-    if current_block:
-        missing_content_blocks.append(" ".join(current_block))
-
-    # Also extract full paragraphs present in Pass B absent from Pass A
-    for p in feat_b.get("paragraphs", []):
-        p_clean = re.sub(r"\s+", " ", p.lower().replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')).strip()
-        p_words = p_clean.split()
-        probe = " ".join(p_words[:min(7, len(p_words))])
-        if probe not in text_a_clean:
-            if not any(p in b or b in p for b in missing_content_blocks):
-                missing_content_blocks.append(p)
-
-    total_b_sentences = len(feat_b["sentences"])
-    if total_b_sentences > 0:
-        parity_pct = round((1 - (len(missing_sentences) / total_b_sentences)) * 100, 1)
-    else:
-        parity_pct = 100.0
-
-    # Format actual missing text sections for evidence
-    missing_evidence_lines = []
-    for idx_b, b in enumerate(missing_content_blocks[:3], 1):
-        b_clean = b.strip()
-        snippet = b_clean if len(b_clean) <= 200 else b_clean[:200] + "..."
-        missing_evidence_lines.append(f"Section {idx_b}: \"{snippet}\"")
-    missing_evidence_str = "\n".join(missing_evidence_lines) if missing_evidence_lines else "No substantive text blocks missing."
-
-    # Flag: EMPTY_SHELL_SPA (Critical)
-    if total_b_sentences >= 2 and len(feat_a["sentences"]) == 0 and parity_pct < 15.0:
-        add_finding(
-            code="EMPTY_SHELL_SPA",
-            title=f"Core content is client-rendered and invisible in raw HTML: {urlparse(target_url).path or '/'}",
-            severity="critical",
-            evidence=(
-                f"Raw HTTP response delivered 0 text sentences, while rendered browser DOM produced {total_b_sentences} sentences (Parity: {parity_pct}%).\n"
-                f"Actual Missing Content from Browser DOM:\n{missing_evidence_str}"
-            ),
-            action_summary="Pre-render primary page content using SSR (Next.js/Nuxt) or SSG so search crawlers can index and cite it without executing JavaScript."
-        )
-    # Flag: CORE_CONTENT_RENDER_GAP (High)
-    elif total_b_sentences >= 3 and parity_pct < 60.0:
-        add_finding(
-            code="CORE_CONTENT_RENDER_GAP",
-            title=f"Significant content render gap ({parity_pct}% parity) on {urlparse(target_url).path or '/'}",
-            severity="high",
-            evidence=(
-                f"Pass B rendered {total_b_sentences} sentences, but Pass A only contained {total_b_sentences - len(missing_sentences)} in raw HTML ({len(missing_sentences)} missing sentences, {parity_pct}% parity).\n"
-                f"Actual Missing Content from Browser DOM:\n{missing_evidence_str}"
-            ),
-            action_summary="Ensure core documentation, product specifications, and descriptive text are rendered server-side in static HTML."
-        )
-    # Flag: PARTIAL_CONTENT_RENDER_GAP (Medium)
-    elif total_b_sentences >= 3 and parity_pct < 88.0 and missing_content_blocks:
-        add_finding(
-            code="PARTIAL_CONTENT_RENDER_GAP",
-            title=f"Substantive content sections ({len(missing_content_blocks)} blocks) are missing from raw HTML on {urlparse(target_url).path or '/'}",
-            severity="medium",
-            evidence=(
-                f"Rendered browser DOM produced {len(missing_sentences)} sentences ({parity_pct}% parity) that do not appear in raw HTML.\n"
-                f"Actual Missing Content Sections:\n{missing_evidence_str}"
-            ),
-            action_summary="Render these content sections server-side in static HTML so AI search bots index the full text without executing JavaScript."
-        )
-
-    # 2. Heading & Topic Mutation
-    if feat_b["h1_list"] and not feat_a["h1_list"]:
-        h1_rendered = feat_b["h1_list"][0]
-        add_finding(
-            code="HEADING_RENDER_GAP",
-            title=f"Primary <h1> is injected via client JavaScript on {urlparse(target_url).path or '/'}",
-            severity="high",
-            evidence=f"Rendered DOM contains <h1> '{h1_rendered}', but raw HTML has 0 <h1> tags.",
-            action_summary="Render primary <h1> tags in static HTML to ensure AI crawlers immediately identify the topic."
-        )
-
-    # 3. Structured Data Timing
-    missing_schemas = [s for s in feat_b["schema_types"] if s not in feat_a["schema_types"]]
-    if missing_schemas:
-        add_finding(
-            code="STRUCTURED_DATA_TIMING",
-            title=f"JSON-LD structured data is injected via client JavaScript: {urlparse(target_url).path or '/'}",
-            severity="high",
-            evidence=f"Schema types [{', '.join(missing_schemas)}] were found in the rendered DOM but absent from initial raw HTML.",
-            action_summary="Move JSON-LD <script type='application/ld+json'> tags to server-rendered HTML so AI crawlers extract entity schema without JavaScript execution."
-        )
-
-    # 4. Internal Link Discovery Gap
-    missing_links = feat_b["internal_links"] - feat_a["internal_links"]
-    if len(missing_links) >= 5:
-        sample_links = list(missing_links)[:3]
-        add_finding(
-            code="INTERNAL_LINK_DISCOVERY_GAP",
-            title=f"Navigation links ({len(missing_links)} URLs) are locked inside client JavaScript on {urlparse(target_url).path or '/'}",
-            severity="medium",
-            evidence=f"{len(missing_links)} internal links exist only in the rendered DOM (e.g., {', '.join(sample_links)}).",
-            action_summary="Use standard HTML <a href='...'> anchor tags in static navigation menus to allow search spiders to discover interior pages."
-        )
-
-    # 5. Time-to-Content-Complete Budgeting
-    if res_b["elapsed_ms"] > 4500:
-        add_finding(
-            code="RENDER_LATENCY_EXCEEDED",
-            title=f"Headless render latency ({res_b['elapsed_ms']:.0f}ms) exceeds crawl time budget on {urlparse(target_url).path or '/'}",
-            severity="medium",
-            evidence=f"Hydration and DOM stabilization took {res_b['elapsed_ms']:.0f}ms (threshold: 4500ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
-            action_summary="Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds."
-        )
-
-    metrics = {
-        "pass_a_status": res_a["status"],
-        "pass_b_status": res_b["status"],
-        "pass_a_latency_ms": res_a["elapsed_ms"],
-        "pass_b_latency_ms": res_b["elapsed_ms"],
-        "parity_pct": parity_pct,
-        "sentences_pass_a": len(feat_a["sentences"]),
-        "sentences_pass_b": total_b_sentences,
-        "pass_a_excerpt": feat_a["clean_text"][:250].replace("\n", " ").strip(),
-        "pass_b_excerpt": feat_b["clean_text"][:250].replace("\n", " ").strip(),
-        "missing_sentences_count": len(missing_sentences),
-        "missing_content_blocks": missing_content_blocks[:4],
-        "missing_snippets_sample": missing_sentences[:3]
-    }
-
-    return {
-        "url": target_url,
-        "findings": findings,
-        "metrics": metrics
-    }
 
 def get_url_depth(u):
+    """Calculates path depth of a given URL."""
     p = urlparse(u).path.strip("/")
     return len([seg for seg in p.split("/") if seg]) if p else 0
+
 
 def audit_render(target_input, input_json_path=None, max_pages=15):
     """
     Main entrypoint for Skill 2. Can audit a standalone URL or consume Skill 1's output JSON.
     """
     browser_bin = find_headless_browser()
-    
+
     urls_to_audit = []
     if input_json_path and os.path.exists(input_json_path):
         try:
@@ -610,6 +119,7 @@ def audit_render(target_input, input_json_path=None, max_pages=15):
         }
     }
 
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python check_render.py <domain_or_url> [--input-json <path>] [--max-pages <N>] [--json]")
@@ -649,6 +159,7 @@ def main():
             print(f"[{f['id']}] {f['title']} ({f['severity'].upper()})")
             print(f"  Evidence: {f['evidence']}")
             print(f"  Action:   {f['suggested_action']['summary']}\n")
+
 
 if __name__ == "__main__":
     main()
