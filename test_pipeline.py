@@ -930,6 +930,67 @@ def log_pipeline_scorecard(pipeline_results, total_time, domain, report_file):
     print("=" * 76 + "\n")
 
 
+
+def build_unified_report(target_url, domain, pipeline_results, total_time):
+    """Flattens all 4 skills' findings into the single schema required for
+    submission AND for the eval pipeline's Stage A output."""
+    gate_names = {
+        "skill_1": "ai_crawler_access",
+        "skill_2": "js_render_content",
+        "skill_3": "structured_data_entity",
+        "skill_4": "content_quality",
+    }
+
+    flat_findings = []
+    counter = 1
+    for skill_key, gate_name in gate_names.items():
+        s_data = pipeline_results.get(skill_key)
+        if not isinstance(s_data, dict):
+            continue
+        for f in s_data.get("findings", []):
+            flat_findings.append({
+                "id": f"F-{counter:03d}",
+                "code": f.get("code", "UNKNOWN"),      # keep — useful for Stage C to categorize
+                "gate": gate_name,                       # keep — lets you cluster misses by skill later
+                "title": f.get("title", "Untitled Finding"),
+                "severity": str(f.get("severity", "medium")).lower(),
+                "url": f.get("url") or f.get("evidence_url") or target_url,
+                "evidence": f.get("evidence", ""),
+                "suggested_action": f.get("suggested_action", {}),
+            })
+            counter += 1
+
+    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    for f in flat_findings:
+        sev = f["severity"]
+        if sev not in counts:
+            sev = "info"
+        counts[sev] += 1
+
+    unified = {
+        "site": domain,
+        "audited_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "runtime_seconds": round(total_time, 2),
+        "summary": {
+            "total_findings": len(flat_findings),
+            **counts,
+        },
+        "findings": flat_findings,
+    }
+
+    # Use the raw domain (e.g. "www.docker.com") as the folder name so Stage B
+    # and Stage A land in the same directory. Stage B also uses raw domain.
+    # Only the test_runs raw dump (above) uses the dots→underscores slug.
+    site_dir = os.path.join(ROOT_DIR, "audits", domain)
+    os.makedirs(site_dir, exist_ok=True)
+    out_path = os.path.join(site_dir, "skill_findings.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(unified, f, indent=2)
+
+    print(f"\n  [STAGE A OUTPUT] Unified findings written to:\n  {out_path}\n")
+    return out_path
+
+
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         try:
@@ -1064,6 +1125,7 @@ def main():
             json.dump(final_report, f, indent=2)
 
         log_pipeline_scorecard(pipeline_results, total_time, domain, report_file)
+        build_unified_report(target_url, domain, pipeline_results, total_time)
 
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)

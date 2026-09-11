@@ -31,7 +31,7 @@ except (ImportError, ValueError):
     from feature_extractor import extract_features
 
 
-def audit_render_parity(target_url, browser_bin):
+def audit_render_parity(target_url, browser_bin, timeout_ms=4500):
     """
     Executes Pass A vs Pass B diff on a specific URL and returns findings and parity metrics.
     """
@@ -53,6 +53,7 @@ def audit_render_parity(target_url, browser_bin):
             "code": code,
             "title": title,
             "severity": severity,
+            "url": target_url,
             "evidence": evidence,
             "suggested_action": {
                 "summary": action_summary,
@@ -157,8 +158,20 @@ def audit_render_parity(target_url, browser_bin):
         missing_evidence_lines.append(f"Section {idx_b}: \"{snippet}\"")
     missing_evidence_str = "\n".join(missing_evidence_lines) if missing_evidence_lines else "No substantive text blocks missing."
 
+    # Flag: RENDER_BLANK_SCREEN (Critical)
+    if total_b_sentences == 0 and len(feat_a["sentences"]) > 0 and res_b and res_b["status"] == 200:
+        add_finding(
+            code="RENDER_BLANK_SCREEN",
+            title=f"Headless browser rendered a blank screen on {urlparse(target_url).path or '/'}",
+            severity="critical",
+            evidence=(
+                f"Raw HTTP returned {len(feat_a['sentences'])} sentences, but the hydrated DOM returned 0 text sentences. "
+                f"This indicates a catastrophic client-side rendering failure (e.g., endless loading spinner, unhandled JS exception)."
+            ),
+            action_summary="Fix client-side JavaScript exceptions or hydration failures that prevent the UI from rendering."
+        )
     # Flag: EMPTY_SHELL_SPA (Critical)
-    if total_b_sentences >= 2 and len(feat_a["sentences"]) == 0 and parity_pct < PARITY_EMPTY_SHELL_THRESHOLD:
+    elif total_b_sentences >= 2 and len(feat_a["sentences"]) == 0 and parity_pct < PARITY_EMPTY_SHELL_THRESHOLD:
         add_finding(
             code="EMPTY_SHELL_SPA",
             title=f"Core content is client-rendered and invisible in raw HTML: {urlparse(target_url).path or '/'}",
@@ -229,12 +242,12 @@ def audit_render_parity(target_url, browser_bin):
         )
 
     # 5. Time-to-Content-Complete Budgeting
-    if res_b["elapsed_ms"] > LATENCY_BUDGET_MS:
+    if res_b["elapsed_ms"] > timeout_ms:
         add_finding(
             code="RENDER_LATENCY_EXCEEDED",
             title=f"Headless render latency ({res_b['elapsed_ms']:.0f}ms) exceeds crawl time budget on {urlparse(target_url).path or '/'}",
             severity="medium",
-            evidence=f"Hydration and DOM stabilization took {res_b['elapsed_ms']:.0f}ms (threshold: {LATENCY_BUDGET_MS}ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
+            evidence=f"Hydration and DOM stabilization took {res_b['elapsed_ms']:.0f}ms (threshold: {timeout_ms}ms). Real-world AI crawlers (OAI-SearchBot) operate on strict 3-5 second timeouts and drop slow-rendering pages.",
             action_summary="Optimize client bundle size, defer non-critical scripts, or implement server-side pre-rendering to keep time-to-content under 3.5 seconds."
         )
 

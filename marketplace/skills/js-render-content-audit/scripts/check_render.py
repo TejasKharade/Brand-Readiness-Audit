@@ -31,7 +31,7 @@ def get_url_depth(u):
     return len([seg for seg in p.split("/") if seg]) if p else 0
 
 
-def audit_render(target_input, input_json_path=None, max_pages=15):
+def audit_render(target_input, input_json_path=None, max_pages=15, timeout_ms=4500):
     """
     Main entrypoint for Skill 2. Can audit a standalone URL or consume Skill 1's output JSON.
     """
@@ -84,7 +84,7 @@ def audit_render(target_input, input_json_path=None, max_pages=15):
 
     for url in urls_to_audit:
         depth = get_url_depth(url)
-        res = audit_render_parity(url, browser_bin)
+        res = audit_render_parity(url, browser_bin, timeout_ms)
         all_findings.extend(res["findings"])
         m = res["metrics"]
         m["depth"] = depth
@@ -141,7 +141,16 @@ def main():
             except ValueError:
                 pass
 
-    result = audit_render(target, input_json_path=input_json_path, max_pages=max_pages)
+    timeout_ms = 4500
+    if "--timeout" in sys.argv:
+        idx = sys.argv.index("--timeout")
+        if idx + 1 < len(sys.argv):
+            try:
+                timeout_ms = int(sys.argv[idx + 1])
+            except ValueError:
+                pass
+
+    result = audit_render(target, input_json_path=input_json_path, max_pages=max_pages, timeout_ms=timeout_ms)
 
     if "--json" in sys.argv or not sys.stdout.isatty():
         print(json.dumps(result, indent=2))

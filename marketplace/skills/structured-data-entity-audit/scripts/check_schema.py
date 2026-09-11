@@ -215,6 +215,15 @@ class SchemaEntityAuditor:
 
         if schema_nodes:
             self.entity_profile["pages_with_schema"] += 1
+        elif not is_homepage:
+            self._add_finding(
+                code="SCHEMA_ENTIRELY_MISSING",
+                title=f"Interior page lacks any Schema.org structured data",
+                severity="MEDIUM",
+                evidence=f"No JSON-LD metadata found. Search engines rely on structured data to understand specific page types (e.g., Product, Article, Breadcrumb).",
+                suggested_action="Embed JSON-LD <script type='application/ld+json'> on interior pages to define their specific entity type and properties.",
+                url=page_url
+            )
 
         # Check 2: Homepage Entity Root Grounding (The Garage Problem)
         if is_homepage:

@@ -116,24 +116,38 @@ def probe_origin_access(origin, logged_request, collector):
     collector.check_redirects(res_bot, origin)
 
     is_bot_blocked = False
-    if res_bot["status"] in (401, 403) and res_browser["status"] == 200:
+    is_waf_challenge = False
+    if res_bot["status"] in (401, 403, 429):
+        bot_text_lower = res_bot.get("text", "").lower()
+        if any(marker in bot_text_lower for marker in ["cloudflare", "ray id", "challenge-error", "datadome", "imperva", "perimeterx"]):
+            is_waf_challenge = True
+
+    if is_bot_blocked or is_waf_challenge or res_bot["status"] in (401, 403):
         is_bot_blocked = True
-        collector.add(
-            code="BOT_UA_DISCRIMINATION",
-            title="AI Search Bot User-Agent discriminated against",
-            severity="critical",
-            evidence=f"GET {origin} returned HTTP {res_bot['status']} to OAI-SearchBot but HTTP 200 to desktop Chrome.",
-            action_summary="Update firewall / CDN rules (Cloudflare, AWS WAF, Akamai) to allow verified AI search crawlers."
-        )
-    elif res_bot["status"] in (401, 403):
-        is_bot_blocked = True
-        collector.add(
-            code="HTTP_ACCESS_FORBIDDEN",
-            title=f"Root URL returns HTTP {res_bot['status']} Forbidden",
-            severity="critical",
-            evidence=f"GET {origin} returned HTTP {res_bot['status']} for both bot and browser.",
-            action_summary="Ensure the website root responds with HTTP 200 to public GET requests."
-        )
+        if is_waf_challenge:
+            collector.add(
+                code="WAF_BOT_CHALLENGE",
+                title="AI Search Bot blocked by WAF challenge page (e.g., Cloudflare/Datadome)",
+                severity="critical",
+                evidence=f"GET {origin} returned HTTP {res_bot['status']} and HTML contains known WAF challenge markers.",
+                action_summary="Configure WAF (Web Application Firewall) to bypass JS challenges for verified AI search crawlers (e.g., OAI-SearchBot)."
+            )
+        elif res_bot["status"] in (401, 403) and res_browser["status"] == 200:
+            collector.add(
+                code="BOT_UA_DISCRIMINATION",
+                title="AI Search Bot User-Agent discriminated against",
+                severity="critical",
+                evidence=f"GET {origin} returned HTTP {res_bot['status']} to OAI-SearchBot but HTTP 200 to desktop Chrome.",
+                action_summary="Update firewall / CDN rules (Cloudflare, AWS WAF, Akamai) to allow verified AI search crawlers."
+            )
+        else:
+            collector.add(
+                code="HTTP_ACCESS_FORBIDDEN",
+                title=f"Root URL returns HTTP {res_bot['status']} Forbidden",
+                severity="critical",
+                evidence=f"GET {origin} returned HTTP {res_bot['status']} for both bot and browser.",
+                action_summary="Ensure the website root responds with HTTP 200 to public GET requests."
+            )
     elif res_bot["status"] >= 500:
         is_bot_blocked = True
         collector.add(

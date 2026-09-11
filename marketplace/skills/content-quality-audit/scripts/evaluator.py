@@ -30,7 +30,7 @@ except (ImportError, ValueError):
     from section_parser import extract_text_from_html
 
 
-def audit_section(sec, idx, archetype, page_url, add_finding):
+def audit_section(sec, idx, archetype, page_url, add_finding, dynamic_flooding_threshold=None):
     """
     Audits a single section top-to-bottom for chunk autonomy and LLM readability.
     Returns tuple: (is_substantive, is_autonomous).
@@ -126,7 +126,7 @@ def audit_section(sec, idx, archetype, page_url, add_finding):
     has_tables = bool(re.search(r"<table", sec_html, re.IGNORECASE))
     has_code = bool(re.search(r"<(pre|code)", sec_html, re.IGNORECASE))
 
-    threshold = FLOODING_THRESHOLD_GUIDE if archetype in ("guide_article", "general") else FLOODING_THRESHOLD_DOCS if archetype == "documentation" else 99999
+    threshold = dynamic_flooding_threshold if dynamic_flooding_threshold else (FLOODING_THRESHOLD_GUIDE if archetype in ("guide_article", "general") else FLOODING_THRESHOLD_DOCS if archetype == "documentation" else 99999)
     if archetype != "homepage" and wc > threshold:
         if not has_lists and not has_tables and not (archetype == "documentation" and has_code):
             sample_excerpt = text[:260] + ("..." if len(text) > 260 else "")
@@ -161,10 +161,10 @@ def audit_section(sec, idx, archetype, page_url, add_finding):
     return True, is_autonomous
 
 
-def evaluate_page_proactive_suggestions(page_url, archetype, page_word_count, cleaned_html, add_finding):
+def evaluate_page_proactive_suggestions(page_url, archetype, page_word_count, cleaned_html, add_finding, metrics_threshold=350):
     """Generates constructive INFO suggestions without penalizing the site score."""
     # 1. Statistical Density Suggestion on substantive articles
-    if archetype == "guide_article" and page_word_count >= 350:
+    if archetype == "guide_article" and page_word_count >= metrics_threshold:
         plain_text = extract_text_from_html(cleaned_html)
         numeric_data = re.findall(r"\b(?:\d+(?:\.\d+)?%|\d+\s*(?:ms|gb|mb|tb|kbps|mbps|req/s|qps))\b", plain_text, re.IGNORECASE)
         if len(numeric_data) == 0:

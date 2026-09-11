@@ -39,10 +39,12 @@ except (ImportError, ValueError):
 
 
 class ContentQualityAuditor:
-    def __init__(self, target_url, input_access=None, max_pages=15):
+    def __init__(self, target_url, input_access=None, max_pages=15, flooding_threshold=None, metrics_threshold=350):
         self.target_url = target_url
         self.input_access = input_access
         self.max_pages = max_pages
+        self.flooding_threshold = flooding_threshold
+        self.metrics_threshold = metrics_threshold
         self.parsed_url = urlparse(target_url)
         self.domain = self.parsed_url.netloc
         self.findings = []
@@ -56,11 +58,19 @@ class ContentQualityAuditor:
 
     def _add_finding(self, code, title, severity, evidence, suggested_action, url=None):
         finding_id = f"CNT-{len(self.findings) + 1:03d}"
+        
+        # Normalize severity: map "info" to "low" and ensure lowercase
+        norm_severity = "low" if severity.lower() == "info" else severity.lower()
+        
+        # Ensure suggested_action is an object
+        if isinstance(suggested_action, str):
+            suggested_action = {"summary": suggested_action, "priority": norm_severity}
+
         self.findings.append({
             "id": finding_id,
             "code": code,
             "title": title,
-            "severity": severity,
+            "severity": norm_severity,
             "url": url or self.target_url,
             "evidence": evidence,
             "suggested_action": suggested_action
@@ -178,7 +188,7 @@ class ContentQualityAuditor:
         # Section-by-Section Full Content Audit (Zero Skipping)
         for idx, sec in enumerate(sections):
             is_substantive, is_autonomous = audit_section(
-                sec, idx, archetype, page_url, self._add_finding
+                sec, idx, archetype, page_url, self._add_finding, self.flooding_threshold
             )
             if is_substantive:
                 substantive_sections += 1
@@ -187,7 +197,7 @@ class ContentQualityAuditor:
 
         # Page-Level Proactive Info Checks (Zero Severity Penalty)
         evaluate_page_proactive_suggestions(
-            page_url, archetype, page_word_count, cleaned_html, self._add_finding
+            page_url, archetype, page_word_count, cleaned_html, self._add_finding, self.metrics_threshold
         )
 
         return substantive_sections, autonomous_sections
@@ -195,11 +205,10 @@ class ContentQualityAuditor:
     def to_dict(self):
         summary = {
             "total_findings": len(self.findings),
-            "critical": sum(1 for f in self.findings if f["severity"] == "CRITICAL"),
-            "high": sum(1 for f in self.findings if f["severity"] == "HIGH"),
-            "medium": sum(1 for f in self.findings if f["severity"] == "MEDIUM"),
-            "low": sum(1 for f in self.findings if f["severity"] == "LOW"),
-            "info": sum(1 for f in self.findings if f["severity"] == "INFO")
+            "critical": sum(1 for f in self.findings if f["severity"] == "critical"),
+            "high": sum(1 for f in self.findings if f["severity"] == "high"),
+            "medium": sum(1 for f in self.findings if f["severity"] == "medium"),
+            "low": sum(1 for f in self.findings if f["severity"] == "low")
         }
         return {
             "site": self.domain,
@@ -214,6 +223,8 @@ def main():
     parser.add_argument("url", help="Target domain or root URL (e.g., https://example.com)")
     parser.add_argument("--input-access", help="Path to Skill 1 output JSON (sampled_pages)")
     parser.add_argument("--max-pages", type=int, default=15, help="Maximum pages to audit (default: 15)")
+    parser.add_argument("--flooding-threshold", type=int, help="Override words limit for prose flooding")
+    parser.add_argument("--metrics-threshold", type=int, default=350, help="Min words for metrics suggestion (default: 350)")
     parser.add_argument("--json", action="store_true", help="Emit raw JSON to stdout")
 
     args = parser.parse_args()
@@ -225,7 +236,9 @@ def main():
     auditor = ContentQualityAuditor(
         target_url=url,
         input_access=args.input_access,
-        max_pages=args.max_pages
+        max_pages=args.max_pages,
+        flooding_threshold=args.flooding_threshold,
+        metrics_threshold=args.metrics_threshold
     )
 
     report = auditor.run()
@@ -243,13 +256,16 @@ def main():
         print(f"Autonomous Chunk Ratio: {report['content_profile']['autonomous_chunk_ratio_pct']}%")
         print(f"Summary: {report['summary']['total_findings']} total findings "
               f"({report['summary']['critical']} Critical, {report['summary']['high']} High, "
-              f"{report['summary']['medium']} Medium, {report['summary']['info']} Info)\n")
+              f"{report['summary']['medium']} Medium, {report['summary']['low']} Low)\n")
 
         for f in report["findings"]:
-            print(f"[{f['code']}] {f['title']} ({f['severity']})")
+            print(f"[{f['code']}] {f['title']} ({f['severity'].upper()})")
             print(f"  Url:      {f['url']}")
             print(f"  Evidence: {f['evidence']}")
-            print(f"  Action:   {f['suggested_action']}\n")
+            if isinstance(f['suggested_action'], dict):
+                print(f"  Action:   {f['suggested_action'].get('summary', '')}\n")
+            else:
+                print(f"  Action:   {f['suggested_action']}\n")
 
 
 if __name__ == "__main__":

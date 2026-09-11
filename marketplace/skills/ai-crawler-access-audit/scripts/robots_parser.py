@@ -230,7 +230,7 @@ def audit_ai_manifests(origin, logged_request, collector, sub_timeout=12):
         collector.add(
             code="LLMS_TXT_MISSING",
             title="Missing /llms.txt or /ai.txt AI context manifest",
-            severity="medium",
+            severity="info",
             evidence=f"GET {origin}/llms.txt returned HTTP {res_llms['status']} and /ai.txt returned HTTP {res_ai['status']}.",
             action_summary="Optimization Opportunity: Publish a clean markdown /llms.txt file at domain root summarizing the product, architecture, and primary documentation links."
         )
