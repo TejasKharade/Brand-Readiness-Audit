@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import re
@@ -341,7 +345,7 @@ def check_structured_data(html_content, url):
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -373,7 +377,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

@@ -1,23 +1,54 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import urllib.parse
 from html.parser import HTMLParser
 
+# Robots meta directives are also honoured on bot-specific meta names
+# (<meta name="googlebot">, <meta name="gptbot">, ...), not just name="robots".
+ROBOTS_META_NAMES = {
+    "robots", "googlebot", "googlebot-news", "bingbot", "slurp",
+    "gptbot", "claudebot", "perplexitybot", "google-extended", "applebot",
+}
+
+
 class MetaLinkParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.noindex = False
+        self.nofollow = False
+        self.none_directive = False
+        self.directives_seen = []
         self.canonical = None
-        
+        self.canonical_count = 0
+
     def handle_starttag(self, tag, attrs):
         try:
-            attrs_dict = dict(attrs)
-            if tag == "meta":
-                if attrs_dict.get("name", "").lower() == "robots":
-                    if "noindex" in attrs_dict.get("content", "").lower():
+            t = tag.lower()
+            attrs_dict = {k.lower(): (v or "") for k, v in attrs}
+            if t == "meta":
+                name = attrs_dict.get("name", "").lower().strip()
+                if name in ROBOTS_META_NAMES:
+                    content = attrs_dict.get("content", "").lower()
+                    for part in [p.strip() for p in content.split(",")]:
+                        if part and part not in self.directives_seen:
+                            self.directives_seen.append(part)
+                    if "noindex" in content:
                         self.noindex = True
-            elif tag == "link":
-                if attrs_dict.get("rel", "").lower() == "canonical":
+                    if "nofollow" in content:
+                        self.nofollow = True
+                    # `content="none"` is shorthand for noindex, nofollow
+                    if "none" in [p.strip() for p in content.split(",")]:
+                        self.none_directive = True
+                        self.noindex = True
+                        self.nofollow = True
+            elif t == "link":
+                rels = attrs_dict.get("rel", "").lower().split()
+                if "canonical" in rels:
+                    self.canonical_count += 1
                     self.canonical = attrs_dict.get("href")
         except Exception:
             pass
@@ -47,20 +78,24 @@ def check_signals(url, headers, content):
         except Exception:
             pass
             
-        # Check headers
+        # X-Robots-Tag header (may carry noindex and/or nofollow)
         noindex_header = False
+        nofollow_header = False
+        x_robots = ""
         try:
-            x_robots = ""
             if isinstance(headers, dict):
                 for k, v in headers.items():
                     if k.lower() == "x-robots-tag":
                         x_robots = str(v)
                         break
-            if x_robots and "noindex" in x_robots.lower():
+            xr = x_robots.lower()
+            if "noindex" in xr or "none" in [p.strip() for p in xr.split(",")]:
                 noindex_header = True
+            if "nofollow" in xr or "none" in [p.strip() for p in xr.split(",")]:
+                nofollow_header = True
         except Exception:
             pass
-            
+
         canonical_differs = False
         try:
             if parser.canonical:
@@ -71,25 +106,47 @@ def check_signals(url, headers, content):
                     canonical_differs = norm_canonical != norm_url
         except Exception:
             pass
-            
+
+        is_noindex = bool(parser.noindex or noindex_header)
+        is_nofollow = bool(parser.nofollow or nofollow_header)
+
         return {
+            "url": url,
             "noindex_meta": parser.noindex,
             "noindex_header": noindex_header,
+            "nofollow_meta": parser.nofollow,
+            "nofollow_header": nofollow_header,
+            # Rolled-up booleans consumed by the orchestrator (meta OR header).
+            "is_noindex": is_noindex,
+            "is_nofollow": is_nofollow,
+            "robots_directives_seen": parser.directives_seen,
+            "x_robots_tag": x_robots or None,
             "canonical_url": parser.canonical,
+            "canonical_tag_count": parser.canonical_count,
+            "duplicate_canonical_tags": parser.canonical_count > 1,
             "canonical_differs_from_self": canonical_differs
         }
     except Exception as e:
         return {
+            "url": url,
             "noindex_meta": False,
             "noindex_header": False,
+            "nofollow_meta": False,
+            "nofollow_header": False,
+            "is_noindex": False,
+            "is_nofollow": False,
+            "robots_directives_seen": [],
+            "x_robots_tag": None,
             "canonical_url": None,
+            "canonical_tag_count": 0,
+            "duplicate_canonical_tags": False,
             "canonical_differs_from_self": False,
             "error": f"Signal check failed: {str(e)}"
         }
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -123,7 +180,7 @@ if __name__ == "__main__":
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

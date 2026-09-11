@@ -1,11 +1,129 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
-import urllib.robotparser
+import re
+import urllib.parse
 import urllib.request
 from urllib.error import URLError, HTTPError
 import socket
+import time
 
-def check_robots(domain, bot_user_agents, test_paths=None):
+# ---------------------------------------------------------------------------
+# RFC 9309 (Robots Exclusion Protocol) evaluation.
+#
+# Python's urllib.robotparser is NOT used: it applies the FIRST matching rule
+# in file order and does not understand `*` / `$` wildcards. Under RFC 9309 the
+# MOST SPECIFIC (longest) matching rule wins and Allow wins a tie, so a group
+#     Allow: /
+#     Disallow: /lp/
+# disallows /lp/... -- stdlib scores it allowed. It also silently ignores rules
+# such as `Disallow: /*?*`.
+# ---------------------------------------------------------------------------
+
+
+def _product_token(agent):
+    return str(agent or "").split("/")[0].strip().lower()
+
+
+def parse_robots_txt(text):
+    """Returns (groups, sitemaps). A group is one or more consecutive
+    user-agent lines followed by its rules; groups naming the same agent are
+    combined at evaluation time (RFC 9309 2.2.1)."""
+    groups, sitemaps = [], []
+    cur, last_was_ua = None, False
+    for raw in (text or "").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or ":" not in line:
+            continue
+        key, val = line.split(":", 1)
+        key, val = key.strip().lower(), val.strip()
+        if key in ("user-agent", "useragent", "user agent"):
+            if cur is None or not last_was_ua:
+                cur = {"agents": [], "rules": [], "crawl_delay": None}
+                groups.append(cur)
+            cur["agents"].append(val.lower())
+            last_was_ua = True
+        elif key in ("allow", "disallow"):
+            last_was_ua = False
+            if cur is not None:
+                cur["rules"].append((key, val))
+        elif key == "crawl-delay":
+            last_was_ua = False
+            if cur is not None:
+                try:
+                    cur["crawl_delay"] = float(val)
+                except ValueError:
+                    pass
+        elif key == "sitemap":
+            sitemaps.append(val)          # global, not part of any group
+        # unknown directives (e.g. Content-Signal) are ignored
+    return groups, sitemaps
+
+
+_RX_CACHE = {}
+
+
+def _rule_regex(pattern):
+    rx = _RX_CACHE.get(pattern)
+    if rx is None:
+        anchored = pattern.endswith("$")
+        body = pattern[:-1] if anchored else pattern
+        rx = re.compile("^" + "".join(".*" if ch == "*" else re.escape(ch) for ch in body)
+                        + ("$" if anchored else ""))
+        _RX_CACHE[pattern] = rx
+    return rx
+
+
+def _path_and_query(path_or_url):
+    s = str(path_or_url or "/")
+    if "://" in s:
+        p = urllib.parse.urlparse(s)
+        s = (p.path or "/") + (("?" + p.query) if p.query else "")
+    if not s.startswith("/"):
+        s = "/" + s
+    return s
+
+
+def evaluate_robots(groups, agent, path_or_url):
+    """Returns {"disallowed": bool, "rule": str|None, "group": str|None}."""
+    token = _product_token(agent)
+    target = _path_and_query(path_or_url)
+    matched = [g for g in groups if token in g["agents"]]
+    group_label = token
+    if not matched:
+        matched = [g for g in groups if "*" in g["agents"]]
+        group_label = "*"
+    if not matched or target == "/robots.txt":
+        return {"disallowed": False, "rule": None, "group": group_label if matched else None}
+    best = None  # (length, kind, pattern)
+    for g in matched:
+        for kind, pat in g["rules"]:
+            if pat == "":
+                continue                       # empty rule matches nothing
+            if _rule_regex(pat).match(target):
+                n = len(pat)
+                if best is None or n > best[0] or (n == best[0] and kind == "allow"):
+                    best = (n, kind, pat)
+    if best is None:
+        return {"disallowed": False, "rule": None, "group": group_label}
+    return {"disallowed": best[1] == "disallow",
+            "rule": f"{best[1].capitalize()}: {best[2]}", "group": group_label}
+
+
+class RFC9309Robots:
+    """Drop-in for the `can_fetch(agent, url)` interface other scripts use."""
+
+    def __init__(self, text):
+        self.groups, self.sitemaps = parse_robots_txt(text)
+
+    def can_fetch(self, agent, url):
+        return not evaluate_robots(self.groups, agent, url)["disallowed"]
+
+
+def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
     # Strip existing protocol if given to build candidates reliably
     if domain.startswith("http://"):
         domain = domain[7:]
@@ -35,20 +153,44 @@ def check_robots(domain, bot_user_agents, test_paths=None):
         "reachable": False,
         "malformed": False,
         "resolved_url": None,
-        "disallowed": {},
+        "evaluation": "RFC 9309 (longest match wins, Allow wins ties, * and $ wildcards)",
+        "disallowed": {},          # {path: {agent: bool}}
+        "matched_rules": {},       # {path: {agent: {"rule", "group"}}}
+        "root_blocked_agents": [], # agents that may not fetch "/" (the homepage)
+        "blocked_paths_by_agent": {},  # {agent: [tested paths disallowed]}
         "crawl_delay": None,
         "sitemap_url": None,
-        "error": None
+        "sitemap_urls": [],
+        "error": None,
+        "fetch_deadline_exceeded": False
     }
 
-    rp = urllib.robotparser.RobotFileParser()
     content = ""
     success_candidate = None
+    first_malformed = None
     candidate_errors = []
+    skipped_candidates = []
+    # Wall-clock ceiling across ALL candidates combined: on a slow-but-not-dead
+    # server, 4 candidates x a per-request timeout can otherwise run unbounded
+    # (the old worst case was ~40s per the comment below; a single check_robots
+    # call is only one of several network-bound steps in a <5min audit budget).
+    # Once this is hit, remaining candidates are skipped rather than tried --
+    # a robots.txt this slow is itself worth reporting, not worth waiting out.
+    fetch_deadline_s = 18.0
+    fetch_start = time.time()
+
+    if robots_txt is not None:
+        # Caller already holds the file (offline evaluation / tests).
+        success_candidate = f"https://{domain}/robots.txt"
+        content = robots_txt
+        candidates = []
 
     # Attempt fetch across candidates in order
     for robots_url in candidates:
-        rp.set_url(robots_url)
+        if time.time() - fetch_start > fetch_deadline_s:
+            skipped_candidates.append(robots_url)
+            continue
+
         attempt_error = None
         attempt_content = ""
         attempt_malformed = False
@@ -60,8 +202,10 @@ def check_robots(domain, bot_user_agents, test_paths=None):
                 headers={"User-Agent": "Mozilla/5.0 (robots-checker)"}
             )
 
-            # Note: Worst case full run across 4 failing candidates takes up to ~40s
-            with urllib.request.urlopen(req, timeout=10) as response:
+            # 6s per request: on a slow-but-live server a lower per-request
+            # timeout risks a false "unreachable"; fetch_deadline_s above is
+            # the real backstop against a pathologically slow candidate chain.
+            with urllib.request.urlopen(req, timeout=6) as response:
                 attempt_content = response.read().decode("utf-8", errors="replace")
 
                 if response.status != 200:
@@ -86,11 +230,28 @@ def check_robots(domain, bot_user_agents, test_paths=None):
             content = attempt_content
             break
         else:
+            if attempt_malformed and first_malformed is None:
+                first_malformed = robots_url
             candidate_errors.append(f"{robots_url} ({attempt_error})")
 
     # If all candidates failed
     if success_candidate is None:
-        result["error"] = f"All URL variants failed: {', '.join(candidate_errors)}"
+        if first_malformed is not None:
+            # The server answered 200, but with an HTML page instead of
+            # robots.txt directives. Report it; previously this state was held
+            # in a local variable and never reached the output.
+            result["reachable"] = True
+            result["malformed"] = True
+            result["resolved_url"] = first_malformed
+            result["error"] = "robots.txt returned an HTML page instead of directives"
+            return result
+        error_msg = f"All URL variants failed: {', '.join(candidate_errors)}" if candidate_errors else \
+            "No candidate URL was attempted"
+        if skipped_candidates:
+            error_msg += (f"; {len(skipped_candidates)} remaining candidate(s) skipped after "
+                         f"{fetch_deadline_s:.0f}s wall-clock budget: {', '.join(skipped_candidates)}")
+            result["fetch_deadline_exceeded"] = True
+        result["error"] = error_msg
         return result
 
     # Success state
@@ -99,40 +260,64 @@ def check_robots(domain, bot_user_agents, test_paths=None):
 
     # Treat empty robots.txt as valid/usable, parse whatever is there
     try:
-        rp.parse(content.splitlines())
+        groups, sitemaps = parse_robots_txt(content)
     except Exception as e:
         result["malformed"] = True
         result["error"] = f"Parse error: {str(e)}"
         return result
 
-    sitemaps = rp.site_maps()
     if sitemaps:
         result["sitemap_url"] = sitemaps[0]
+        result["sitemap_urls"] = sitemaps
 
-    # Keep crawl-delay separate
-    result["crawl_delay"] = rp.crawl_delay("*")
+    star = [g for g in groups if "*" in g["agents"]]
+    result["crawl_delay"] = next((g["crawl_delay"] for g in star if g["crawl_delay"] is not None), None)
 
-    # Base domain to use for URL path checks (derived from whichever variant worked)
-    resolved_base = success_candidate[:success_candidate.rfind("/robots.txt")]
+    # Always evaluate the homepage, plus every caller-supplied path. A path may
+    # be a full URL (query string included -- rules like `Disallow: /*?*` apply).
+    paths = ["/"] + [p for p in (test_paths or []) if p not in ("/", "")]
+    for path in paths:
+        result["disallowed"][path] = {}
+        result["matched_rules"][path] = {}
+        for agent in bot_user_agents:
+            try:
+                ev = evaluate_robots(groups, agent, path)
+                result["disallowed"][path][agent] = ev["disallowed"]
+                result["matched_rules"][path][agent] = {"rule": ev["rule"], "group": ev["group"]}
+            except Exception:
+                # Do not assume an evaluation failure means "allowed"
+                result["disallowed"][path][agent] = "unknown_error"
 
-    # Check paths against relevant AI user agents
-    if test_paths:
-        for path in test_paths:
-            result["disallowed"][path] = {}
-            for agent in bot_user_agents:
-                url = f"{resolved_base}/{path.lstrip('/')}"
-                try:
-                    # can_fetch returns True if allowed to crawl, so we invert it for 'disallowed'
-                    result["disallowed"][path][agent] = not rp.can_fetch(agent, url)
-                except Exception:
-                    # Do not assume can_fetch() failure means "allowed"; return unknown
-                    result["disallowed"][path][agent] = "unknown_error"
+    # A URL blocked only because of its query string (e.g. `Disallow: /*?*`)
+    # while the same path without the query is allowed is ordinary
+    # duplicate-URL hygiene, not an access defect. Record it separately.
+    result["query_variant_only_blocks"] = {}
+    for path in paths:
+        target = _path_and_query(path)
+        if "?" not in target:
+            continue
+        base = target.split("?", 1)[0]
+        for agent in bot_user_agents:
+            if result["disallowed"][path].get(agent) is True:
+                base_ev = evaluate_robots(groups, agent, base)
+                if not base_ev["disallowed"]:
+                    result["matched_rules"][path][agent]["query_variant_only"] = True
+                    result["query_variant_only_blocks"].setdefault(agent, []).append(path)
+
+    for agent in bot_user_agents:
+        if result["disallowed"]["/"].get(agent) is True:
+            result["root_blocked_agents"].append(agent)
+        blocked = [p for p in paths
+                   if p != "/" and result["disallowed"][p].get(agent) is True
+                   and not result["matched_rules"][p].get(agent, {}).get("query_variant_only")]
+        if blocked:
+            result["blocked_paths_by_agent"][agent] = blocked
 
     return result
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -164,7 +349,7 @@ if __name__ == "__main__":
                 domain_arg = raw_arg
 
         # 2. Read stdin safely with non-blocking 0.2s timeout
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)
@@ -179,7 +364,8 @@ if __name__ == "__main__":
         bot_agents = params.get("bot_user_agents", ["GPTBot", "ClaudeBot", "Google-Extended", "CCBot", "*"])
         test_paths = params.get("test_paths", ["/"])
 
-        output = check_robots(domain_arg, bot_agents, test_paths)
+        output = check_robots(domain_arg, bot_agents, test_paths,
+                              robots_txt=params.get("robots_txt"))
         print(json.dumps(output, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

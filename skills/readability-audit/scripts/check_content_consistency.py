@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import os
@@ -230,6 +234,28 @@ def check_content_consistency(html_content, url):
         if total_facts_evaluated > 0 else (1.0 if len(entities) > 0 else None)
     )
 
+    # Rolled-up signal consumed by the orchestrator. Deliberately conservative:
+    # the underlying check is string/number matching, which misfires on
+    # currency and date formats, synonyms ("in stock" vs "ships today"), unit
+    # conversions and any non-English text. So it fires only when a meaningful
+    # number of facts was evaluated AND most of them failed to verify -- and it
+    # always asks the agent to confirm before the orchestrator treats it as a
+    # real contradiction.
+    MIN_FACTS_FOR_VERDICT = 3
+    LOW_CONSISTENCY_RATIO = 0.5
+    contains_inconsistency = bool(
+        total_facts_evaluated >= MIN_FACTS_FOR_VERDICT
+        and overall_consistency_ratio is not None
+        and overall_consistency_ratio < LOW_CONSISTENCY_RATIO
+    )
+    unverified = [
+        {'entity': (r.get('types') or ['?'])[0], 'entity_name': r.get('entity_name'),
+         'field': f.get('field'), 'structured_value': f.get('structured_value')}
+        for r in entity_consistency_reports
+        for f in (r.get('facts_detail') or [])
+        if f.get('verified_in_visible_text') is False
+    ][:10]
+
     return {
         'overall_summary': {
             'total_entities_evaluated': len(entities),
@@ -237,12 +263,21 @@ def check_content_consistency(html_content, url):
             'total_facts_verified': total_facts_verified,
             'overall_consistency_ratio': overall_consistency_ratio
         },
+        'contains_inconsistency': contains_inconsistency,
+        'verdict_basis': 'string_match_heuristic -- confirm with agent judgment',
+        'needs_agent_judgment': bool(unverified),
+        'unverified_facts_for_agent': unverified,
+        'agent_judgment_task': ('For each unverified fact, decide whether the visible '
+                                'page text really fails to state the structured value, '
+                                'or whether it is merely formatted differently '
+                                '(currency/date format, synonym, unit, another language). '
+                                'Only a genuine mismatch is a finding.'),
         'entity_consistency_reports': entity_consistency_reports
     }
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -274,7 +309,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

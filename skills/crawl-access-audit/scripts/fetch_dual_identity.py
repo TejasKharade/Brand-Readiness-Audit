@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import time
@@ -7,8 +11,20 @@ import urllib.error
 import socket
 import ssl
 
-# Default starting threshold for thin content. 
-THIN_CONTENT_THRESHOLD = 300 
+# "Thin content" is no longer a single character cutoff. It is decided from the
+# ratio of real main-body text to page chrome (nav/header/footer/aside), with a
+# small absolute floor for pages that carry essentially no readable text at all
+# (true block pages, empty JS shells). A minimalist hero page with a few
+# sentences of real copy and a big menu is NOT thin; a "checking your browser"
+# interstitial whose only text is boilerplate IS.
+MAIN_TEXT_ABSOLUTE_FLOOR_CHARS = 80     # ~12 words of real body text
+CHROME_DOMINANCE_RATIO = 0.15           # main text < 15% of total, when total is non-trivial
+CHROME_DOMINANCE_MIN_TOTAL_CHARS = 200  # only apply the ratio test once there is some text
+
+# Back-compat alias (older callers / tests may still pass thin_threshold)
+THIN_CONTENT_THRESHOLD = MAIN_TEXT_ABSOLUTE_FLOOR_CHARS
+
+BOILERPLATE_TAGS = {"nav", "header", "footer", "aside"}
 
 CLOUDFLARE_SIGNALS = [
     "checking your browser", 
@@ -45,54 +61,90 @@ GENERIC_BLOCK_SIGNALS = [
 class TextExtractor(html.parser.HTMLParser):
     def __init__(self):
         super().__init__()
-        self.text = []
+        self.text = []            # all visible text (main + chrome)
+        self.main_text = []       # visible text NOT inside nav/header/footer/aside
+        self.boilerplate_text = []
         self.has_password_input = False
         self.has_form = False
-        self.skip_tags = {'script', 'style', 'noscript', 'iframe'}
+        self.skip_tags = {'script', 'style', 'noscript', 'iframe', 'svg', 'template'}
         self.in_skip_tag = False
         self.current_skip_tag = None
-        
+        self._boilerplate_depth = 0
+
     def handle_data(self, data):
         if not self.in_skip_tag and data and data.strip():
-            self.text.append(data.strip())
-            
+            s = data.strip()
+            self.text.append(s)
+            if self._boilerplate_depth > 0:
+                self.boilerplate_text.append(s)
+            else:
+                self.main_text.append(s)
+
     def handle_starttag(self, tag, attrs):
         try:
-            if tag in self.skip_tags and not self.in_skip_tag:
+            t = tag.lower()
+            if t in self.skip_tags and not self.in_skip_tag:
                 self.in_skip_tag = True
-                self.current_skip_tag = tag
-            if tag == "form":
+                self.current_skip_tag = t
+            if t in BOILERPLATE_TAGS:
+                self._boilerplate_depth += 1
+            if t == "form":
                 self.has_form = True
-            if tag == "input":
+            if t == "input":
                 attrs_dict = dict(attrs)
                 if attrs_dict.get("type", "").lower() == "password":
                     self.has_password_input = True
         except Exception:
             pass
-            
+
     def handle_endtag(self, tag):
-        if self.in_skip_tag and tag == self.current_skip_tag:
+        t = tag.lower()
+        if self.in_skip_tag and t == self.current_skip_tag:
             self.in_skip_tag = False
             self.current_skip_tag = None
-                
+        if t in BOILERPLATE_TAGS and self._boilerplate_depth > 0:
+            self._boilerplate_depth -= 1
+
     def get_text(self):
         return " ".join(self.text)
 
-def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
+    def get_main_text(self):
+        return " ".join(self.main_text)
+
+    def get_boilerplate_text(self):
+        return " ".join(self.boilerplate_text)
+
+def _assess_thin_content(main_len, total_len):
+    """Returns (is_thin: bool, reason: str). Dynamic: near-empty main text OR
+    page text that is overwhelmingly chrome/boilerplate rather than content."""
+    if main_len < MAIN_TEXT_ABSOLUTE_FLOOR_CHARS:
+        return True, (f"main-body text is {main_len} chars (< {MAIN_TEXT_ABSOLUTE_FLOOR_CHARS} "
+                      f"floor) -> effectively no readable content")
+    if total_len >= CHROME_DOMINANCE_MIN_TOTAL_CHARS:
+        ratio = main_len / total_len
+        if ratio < CHROME_DOMINANCE_RATIO:
+            return True, (f"main-body text is only {ratio:.0%} of page text "
+                          f"({main_len}/{total_len} chars) -> page is almost all nav/chrome")
+    return False, (f"main-body text {main_len} chars "
+                   f"({(main_len/total_len):.0%} of {total_len} total) -> adequate"
+                   if total_len else f"main-body text {main_len} chars -> adequate")
+
+
+def analyze_fingerprints(html_content, thin_threshold=None):
     try:
         if not html_content:
             html_content = ""
         html_lower = html_content.lower()
-        
+
         # 1. Cloudflare
         cf_matches = [s for s in CLOUDFLARE_SIGNALS if s in html_lower]
-        
+
         # 2. CAPTCHA
         captcha_matches = [s for s in CAPTCHA_SIGNALS if s in html_lower]
 
         # 3. Generic Block
         generic_block_matches = [s for s in GENERIC_BLOCK_SIGNALS if s in html_lower]
-        
+
         # Parse HTML for login wall and thin content
         parser = TextExtractor()
         parser_error = None
@@ -100,18 +152,28 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             parser.feed(html_content)
         except Exception as e:
             parser_error = str(e)
-            
+
         visible_text = parser.get_text()
         visible_text_len = len(visible_text)
-        
-        # 4. Thin content
-        is_thin = visible_text_len < thin_threshold
-        
+        main_text_len = len(parser.get_main_text())
+        boilerplate_text_len = len(parser.get_boilerplate_text())
+
+        # 4. Thin content (dynamic content-to-boilerplate assessment)
+        floor = thin_threshold if isinstance(thin_threshold, int) else MAIN_TEXT_ABSOLUTE_FLOOR_CHARS
+        if isinstance(thin_threshold, int):
+            # explicit override: honour it as a simple floor on main text
+            is_thin = main_text_len < floor
+            thin_reason = f"explicit threshold: main text {main_text_len} < {floor}"
+        else:
+            is_thin, thin_reason = _assess_thin_content(main_text_len, visible_text_len)
+
+        content_ratio = round(main_text_len / visible_text_len, 3) if visible_text_len else None
+
         # 5. Login wall
         login_wall = False
         if parser.has_form and parser.has_password_input and is_thin:
             login_wall = True
-            
+
         return {
             "cloudflare_challenge": bool(cf_matches),
             "cloudflare_signals": cf_matches,
@@ -121,7 +183,11 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "generic_block_signals": generic_block_matches,
             "login_wall": login_wall,
             "thin_content": is_thin,
+            "thin_content_reason": thin_reason,
             "visible_text_length": visible_text_len,
+            "main_text_length": main_text_len,
+            "boilerplate_text_length": boilerplate_text_len,
+            "content_to_total_ratio": content_ratio,
             "_fingerprint_error": parser_error
         }
     except Exception as e:
@@ -134,7 +200,11 @@ def analyze_fingerprints(html_content, thin_threshold=THIN_CONTENT_THRESHOLD):
             "generic_block_signals": [],
             "login_wall": False,
             "thin_content": False,
+            "thin_content_reason": f"analysis error: {str(e)}",
             "visible_text_length": 0,
+            "main_text_length": 0,
+            "boilerplate_text_length": 0,
+            "content_to_total_ratio": None,
             "_fingerprint_error": f"Fatal analysis error: {str(e)}"
         }
 
@@ -148,93 +218,108 @@ class RedirectTracker(urllib.request.HTTPRedirectHandler):
             raise urllib.error.HTTPError(newurl, code, "Too many redirects", headers, fp)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
-def fetch_url(url, user_agent, timeout=10):
+def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
     start_time = time.time()
     default_fingerprints = {
-        "cloudflare_challenge": False, "cloudflare_signals": [], "captcha": False, "captcha_signals": [], 
+        "cloudflare_challenge": False, "cloudflare_signals": [], "captcha": False, "captcha_signals": [],
         "generic_block": False, "generic_block_signals": [],
-        "login_wall": False, "thin_content": False, "visible_text_length": 0, "_fingerprint_error": None
+        "login_wall": False, "thin_content": False, "thin_content_reason": "no content fetched",
+        "visible_text_length": 0, "main_text_length": 0, "boilerplate_text_length": 0,
+        "content_to_total_ratio": None, "_fingerprint_error": None
     }
     
     tracker = RedirectTracker()
     opener = urllib.request.build_opener(tracker)
     req = urllib.request.Request(url, headers={"User-Agent": user_agent})
     
-    try:
-        with opener.open(req, timeout=timeout) as resp:
-            response_time = time.time() - start_time
-            status_code = resp.getcode()
-            final_url = resp.geturl()
-            headers_dict = dict(resp.info())
-            
-            MAX_BYTES = 500 * 1024
-            chunks = []
-            bytes_read = 0
-            while True:
-                chunk = resp.read(65536)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-                bytes_read += len(chunk)
+    for attempt in range(retries_on_429 + 1):
+        try:
+            with opener.open(req, timeout=timeout) as resp:
+                response_time = time.time() - start_time
+                status_code = resp.getcode()
+                final_url = resp.geturl()
+                headers_dict = dict(resp.info())
+                
+                MAX_BYTES = 500 * 1024
+                chunks = []
+                bytes_read = 0
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    bytes_read += len(chunk)
+                    if bytes_read >= MAX_BYTES:
+                        break
+                
+                raw_bytes = b"".join(chunks)
+                try:
+                    content = raw_bytes.decode("utf-8", errors="replace")
+                except Exception:
+                    content = raw_bytes.decode("latin-1", errors="replace")
+                    
+                fingerprints = analyze_fingerprints(content)
+                
                 if bytes_read >= MAX_BYTES:
-                    break
-            
-            raw_bytes = b"".join(chunks)
+                    content = content[:MAX_BYTES] + "\n...[TRUNCATED]"
+                    
+                return {
+                    "status": status_code,
+                    "final_url": final_url,
+                    "redirect_count": tracker.redirect_count,
+                    "response_time": round(response_time, 3),
+                    "response_headers": headers_dict,
+                    "content": content,
+                    "content_fingerprints": fingerprints,
+                    "error": None
+                }
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < retries_on_429:
+                retry_after = e.headers.get("Retry-After") if e.headers else None
+                wait_time = 1.5
+                if retry_after and str(retry_after).isdigit():
+                    wait_time = min(float(retry_after), 3.0)
+                time.sleep(wait_time)
+                continue
+
+            response_time = time.time() - start_time
             try:
-                content = raw_bytes.decode("utf-8", errors="replace")
+                body_bytes = e.read(500 * 1024)
+                content = body_bytes.decode("utf-8", errors="replace")
             except Exception:
-                content = raw_bytes.decode("latin-1", errors="replace")
-                
-            fingerprints = analyze_fingerprints(content)
-            
-            if bytes_read >= MAX_BYTES:
-                content = content[:MAX_BYTES] + "\n...[TRUNCATED]"
-                
+                content = ""
+            fingerprints = analyze_fingerprints(content) if content else default_fingerprints
             return {
-                "status": status_code,
-                "final_url": final_url,
+                "status": e.code,
+                "final_url": e.url or url,
                 "redirect_count": tracker.redirect_count,
                 "response_time": round(response_time, 3),
-                "response_headers": headers_dict,
+                "response_headers": dict(e.headers) if e.headers else {},
                 "content": content,
                 "content_fingerprints": fingerprints,
                 "error": None
             }
-    except urllib.error.HTTPError as e:
-        response_time = time.time() - start_time
-        try:
-            body_bytes = e.read(500 * 1024)
-            content = body_bytes.decode("utf-8", errors="replace")
-        except Exception:
-            content = ""
-        fingerprints = analyze_fingerprints(content) if content else default_fingerprints
-        return {
-            "status": e.code,
-            "final_url": e.url or url,
-            "redirect_count": tracker.redirect_count,
-            "response_time": round(response_time, 3),
-            "response_headers": dict(e.headers) if e.headers else {},
-            "content": content,
-            "content_fingerprints": fingerprints,
-            "error": None
-        }
-    except (urllib.error.URLError, socket.timeout, TimeoutError) as e:
-        return {
-            "status": "timeout" if isinstance(e, (socket.timeout, TimeoutError)) or "timed out" in str(e).lower() else None,
-            "final_url": None, "redirect_count": 0,
-            "response_time": round(time.time() - start_time, 3),
-            "response_headers": {}, "content": "",
-            "content_fingerprints": default_fingerprints, "error": str(e)
-        }
-    except Exception as e:
-        return {
-            "status": None, "final_url": None, "redirect_count": 0,
-            "response_time": round(time.time() - start_time, 3),
-            "response_headers": {}, "content": "",
-            "content_fingerprints": default_fingerprints, "error": f"Unexpected error: {str(e)}"
-        }
+        except (urllib.error.URLError, socket.timeout, TimeoutError) as e:
+            return {
+                "status": "timeout" if isinstance(e, (socket.timeout, TimeoutError)) or "timed out" in str(e).lower() else None,
+                "final_url": None, "redirect_count": 0,
+                "response_time": round(time.time() - start_time, 3),
+                "response_headers": {}, "content": "",
+                "content_fingerprints": default_fingerprints, "error": str(e)
+            }
+        except Exception as e:
+            return {
+                "status": None, "final_url": None, "redirect_count": 0,
+                "response_time": round(time.time() - start_time, 3),
+                "response_headers": {}, "content": "",
+                "content_fingerprints": default_fingerprints, "error": f"Unexpected error: {str(e)}"
+            }
 
-def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
+def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7):
+    # 7s (down from 10s): this pair of fetches runs once per sampled page, so
+    # its cost multiplies with page count; a real server answers in well
+    # under this, and a 429-retry (capped at 3s wait) plus this timeout on
+    # both fetches already tops out well short of the old ~48s worst case.
     browser_result = fetch_url(url, browser_ua, timeout=timeout)
     try:
         time.sleep(delay)
@@ -243,8 +328,11 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
     bot_result = fetch_url(url, bot_ua, timeout=timeout)
     
     comparison = {}
-    if browser_result.get("status") and bot_result.get("status"):
-        comparison["status_match"] = browser_result["status"] == bot_result["status"]
+    bot_status = bot_result.get("status")
+    browser_status = browser_result.get("status")
+
+    if browser_status and bot_status:
+        comparison["status_match"] = browser_status == bot_status
         comparison["length_diff_bytes"] = abs(len(browser_result.get("content", "")) - len(bot_result.get("content", "")))
         
         br_fp = browser_result.get("content_fingerprints", {})
@@ -255,8 +343,25 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
         )
         comparison["fingerprint_divergence"] = divergence
     
+    br_fp = browser_result.get("content_fingerprints", {})
+    bot_fp = bot_result.get("content_fingerprints", {})
+    bot_blocked = (bot_status in [401, 403]) or bot_fp.get("generic_block", False)
+    # Only flag as challenged when the challenge is bot-specific (divergence from browser).
+    # Shared challenges (e.g. contact-form reCAPTCHA visible to both browser and bot) are NOT bot blocks.
+    bot_challenged = (
+        (bot_fp.get("cloudflare_challenge", False) and not br_fp.get("cloudflare_challenge", False))
+        or
+        (bot_fp.get("captcha", False) and not br_fp.get("captcha", False))
+    )
+    rate_limited = (bot_status == 429) or (browser_status == 429)
+
     return {
         "url": url,
+        "browser_status": browser_status,
+        "bot_status": bot_status,
+        "bot_blocked": bot_blocked,
+        "bot_challenged": bot_challenged,
+        "rate_limited": rate_limited,
         "browser_fetch": browser_result,
         "bot_fetch": bot_result,
         "comparison_metrics": comparison
@@ -264,7 +369,7 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=10):
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -294,7 +399,7 @@ if __name__ == "__main__":
             else:
                 target_url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

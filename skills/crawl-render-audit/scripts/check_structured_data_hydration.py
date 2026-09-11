@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import re
@@ -10,6 +14,8 @@ def sanitize_json_ld_string(raw_str):
     s = re.sub(r'\s*-->$', '', s)
     s = re.sub(r'^//<!\[CDATA\[\s*', '', s)
     s = re.sub(r'^\s*<!\[CDATA\[\s*', '', s)
+    s = re.sub(r'^/\*\s*<!\[CDATA\[\s*\*/', '', s)    # /* <![CDATA[ */ variant
+    s = re.sub(r'/\*\s*\]\]>\s*\*/$', '', s)           # /* ]]> */ closing variant
     s = re.sub(r'\s*//\]\]>\s*$', '', s)
     s = re.sub(r'\s*\]\]>\s*$', '', s)
     return s.strip()
@@ -104,13 +110,23 @@ def check_structured_data_hydration(raw_html, rendered_html, url):
     rendered_blocks = extract_json_ld_blocks(rendered_html) if has_rendered else []
 
     raw_types = extract_entity_types_from_blocks(raw_blocks)
-    rendered_types = extract_entity_types_from_blocks(rendered_blocks) if has_rendered else raw_types
+    # When no rendered_html, do NOT fall back to raw_types — leave as None so
+    # we don't falsely report zero trapped entities.
+    rendered_types = extract_entity_types_from_blocks(rendered_blocks) if has_rendered else None
 
     # Identify entities present in rendered DOM but missing from raw initial HTML
-    js_trapped_entities = list(rendered_types - raw_types)
-    js_injected_blocks_count = max(len(rendered_blocks) - len(raw_blocks), 0) if has_rendered else 0
-
-    has_hydration_barrier = len(js_trapped_entities) > 0 or (has_rendered and len(raw_blocks) == 0 and len(rendered_blocks) > 0)
+    if has_rendered and rendered_types is not None:
+        js_trapped_entities = list(rendered_types - raw_types)
+        js_injected_blocks_count = max(len(rendered_blocks) - len(raw_blocks), 0)
+        has_hydration_barrier = (
+            len(js_trapped_entities) > 0
+            or (len(raw_blocks) == 0 and len(rendered_blocks) > 0)
+        )
+    else:
+        js_trapped_entities = []
+        js_injected_blocks_count = 0
+        # Cannot determine hydration barrier without rendered HTML — report unknown (None)
+        has_hydration_barrier = None
 
     return {
         'has_rendered_comparison': has_rendered,
@@ -120,7 +136,7 @@ def check_structured_data_hydration(raw_html, rendered_html, url):
         },
         'rendered_dom': {
             'json_ld_blocks_count': len(rendered_blocks) if has_rendered else None,
-            'detected_schema_types': sorted(list(rendered_types)) if has_rendered else None
+            'detected_schema_types': sorted(list(rendered_types)) if has_rendered and rendered_types is not None else None
         },
         'hydration_analysis': {
             'js_trapped_schema_types': sorted(js_trapped_entities),
@@ -131,7 +147,7 @@ def check_structured_data_hydration(raw_html, rendered_html, url):
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -165,7 +181,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

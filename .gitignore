@@ -1,0 +1,14 @@
+# Local testing scaffolding — not part of the marketplace submission
+.claude/skills/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Test/benchmark caches
+.pytest_cache/
+.benchmarks/
+
+# Editor
+.vscode/

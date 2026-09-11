@@ -1,18 +1,12 @@
 {
-  "product": {
-    "min_word_count": 200,
-    "recommended_word_count": 500
-  },
-  "service": {
-    "min_word_count": 300,
-    "recommended_word_count": 800
-  },
-  "article": {
-    "min_word_count": 600,
-    "recommended_word_count": 1500
-  },
-  "unknown": {
-    "min_word_count": null,
-    "recommended_word_count": null
-  }
+  "_note": "ADVISORY bands only - never hard cutoffs. check_content_depth.py consults these solely for content-bearing page intents (product, service, article, homepage, category) and flags 'below_reference_range' ONLY when word count, paragraph count, and text-to-markup ratio all three agree the page is thin. Utility, app, media and unknown intents are never scored. Bands are deliberately low to catch only genuinely empty content pages.",
+  "product":  { "advisory_min_words": 120, "recommended_words": 400 },
+  "service":  { "advisory_min_words": 150, "recommended_words": 500 },
+  "article":  { "advisory_min_words": 350, "recommended_words": 1000 },
+  "homepage": { "advisory_min_words": 80,  "recommended_words": 300 },
+  "category": { "advisory_min_words": 60,  "recommended_words": 250 },
+  "utility":  { "advisory_min_words": null, "recommended_words": null },
+  "app":      { "advisory_min_words": null, "recommended_words": null },
+  "media":    { "advisory_min_words": null, "recommended_words": null },
+  "unknown":  { "advisory_min_words": null, "recommended_words": null }
 }

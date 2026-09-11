@@ -19,7 +19,11 @@ Used by `scripts/check_content_dates.py` to identify explicit text declarations 
 Used by `scripts/check_content_dates.py` to extract copyright years across single years ("© 2026") and multi-year ranges ("© 2019-2026", "© 2018, 2022, 2026"):
 
 - Block Pattern: `(?:copyright|©|\bcopr\b|\&copy\;)\s*([\s\S]{1,120}?)(?=\.|\;|$|<|\n)`
-- Year Range Extraction: Matches all 4-digit years (`20\d{2}|19\d{2}`) inside the copyright block and evaluates `max(years)`.
+- **Scanned on visible text only** — `<script>`, `<style>`, and HTML-comment bodies are stripped first, so a bundled library's `/* … Copyright 2015 … */` banner or an inline `var year = 2019` cannot supply a false copyright year.
+- Year Range Extraction: Matches all 4-digit years (`20\d{2}|19\d{2}`) inside the copyright block; `copyright_years_all` reports every year, `copyright_year` is the max.
+
+## 2b. JSON-LD Date Age & Sanity
+Also in `scripts/check_content_dates.py`: `datePublished` / `dateModified` are parsed to real dates and aged against now (`date_modified_age_days`, `effective_content_age_days`). `content_date_issues` flags `dateModified` earlier than `datePublished`, future dates, and unparseable values. This is the highest-value freshness signal and feeds the "Structured Content Date (dateModified) Is Stale" finding.
 
 ## 3. Search Snippet Fact & Year Extraction Patterns
 Used by `scripts/check_citation_consistency.py` to extract candidate years or numbers from search result titles and snippets:
@@ -35,6 +39,9 @@ Used by `scripts/check_citation_consistency.py` to extract candidate years or nu
 ## 4. Blog Listing Heuristics & Known Limitations
 Used by `scripts/check_temporal_decay.py` to analyze blog/news listing recency:
 
-- **High Confidence Path**: Prefers structured `<time datetime="...">` tags present in HTML markup.
-- **Low Confidence Heuristic Path**: Falls back to pattern matching and boilerplate phrase filtering (`BOILERPLATE_PATTERNS`, `in_footer` tracking) to exclude copyright lines and taglines.
-- **Known Limitation**: Incidental year mentions in sidebars, testimonials (e.g. "Customer since 2020"), or category widgets ("Popular in 2025") that lack structured `<time>` tags may still be included in loose post counts. The script explicitly flags `detection_confidence: "low"` in these cases so the orchestrator weights post count statistics appropriately.
+- **High Confidence Path**: structured `<time datetime="YYYY-MM-DD">` tags. Relative `<time>` bodies ("2 days ago", "yesterday") are recognised via `RELATIVE_RECENT_RX` and treated as a very recent post (`has_relative_recent_timestamps: true`, `days_since_last_post: 0`) instead of being silently dropped.
+- **Footer scoping**: a page-level `<footer>` is boilerplate and suppressed, but a per-post `<article><footer class="post-meta">` is **not** — depth counters track `<article>` vs `<footer>` so post-card dates are no longer lost.
+- **Ranking**: full `year+month+day` dates outrank year-only matches; implausible future years (`> current_year + 1`) are dropped, so "Roadmap 2027" can't become the newest post.
+- **Year-only precision**: when only a year is recoverable (e.g. a non-English month name the English `MONTH_MAP` cannot parse), the date is resolved to **31 December of that year, capped at today** -- never 1 January. Inventing Jan 1 overstates age by up to 11 months and can flip the 365-day decay verdict; assuming the latest possible date makes `days_since_last_post` a *lower bound*, so `is_decayed` can never be a false positive. `date_precision` reports `day` / `year_only` / `relative_recent`.
+- **Output**: emits `days_since_last_post`, `is_decayed` (`> 365` days), `most_recent_post_date_iso`, `date_precision`, `text_date_snippets` — the fields the orchestrator's decay finding and the agent's low-confidence judgement both consume.
+- **Known Limitation**: incidental year mentions in sidebars / testimonials that lack any `<time>` tag can still appear in `text_date_snippets`; `detection_confidence: "low"` flags this, and the agent judges the snippets rather than trusting the loose max.

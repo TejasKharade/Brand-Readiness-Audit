@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import re
@@ -170,6 +174,25 @@ def check_semantic_structure(html_content, url):
             'sequence': parser.headings,
             'skipped_levels': skipped_levels
         },
+        # Rolled-up booleans consumed by the orchestrator.
+        'h1_missing': h1_count == 0,
+        'multiple_h1': h1_count > 1,
+        # Structural fingerprint of a CLIENT-INJECTED <h1>: the outline's root
+        # is absent while its children are present. Hand-written HTML rarely
+        # ships h2/h3 with no h1; a JS-rendered hero headline does exactly this.
+        # The orchestrator uses this to say "server-render the <h1>" rather than
+        # the wrong advice "add an <h1>".
+        'h1_missing_but_subheadings_present': (
+            h1_count == 0
+            and sum(1 for h in parser.headings if h.get('level') in (2, 3)) > 0
+        ),
+        'subheading_levels_present': sorted({
+            h.get('level') for h in parser.headings if h.get('level')
+        }),
+        'heading_hierarchy_issues': [
+            f"level {s.get('from_level')} -> {s.get('to_level')} at '{str(s.get('heading_text'))[:60]}'"
+            for s in skipped_levels
+        ],
         'semantic_elements': {
             'main_count': parser.main_count,
             'article_count': parser.article_count,
@@ -187,7 +210,7 @@ def check_semantic_structure(html_content, url):
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -219,7 +242,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

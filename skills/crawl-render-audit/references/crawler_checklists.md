@@ -9,11 +9,18 @@
 - `Bytespider` (ByteDance)
 - `Google-Extended` (Gemini Training / Grounding)
 
-## Audit Rules
+## Scope
 
-1. **robots.txt Checks**:
-   - If `User-agent: *` contains `Disallow: /`, mark as **CRITICAL**.
-   - If specific AI agents (`GPTBot`, `ClaudeBot`) are explicitly disallowed from core content sections, mark as **HIGH**.
+`robots.txt` and HTTP-level access rules are audited by **`crawl-access-audit`**,
+not here. This skill only inspects HTML payloads for rendering / redirect
+barriers. The user-agent list above is for reference (it is the same crawler
+population both skills care about).
 
-2. **Client-Side Rendering Checks**:
-   - If `<div id="app"></div>` or `<div id="root"></div>` contains 0 text nodes in initial response, mark as **HIGH** (JS rendering required for discovery).
+## Audit Rules (this skill)
+
+1. **Client-Side Rendering Checks**:
+   - A SPA mount point (`<div id="root">`, `<div id="app">`, `<div id="__next">`, framework class fragments, …) that is **empty or near-empty in the initial response** is a rendering barrier. A mount point that already contains server-rendered content (e.g. hydrated Next.js SSR) is **not** a barrier.
+   - Verdict is multi-signal (see `rendering_checklists.md` §1), never a single word-count or ratio cutoff.
+
+2. **Redirect Checks**:
+   - Meta refresh counts only with a `url=` target; JS `location` assignments with a string-literal target are dead-ends for non-JS crawlers.

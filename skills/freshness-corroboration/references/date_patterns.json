@@ -10,7 +10,7 @@
     "(?:copyright|©|\\bcopr\\b|\\&copy\\;)\\s*([\\s\\S]{1,120}?)(?=\\.|\\;|$|<|\\n)"
   ],
   "founding_year_patterns": [
-    "\\b(?:founded|established|started|launched|created)\\s+(?:in\\s+)?(20\\d{2}|19\\d{2})\\b"
+    "\\b(?:founded|established|started|launched|created)\\s+(?:in\\s+)?(?:the\\s+year\\s+(?:of\\s+)?)?(20\\d{2}|19\\d{2})\\b"
   ],
   "headquarters_patterns": [
     "\\b(?:headquartered|headquarters|based|located|hq)\\s+in\\s+([A-Za-z\\s,\\.]+?)(?=\\.|\\;|\\,|$|\\s+and)"

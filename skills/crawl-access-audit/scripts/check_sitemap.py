@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import gzip
@@ -7,6 +11,26 @@ from urllib.error import URLError, HTTPError
 import xml.etree.ElementTree as ET
 import socket
 import urllib.parse
+
+import time
+import math
+
+# ---------------------------------------------------------------------------
+# Adaptive sampling. Instead of fixed "first 3 / first 5" caps, both the number
+# of child sitemaps expanded and the number of listed URLs spot-checked scale
+# with the square root of how many exist -- so a 20-page site and a 20,000-page
+# site are both sampled sensibly -- but stay clamped to a bounded request
+# budget so the audit never becomes a rate-abusing crawl (handout: <5 min,
+# no rate abuse). Sampling is evenly spaced by index and therefore deterministic.
+# ---------------------------------------------------------------------------
+URL_SAMPLE_MIN, URL_SAMPLE_MAX = 5, 15
+CHILD_SITEMAP_MIN, CHILD_SITEMAP_MAX = 3, 6
+
+
+def _adaptive_count(total, lo, hi):
+    if total <= 0:
+        return lo
+    return max(lo, min(int(math.ceil(math.sqrt(total))), hi))
 
 # Relaxed SSL context reserved strictly for retries on SSLCertVerificationError / SSLError
 RELAXED_SSL_CTX = ssl.create_default_context()
@@ -19,25 +43,38 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; AIAccessibilityAuditor/1.0)"}
 XML_SUFFIX_INDEX_THRESHOLD = 0.8
 
 
-def fetch_resource(url, timeout=12):
+def fetch_resource(url, timeout=12, retries_on_429=1):
     """Fetches a URL, auto-decompressing gzip (.xml.gz) if detected."""
     req = urllib.request.Request(url, headers=HEADERS)
     ssl_bypassed = False
-    try:
-        resp = urllib.request.urlopen(req, timeout=timeout)
-    except (ssl.SSLCertVerificationError, ssl.SSLError):
-        ssl_bypassed = True
-        resp = urllib.request.urlopen(req, timeout=timeout, context=RELAXED_SSL_CTX)
 
-    with resp:
-        content = resp.read()
-        # Detect GZIP magic bytes (1f 8b)
-        if content[:2] == b"\x1f\x8b":
+    for attempt in range(retries_on_429 + 1):
+        try:
+            resp = urllib.request.urlopen(req, timeout=timeout)
+        except HTTPError as e:
+            if e.code == 429 and attempt < retries_on_429:
+                time.sleep(1.5)
+                continue
+            raise
+        except (ssl.SSLCertVerificationError, ssl.SSLError):
+            ssl_bypassed = True
             try:
-                content = gzip.decompress(content)
-            except Exception:
-                pass
-        return resp.status, content, ssl_bypassed
+                resp = urllib.request.urlopen(req, timeout=timeout, context=RELAXED_SSL_CTX)
+            except HTTPError as e:
+                if e.code == 429 and attempt < retries_on_429:
+                    time.sleep(1.5)
+                    continue
+                raise
+
+        with resp:
+            content = resp.read()
+            # Detect GZIP magic bytes (1f 8b)
+            if content[:2] == b"\x1f\x8b":
+                try:
+                    content = gzip.decompress(content)
+                except Exception:
+                    pass
+            return resp.status, content, ssl_bypassed
 
 
 def parse_xml_elements(root):
@@ -113,20 +150,82 @@ def spot_check_url(url, timeout=5):
         return "error", False
 
 
-def check_sitemap(sitemap_url, max_samples=5):
+def probe_conventional_path(conventional_url):
+    """Probe the conventional /sitemap.xml when robots.txt declared the sitemap
+    somewhere else.
+
+    Reports a SOFT-200 only: the path answers 2xx but the body does not parse
+    as a sitemap -- the signature of SPA catch-all routing that serves
+    index.html for every unmatched route. This is the same shape as the
+    existing `robots.malformed` check one path over.
+
+    A 404/410 here is CORRECT behaviour when robots.txt declares the sitemap
+    elsewhere, and is explicitly NOT reported -- declaring via robots.txt is
+    the spec-sanctioned method and most healthy sites have no file at this path.
+    """
+    out = {"url": conventional_url, "checked": True, "http_status": None,
+           "responds_2xx": False, "parses_as_sitemap": None,
+           "soft_200": False, "error": None}
+    try:
+        status, content, _ = fetch_resource(conventional_url, timeout=8)
+        out["http_status"] = status
+        out["responds_2xx"] = 200 <= int(status) < 300
+        if not out["responds_2xx"]:
+            return out                      # 404/410 here is fine, not a defect
+        try:
+            ET.fromstring(content)
+            out["parses_as_sitemap"] = True
+        except ET.ParseError as e:
+            out["parses_as_sitemap"] = False
+            out["error"] = f"XML Parse Error: {str(e)[:80]}"
+        out["soft_200"] = out["responds_2xx"] and out["parses_as_sitemap"] is False
+    except HTTPError as e:
+        out["http_status"] = e.code         # a real 4xx/5xx is correct behaviour
+    except Exception as e:
+        out["error"] = str(e)[:120]
+        out["checked"] = False              # could not determine -> report nothing
+    return out
+
+
+SITEMAP_FETCH_DEADLINE_S = 30.0
+
+
+def check_sitemap(sitemap_url, max_samples=None, conventional_url=None):
+    # Shared wall-clock ceiling across the root fetch, every child sitemap, and
+    # every URL spot-check combined. Without it, a slow-but-live server (not
+    # down, just slow) can turn up to 6 child fetches + 15 spot-checks, each
+    # with its own multi-second timeout, into minutes -- this is one of five
+    # skills in a <5min audit budget, so it must return within a bounded time
+    # regardless of how slow the target responds.
+    deadline_start = time.time()
+
+    def time_left():
+        return SITEMAP_FETCH_DEADLINE_S - (time.time() - deadline_start)
+
     result = {
         "exists": False,
+        "sitemap_found": False,
+        "conventional_path_check": None,
         "valid_xml": False,
         "is_sitemap_index": False,
         "reclassified_as_index": False,
         "child_sitemaps_total": 0,
         "child_sitemaps_checked": 0,
+        "child_sitemaps_sampled": 0,
         "child_sitemap_errors": [],
         "url_count": 0,
         "is_empty": True,
         "ssl_verification_bypassed": False,
         "sampled_urls": [],
-        "error": None
+        "sampling_strategy": {
+            "method": "adaptive_sqrt_clamped",
+            "url_sample_bounds": [URL_SAMPLE_MIN, URL_SAMPLE_MAX],
+            "child_sitemap_bounds": [CHILD_SITEMAP_MIN, CHILD_SITEMAP_MAX],
+            "urls_sampled": 0,
+            "child_sitemaps_expanded_of_total": None
+        },
+        "error": None,
+        "time_budget_exceeded": False
     }
 
     try:
@@ -164,11 +263,23 @@ def check_sitemap(sitemap_url, max_samples=5):
         if index_urls and not page_urls:
             result["is_sitemap_index"] = True
             result["child_sitemaps_total"] = len(index_urls)
-            children_to_fetch = index_urls[:3]
+            child_cap = _adaptive_count(len(index_urls), CHILD_SITEMAP_MIN, CHILD_SITEMAP_MAX)
+            # evenly spaced by index so a large index is sampled across its span
+            step = max(1, len(index_urls) // child_cap)
+            children_to_fetch = [index_urls[i] for i in range(0, len(index_urls), step)][:child_cap]
+            result["child_sitemaps_sampled"] = len(children_to_fetch)
+            result["sampling_strategy"]["child_sitemaps_expanded_of_total"] = (
+                f"{len(children_to_fetch)}/{len(index_urls)}")
 
             for child_url in children_to_fetch:
+                if time_left() <= 0:
+                    result["time_budget_exceeded"] = True
+                    result["child_sitemap_errors"].append({
+                        "url": child_url, "error": f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded"})
+                    continue
                 try:
-                    child_status, child_content, child_ssl_bypassed = fetch_resource(child_url)
+                    child_status, child_content, child_ssl_bypassed = fetch_resource(
+                        child_url, timeout=max(2, min(12, time_left())))
                     if child_ssl_bypassed:
                         result["ssl_verification_bypassed"] = True
 
@@ -191,13 +302,25 @@ def check_sitemap(sitemap_url, max_samples=5):
         result["url_count"] = len(page_urls)
         result["is_empty"] = len(page_urls) == 0
 
-        # Spot-check 3-5 listed URLs as requested by the checklist
+        # Spot-check an adaptive sample of listed URLs, evenly spaced by index.
         if page_urls:
-            step = max(1, len(page_urls) // max_samples)
-            sampled = [page_urls[i] for i in range(0, len(page_urls), step)][:max_samples]
+            if isinstance(max_samples, int) and max_samples > 0:
+                sample_cap = max_samples          # explicit override honoured
+            else:
+                sample_cap = _adaptive_count(len(page_urls), URL_SAMPLE_MIN, URL_SAMPLE_MAX)
+            step = max(1, len(page_urls) // sample_cap)
+            sampled = [page_urls[i] for i in range(0, len(page_urls), step)][:sample_cap]
+            result["sampling_strategy"]["urls_sampled"] = len(sampled)
 
             for u in sampled:
-                status_code, spot_ssl_bypassed = spot_check_url(u)
+                if time_left() <= 0:
+                    result["time_budget_exceeded"] = True
+                    result["sampled_urls"].append({
+                        "url": u, "status": None,
+                        "error": f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded",
+                        "ssl_verification_bypassed": False})
+                    continue
+                status_code, spot_ssl_bypassed = spot_check_url(u, timeout=max(2, min(5, time_left())))
                 result["sampled_urls"].append({
                     "url": u,
                     "status": status_code,
@@ -214,12 +337,27 @@ def check_sitemap(sitemap_url, max_samples=5):
         result["exists"] = False
         result["error"] = f"Execution Error: {str(e)}"
 
+    # Rolled-up reachability flag consumed by the orchestrator. A sitemap that
+    # exists but failed child traversal is still "found" -- per the SKILL.md
+    # interpretation note, partial traversal must not be reported as "no sitemap".
+    result["sitemap_found"] = bool(result["exists"] and result["valid_xml"])
+
+    # Only probe the conventional path when robots.txt pointed somewhere else.
+    # If no declared sitemap existed, `sitemap_url` already IS the conventional
+    # path and a second request would be wasted.
+    if conventional_url:
+        try:
+            same = conventional_url.rstrip("/").lower() == str(sitemap_url).rstrip("/").lower()
+        except Exception:
+            same = False
+        if not same:
+            result["conventional_path_check"] = probe_conventional_path(conventional_url)
     return result
 
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -249,7 +387,7 @@ if __name__ == "__main__":
             else:
                 sitemap_url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)
@@ -267,7 +405,8 @@ if __name__ == "__main__":
         if not sitemap_url.endswith(".xml") and not sitemap_url.endswith(".gz") and "/sitemap" not in sitemap_url.lower():
             sitemap_url = sitemap_url.rstrip("/") + "/sitemap.xml"
 
-        output = check_sitemap(sitemap_url)
+        output = check_sitemap(sitemap_url,
+                               conventional_url=params.get("conventional_url"))
         print(json.dumps(output, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

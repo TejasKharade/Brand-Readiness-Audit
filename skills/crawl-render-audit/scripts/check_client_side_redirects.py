@@ -1,3 +1,7 @@
+
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
 import re
@@ -47,31 +51,63 @@ def check_client_side_redirects(raw_html, url):
 
     combined_scripts = "\n".join(parser.script_blocks)
 
-    # Detect window.location / location.href / location.replace JS redirects strictly in script blocks
-    js_redirect_patterns = [
-        r'window\.location(?:\.href)?\s*=\s*["\']([^"\']+)["\']',
-        r'location\.replace\s*\(\s*["\']([^"\']+)["\']\s*\)',
-        r'location\.assign\s*\(\s*["\']([^"\']+)["\']\s*\)'
-    ]
+    # --- Meta refresh: only a redirect when the content carries a url= target.
+    # `<meta http-equiv="refresh" content="600">` (periodic same-page refresh)
+    # is NOT a redirect and must not be flagged as one.
+    meta_refresh_redirects = []
+    meta_refresh_noop = []
+    for content in parser.meta_refreshes:
+        m = re.search(r'url\s*=\s*[\'"]?([^\'";]+)', content or "", re.IGNORECASE)
+        if m:
+            meta_refresh_redirects.append(m.group(1).strip())
+        else:
+            meta_refresh_noop.append((content or "").strip())
 
+    # --- JS hard redirects: string-literal targets on any location accessor
+    # (window/document/top/self/parent + bare `location`).
+    _loc = r'(?:(?:window|document|top|self|parent)\s*\.\s*)?location'
+    js_redirect_patterns = [
+        rf'{_loc}\s*\.\s*href\s*=\s*["\']([^"\']+)["\']',
+        rf'{_loc}\s*=\s*["\']([^"\']+)["\']',
+        rf'{_loc}\s*\.\s*(?:replace|assign)\s*\(\s*["\']([^"\']+)["\']\s*\)',
+    ]
     detected_js_redirects = []
     for pat in js_redirect_patterns:
-        matches = re.findall(pat, combined_scripts, re.IGNORECASE)
-        for m in matches:
+        for m in re.findall(pat, combined_scripts, re.IGNORECASE):
             if m not in detected_js_redirects:
                 detected_js_redirects.append(m)
 
-    has_redirect = bool(parser.meta_refreshes or detected_js_redirects)
+    has_redirect = bool(meta_refresh_redirects or detected_js_redirects)
+
+    # Flaw 14: SPA client-side routing APIs (soft signal — not a hard redirect).
+    # (compiled pattern, human-readable label) so the output never leaks regex.
+    spa_routing_patterns = [
+        (re.compile(r'history\.(?:pushState|replaceState)\s*\(', re.I), 'History API pushState/replaceState'),
+        (re.compile(r'this\.\$router\.(?:push|replace)\s*\(', re.I),   'Vue Router push/replace'),
+        (re.compile(r'\brouter\.navigate\s*\(', re.I),                 'Angular Router navigate()'),
+        (re.compile(r'\bnavigate\s*\(\s*["\'/]', re.I),                'React Router navigate()'),
+        (re.compile(r'\buseNavigate\s*\(\s*\)', re.I),                 'React Router useNavigate hook'),
+        (re.compile(r'\buseHistory\s*\(\s*\)', re.I),                  'React Router useHistory hook'),
+        (re.compile(r'<(?:Router|BrowserRouter|HashRouter|MemoryRouter)\b'), 'React Router component'),
+        (re.compile(r'createBrowserRouter|createHashRouter'),          'React Router v6 data router'),
+        (re.compile(r'RouterModule\.forRoot', re.I),                   'Angular RouterModule'),
+        (re.compile(r'\bvue-router\b|\bVueRouter\b'),                  'Vue Router'),
+    ]
+    spa_routing_signals = [label for pat, label in spa_routing_patterns
+                           if pat.search(combined_scripts)]
 
     return {
         'client_side_redirect_detected': has_redirect,
-        'meta_http_equiv_refreshes': parser.meta_refreshes,
-        'js_location_redirects': detected_js_redirects
+        'meta_http_equiv_refreshes': meta_refresh_redirects,
+        'meta_refresh_noop_no_url': meta_refresh_noop,
+        'js_location_redirects': detected_js_redirects,
+        'spa_client_routing_detected': bool(spa_routing_signals),
+        'spa_client_routing_signals': spa_routing_signals[:5],
     }
 
 import threading
 
-def read_stdin_safe(timeout=0.2):
+def read_stdin_safe(timeout=5.0):
     if sys.stdin.isatty():
         return ""
     res = []
@@ -103,7 +139,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=0.2)
+        input_data = read_stdin_safe(timeout=5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)
