@@ -27,16 +27,16 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
       "path": "skills/crawl-render-audit"
     },
     {
-      "id": "readability-audit",
-      "path": "skills/readability-audit"
-    },
-    {
       "id": "freshness-corroboration",
       "path": "skills/freshness-corroboration"
     },
     {
       "id": "engagement-audit",
       "path": "skills/engagement-audit"
+    },
+    {
+      "id": "readability-audit",
+      "path": "skills/readability-audit"
     }
   ]
 }
@@ -46,12 +46,12 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
 
 ## Marketplace Skills Overview
 
-1. **`audit-orchestrator`** *(Entrypoint Master Skill)*: Coordinates the sequential execution of all 5 specialized sub-skills, aggregates findings, calculates per-category readiness scores, rolls them up into the overall **Brand AI Readiness Score** (0-100) as a *prerequisite-weighted* mean (`crawl_access` 0.30, `crawl_render` 0.25, `readability` 0.20, `engagement` 0.15, `freshness_corroboration` 0.10) with **foundational gates** (a critical `crawl_access` finding caps the overall at 40, a critical `crawl_render` finding at 55), and emits the final JSON audit report including a `scoring_model` block showing the weights and any gate that fired.
-2. **`crawl-access-audit`**: Gathers raw technical accessibility facts (`robots.txt` AI crawler permissions, dual-identity browser vs. bot HTTP fetches, indexing meta tags, XML sitemap health, crawl depth).
-3. **`crawl-render-audit`**: Evaluates client-side JavaScript rendering barriers, DOM hydration gaps, trapped JSON-LD structured data, and client-side redirects.
-4. **`readability-audit`**: Audits Schema.org JSON-LD completeness across 9 schema types, semantic heading hierarchy (`<h1>`-`<h6>`), non-text machine-readable facts, and tabular data consistency.
-5. **`freshness-corroboration`**: Audits content publication/modification dates, copyright year ranges, blog temporal decay, off-site web search citation consistency, and Wikipedia/Wikidata `sameAs` entity links.
-6. **`engagement-audit`**: Audits human visitor orientation, 1-level homepage navigation reachability, content depth vs. reference ranges, mobile responsiveness viewport tags, cross-page brand phrase consistency, and page weight resource signals.
+1. **`audit-orchestrator`** *(Entrypoint Master Skill)*: Coordinates the sequential execution of all 5 specialized sub-skills and synthesizes their raw findings into the final report. Per-category scores use severity-weighted deductions with **diminishing returns** for repeated same-severity findings in one category (so many minor issues can't outweigh one severe issue) and **confidence weighting** (a heuristic-only or low-confidence finding counts for less than a script-confirmed fact). These roll up into the overall **Brand AI Readiness Score** (0-100) as a *prerequisite-weighted* mean (`crawl_access` 0.30, `crawl_render` 0.25, `readability` 0.20, `engagement` 0.15, `freshness_corroboration` 0.10) with **foundational gates** (a critical `crawl_access` finding caps the overall at 40, a critical `crawl_render` finding at 55 — softened toward the uncapped score when the triggering finding itself is not fully confident). The final report's `scoring_model` block shows the weights, any gate that fired, and a `category_deduction_detail` breakdown of exactly how each category's score was built.
+2. **`crawl-access-audit`**: Gathers raw technical accessibility facts — `robots.txt` rules evaluated per RFC 9309 (longest-match, wildcards) and **split by crawler purpose**: live AI-search/assistant retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, …) versus model-training-only crawlers (`GPTBot`, `ClaudeBot`, `CCBot`, `Google-Extended`, …), verified against each operator's own documentation, so blocking a training crawler is scored very differently from blocking one that feeds live AI search answers; dual-identity browser-vs-bot HTTP fetches (with redirect loop/long-chain detection); **TLS certificate validity** (expired, hostname-mismatched, self-signed, expiring soon); indexing meta tags; XML sitemap health with an adaptive, structurally-grouped **representative page sample** (one URL per URL-structure group, not just the first N listed); and crawl depth.
+3. **`crawl-render-audit`**: Evaluates client-side JavaScript rendering barriers, DOM hydration gaps, trapped JSON-LD structured data, and client-side redirects. When no rendered-DOM tool is otherwise available, it can capture one itself via a **locally installed Chrome/Edge/Chromium** (sandboxed, throwaway profile, hard timeout, nothing bundled or downloaded) so raw-vs-rendered comparisons are measured directly instead of inferred from raw HTML alone. When a rendered DOM is available it also measures **content parity** — which sentences exist only after JavaScript runs, quoted verbatim in the finding, so "raw HTML is thin" becomes "here is the text an AI crawler never sees" — and **link discovery**, the internal links a non-JS crawler cannot follow.
+4. **`readability-audit`**: Audits Schema.org JSON-LD completeness across 9 schema types — including recovering and explicitly reporting genuinely unparseable JSON-LD (distinguishing "no structured data" from "structured data present but broken") — semantic heading hierarchy (`<h1>`-`<h6>`), non-text machine-readable facts, and tabular data consistency. It also checks **entity grounding** — whether the markup actually answers *who publishes this page* (an `Organization`/`Brand`/`Person` identity anchor on the homepage) and *what the page is about*, catching pages whose only valid schema is their own breadcrumb trail — and whether each entity carries a quotable `description` (a presence/length test; the audit never judges wording). Interior pages already parsed during the run can be passed through `readability.additional_pages` at no extra request cost.
+5. **`freshness-corroboration`**: Audits content publication/modification dates, copyright year ranges, blog temporal decay, off-site web search citation consistency, and Wikipedia/Wikidata `sameAs` entity links — with confidence-scored candidate matching so a same-named but unrelated entity (a disambiguation page, a namespace page, an unrelated company) is never mistaken for the audited brand. `sameAs` targets are classified: a link to a **public identity registry** (package or code registry, app store, company register, persistent-identifier authority) is a registry-grade anchor of the same kind Wikidata provides, so the optional "no encyclopedia link" nudge is not raised against brands that will never meet encyclopedia notability — while an entry that demonstrably exists off-site but is not linked is reported as the concrete gap it is.
+6. **`engagement-audit`**: Audits human visitor orientation, 1-level homepage navigation reachability, content depth vs. adaptive reference ranges, mobile responsiveness viewport tags, cross-page brand phrase consistency (including detection of an identical meta description reused across different pages), page weight resource signals, and cold AI-referral landing-page readiness.
 
 ---
 
@@ -76,8 +76,11 @@ The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON au
     "weights": { "crawl_access": 0.30, "crawl_render": 0.25, "readability": 0.20, "engagement": 0.15, "freshness_corroboration": 0.10 },
     "weighted_subtotal": 85.8,
     "gates_applied": [
-      { "category": "crawl_access", "cap": 40.0, "trigger_finding": "F-001", "reason": "critical 'crawl_access' finding caps overall readiness at 40.0" }
-    ]
+      { "category": "crawl_access", "cap": 40.0, "trigger_finding": "F-001", "confidence": 1.0, "reason": "critical 'crawl_access' finding caps overall readiness at 40.0" }
+    ],
+    "category_deduction_detail": {
+      "crawl_access": { "critical": { "count": 1, "deducted": 20.0, "flat_equivalent": 20.0 } }
+    }
   },
   "summary": {
     "total_findings": 3,
@@ -90,13 +93,14 @@ The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON au
     {
       "id": "F-001",
       "category": "crawl_access",
-      "title": "AI Crawler 'GPTBot' is completely blocked by robots.txt",
+      "title": "AI Crawler Blocked From the Site Root by robots.txt (OAI-SearchBot)",
       "severity": "critical",
-      "evidence": "robots.txt contains Disallow: / for User-agent: GPTBot.",
+      "evidence": "robots.txt disallows the homepage (/) for OAI-SearchBot [retrieval: search_index]. Blocked crawlers that fetch pages for live AI search / assistant answers: ['OAI-SearchBot'].",
       "suggested_action": {
-        "summary": "Update robots.txt to allow GPTBot access to public brand content.",
+        "summary": "Update robots.txt so OAI-SearchBot may fetch public brand content.",
         "priority": "critical"
-      }
+      },
+      "confidence": 1.0
     }
   ],
   "proactive_recommendations": [
@@ -111,3 +115,14 @@ The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON au
   }
 }
 ```
+
+`audit_metadata.robots_restricted_fetches` lists every request the audit declined to make because
+`robots.txt` disallowed it (empty when the site permitted everything the audit looked at). All six skills route
+every HTTP request through `crawl-access-audit/scripts/robots_gate.py`, which is built from the `robots.txt`
+already fetched at the start of the run — so compliance costs no extra requests — and evaluates each request
+against **the identity being presented**: the dual-identity fetch's `GPTBot` leg is not sent at all to a site
+whose `robots.txt` disallows `GPTBot`. Per RFC 9309, a `404` means nothing is disallowed, while an unreachable
+or `5xx` `robots.txt` makes the gate **fail closed** and fetch nothing. A refused fetch is reported as refused,
+never as a site defect.
+
+`confidence` (0–1, default 1.0) appears on every finding: how sure the check is the finding is real, as distinct from `severity` (how bad it would be if true). It scales the finding's weight in scoring and, for a critical finding, softens the foundational-gate cap it would otherwise trigger at full force.

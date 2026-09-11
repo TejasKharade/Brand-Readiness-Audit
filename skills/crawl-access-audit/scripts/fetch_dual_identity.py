@@ -4,6 +4,35 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
+
+# --- robots.txt gate --------------------------------------------------------
+# Every fetch in this file asks robots_gate first. The gate is built from the
+# robots.txt that check_robots.py already fetched (passed in as `robots`), so
+# it costs no extra request; only a standalone run fetches robots.txt itself.
+import os as _os
+for _d in (_os.path.dirname(_os.path.abspath(__file__)),
+           _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                         "..", "..", "crawl-access-audit", "scripts")):
+    if _d not in sys.path:
+        sys.path.insert(0, _d)
+try:
+    from robots_gate import RobotsGate, skipped_payload, polite_delay
+except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
+    RobotsGate = None
+
+    def skipped_payload(url, decision, extra=None):
+        out = {"url": url, "skipped_by_robots": True, "fetched": False,
+               "error": "Not fetched: robots gate unavailable"}
+        if extra:
+            out.update(extra)
+        return out
+
+    def polite_delay(gate, user_agent="*", minimum=0.0):
+        import time as _t
+        if minimum > 0:
+            _t.sleep(minimum)
+        return minimum
+
 import time
 import html.parser
 import urllib.request
@@ -315,17 +344,36 @@ def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
                 "content_fingerprints": default_fingerprints, "error": f"Unexpected error: {str(e)}"
             }
 
-def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7):
+def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None):
+    """Fetch `url` twice -- once as a browser, once as an AI crawler.
+
+    Each leg is gated on robots.txt for the identity it presents. The bot leg
+    is the one that matters most: it sends a GPTBot user-agent, so on a site
+    with `User-agent: GPTBot / Disallow: /` an ungated fetch would request a
+    forbidden path *while identifying as the forbidden crawler*. A skipped leg
+    is reported as skipped -- never as an empty result, which the checks
+    downstream would read as "this page has no content".
+    """
+    gate = RobotsGate.for_url(url, robots=robots) if RobotsGate else None
+    browser_decision = gate.allows(url, browser_ua) if gate else None
+    bot_decision = gate.allows(url, bot_ua) if gate else None
     # 7s (down from 10s): this pair of fetches runs once per sampled page, so
     # its cost multiplies with page count; a real server answers in well
     # under this, and a 429-retry (capped at 3s wait) plus this timeout on
     # both fetches already tops out well short of the old ~48s worst case.
-    browser_result = fetch_url(url, browser_ua, timeout=timeout)
-    try:
-        time.sleep(delay)
-    except Exception:
-        pass
-    bot_result = fetch_url(url, bot_ua, timeout=timeout)
+    if browser_decision is not None and not browser_decision.allowed:
+        browser_result = skipped_payload(url, browser_decision)
+    else:
+        browser_result = fetch_url(url, browser_ua, timeout=timeout)
+
+    # Honour Crawl-delay when robots.txt declares one longer than our own
+    # spacing; `delay` stays the floor, so we are never faster than before.
+    polite_delay(gate, bot_ua, minimum=delay)
+
+    if bot_decision is not None and not bot_decision.allowed:
+        bot_result = skipped_payload(url, bot_decision)
+    else:
+        bot_result = fetch_url(url, bot_ua, timeout=timeout)
     
     comparison = {}
     bot_status = bot_result.get("status")
@@ -357,6 +405,14 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7):
 
     return {
         "url": url,
+        # Explicit, so nothing downstream can mistake "we were not allowed to
+        # look" for "we looked and the page was empty".
+        "robots_skipped_browser_fetch": bool(browser_decision is not None and not browser_decision.allowed),
+        "robots_skipped_bot_fetch": bool(bot_decision is not None and not bot_decision.allowed),
+        "robots_decisions": {
+            "browser": browser_decision.as_dict() if browser_decision is not None else None,
+            "bot": bot_decision.as_dict() if bot_decision is not None else None,
+        },
         "browser_status": browser_status,
         "bot_status": bot_status,
         "bot_blocked": bot_blocked,
@@ -417,7 +473,9 @@ if __name__ == "__main__":
         browser_ua = params.get("browser_user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         bot_ua = params.get("bot_user_agent", "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)")
 
-        result = dual_fetch(target_url, browser_ua, bot_ua)
+        # `robots`: check_robots.py output (or raw robots.txt text) so the
+        # gate reuses the already-fetched file instead of requesting it again.
+        result = dual_fetch(target_url, browser_ua, bot_ua, robots=params.get("robots"))
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

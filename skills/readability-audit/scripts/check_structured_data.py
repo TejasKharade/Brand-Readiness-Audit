@@ -6,6 +6,7 @@ import sys
 import json
 import re
 import html
+import urllib.parse
 
 def sanitize_json_ld_string(raw_str):
     if not raw_str:
@@ -164,6 +165,21 @@ def parse_entity(entity, block_idx, id_map=None):
         'extracted_facts': extracted_facts
     }
     
+    # 0. Description quality (length only -- no opinion about wording).
+    if any(t in DESCRIBABLE_TYPES for t in types_normalized):
+        desc = entity.get('description')
+        if isinstance(desc, dict):
+            desc = desc.get('@value') or desc.get('name')
+        if isinstance(desc, list):
+            desc = next((d for d in desc if isinstance(d, str) and d.strip()), None)
+        desc_text = ' '.join(str(desc).split()) if isinstance(desc, (str, int, float)) else ''
+        details['description_quality'] = {
+            'has_description': bool(desc_text),
+            'length': len(desc_text),
+            'too_short': bool(desc_text) and len(desc_text) < DESCRIPTION_MIN_CHARS,
+            'text': desc_text[:120],
+        }
+
     # 1. Product Completeness
     if any(t in ['Product', 'IndividualProduct', 'SomeProducts'] for t in types_normalized):
         offers = entity.get('offers')
@@ -298,6 +314,144 @@ def parse_entity(entity, block_idx, id_map=None):
 
     return details
 
+# --- Entity grounding -------------------------------------------------------
+# An AI answer engine reading a page needs to know WHO publishes it and WHAT it
+# is about. Schema.org markup can be technically valid and still answer neither
+# question: a page whose only JSON-LD is a BreadcrumbList + ListItem chain
+# describes its own navigation and nothing else. These sets let the orchestrator
+# tell that apart from real subject markup without guessing about types nobody
+# here classified -- those are reported separately and never used to claim
+# something is missing.
+
+# Types that anchor an identity -- "this site/page belongs to X".
+IDENTITY_ROOT_TYPES = {
+    'Organization', 'Corporation', 'LocalBusiness', 'Store', 'Restaurant',
+    'NGO', 'NewsMediaOrganization', 'EducationalOrganization', 'CollegeOrUniversity',
+    'School', 'GovernmentOrganization', 'MedicalOrganization', 'SportsOrganization',
+    'PerformingGroup', 'Airline', 'OnlineBusiness', 'OnlineStore',
+    'Brand', 'Person', 'WebSite',
+}
+
+# Types that carry a page's actual subject matter.
+SUBJECT_ENTITY_TYPES = {
+    'Product', 'IndividualProduct', 'SomeProducts', 'ProductGroup', 'Offer', 'AggregateOffer',
+    'Article', 'NewsArticle', 'BlogPosting', 'TechArticle', 'ScholarlyArticle', 'Report',
+    'Blog', 'Recipe', 'Event', 'BusinessEvent', 'MusicEvent', 'ExhibitionEvent',
+    'SoftwareApplication', 'MobileApplication', 'WebApplication', 'SoftwareSourceCode',
+    'Service', 'Course', 'JobPosting', 'VideoObject', 'AudioObject', 'Podcast',
+    'PodcastEpisode', 'Book', 'Dataset', 'FAQPage', 'HowTo', 'QAPage', 'Review',
+    'MedicalWebPage', 'RealEstateListing', 'Vehicle', 'Place', 'TouristAttraction',
+}
+
+# Types that describe page furniture or are pure value objects hanging off a
+# parent entity (an address, a rating, an opening-hours block): useful, but
+# never a page subject and never an identity on their own. Listing them keeps
+# them out of `unclassified`, so a stray PostalAddress cannot mask a homepage
+# that genuinely has no identity entity.
+STRUCTURAL_ONLY_TYPES = {
+    'PostalAddress', 'ContactPoint', 'GeoCoordinates', 'GeoShape',
+    'OpeningHoursSpecification', 'QuantitativeValue', 'PropertyValue',
+    'AggregateRating', 'Rating', 'MonetaryAmount', 'PriceSpecification',
+    'UnitPriceSpecification', 'Duration', 'Distance', 'Language',
+    'DefinedTerm', 'Thing',
+    'BreadcrumbList', 'ListItem', 'ItemList', 'SiteNavigationElement',
+    'WebPage', 'CollectionPage', 'ProfilePage', 'AboutPage', 'ContactPage',
+    'SearchResultsPage', 'CheckoutPage', 'WebPageElement', 'WPHeader', 'WPFooter',
+    'WPSideBar', 'SearchAction', 'ReadAction', 'EntryPoint', 'ImageObject',
+}
+
+# A description shorter than this is a label ("Home", "Acme"), not a summary an
+# answer engine can quote. Deliberately a length test only -- no opinion about
+# which words a good description should contain.
+DESCRIPTION_MIN_CHARS = 25
+
+# Types for which a missing `description` is worth reporting. A BreadcrumbList
+# has nothing to describe, so it is not on this list.
+DESCRIBABLE_TYPES = (IDENTITY_ROOT_TYPES | SUBJECT_ENTITY_TYPES) - {
+    'WebSite', 'Offer', 'AggregateOffer', 'ListItem'}
+
+
+def looks_like_site_root(url_str):
+    """True when the audited URL is the site root (or a locale-prefixed root).
+
+    The homepage is the one page where a missing identity entity is a real
+    finding: an interior page may legitimately carry only its own subject
+    markup and inherit identity from the homepage.
+    """
+    try:
+        path = urllib.parse.urlparse(url_str or '').path or ''
+    except Exception:
+        return False
+    segs = [s for s in path.split('/') if s]
+    if not segs:
+        return True
+    if len(segs) == 1:
+        seg = segs[0].lower()
+        if seg in ('index.html', 'index.htm', 'index.php', 'home'):
+            return True
+        return len(seg) <= 5  # locale prefix such as /en/, /de/, /en-us/
+    return False
+
+
+def assess_entity_grounding(parsed_entities, url):
+    """Fact-only summary of what the page's schema actually identifies.
+
+    No verdict is produced here. `structural_only` is asserted only when every
+    entity on the page is a classified structural type, so an unrecognised type
+    can never be mistaken for "describes nothing".
+    """
+    identity, subject, structural, unclassified = [], [], [], []
+    for ent in parsed_entities:
+        types = [t for t in ent.get('types', []) if t]
+        if any(t in IDENTITY_ROOT_TYPES for t in types):
+            identity.extend(t for t in types if t in IDENTITY_ROOT_TYPES)
+        elif any(t in SUBJECT_ENTITY_TYPES for t in types):
+            subject.extend(t for t in types if t in SUBJECT_ENTITY_TYPES)
+        elif types and all(t in STRUCTURAL_ONLY_TYPES for t in types):
+            structural.extend(types)
+        else:
+            unclassified.extend(types)
+
+    def uniq(seq):
+        return sorted(set(seq))
+
+    return {
+        'is_site_root': looks_like_site_root(url),
+        'identity_entity_types': uniq(identity),
+        'subject_entity_types': uniq(subject),
+        'structural_entity_types': uniq(structural),
+        'unclassified_entity_types': uniq(unclassified),
+        'has_identity_entity': bool(identity),
+        'has_subject_entity': bool(subject),
+        'structural_only': bool(parsed_entities) and not identity and not subject and not unclassified,
+    }
+
+
+def summarize_descriptions(parsed_entities):
+    """Which describable entities carry a usable `description`, and which do not."""
+    missing, too_short, described = [], [], 0
+    for ent in parsed_entities:
+        types = [t for t in ent.get('types', []) if t]
+        if not any(t in DESCRIBABLE_TYPES for t in types):
+            continue
+        quality = ent.get('description_quality') or {}
+        label = types[0]
+        if not quality.get('has_description'):
+            missing.append(label)
+        elif quality.get('too_short'):
+            too_short.append({'type': label, 'length': quality.get('length', 0),
+                              'text': quality.get('text', '')})
+        else:
+            described += 1
+    return {
+        'describable_entities': len(missing) + len(too_short) + described,
+        'with_description': described,
+        'missing_description_types': sorted(set(missing)),
+        'short_description_entities': too_short[:5],
+        'min_useful_chars': DESCRIPTION_MIN_CHARS,
+    }
+
+
 def check_structured_data(html_content, url):
     raw_blocks = extract_json_ld_blocks(html_content)
     total_blocks = len(raw_blocks)
@@ -314,12 +468,29 @@ def check_structured_data(html_content, url):
             data = json.loads(block_str)
             parsed_blocks_count += 1
         except Exception:
-            try:
-                unescaped_str = html.unescape(block_str)
-                data = json.loads(unescaped_str)
-                parsed_blocks_count += 1
-            except Exception as e:
-                errors.append({'block_index': idx, 'error': f'JSON Parse Error: {str(e)}'})
+            # Recoveries a lenient consumer would also apply, so only a block
+            # that is broken for everyone lands in parse_errors: HTML-escaped
+            # JSON, then raw control characters (a literal newline) inside
+            # strings, which strict json.loads rejects but browsers' JSON-LD
+            # consumers tolerate.
+            recovered = False
+            last_error = None
+            for candidate, strict in ((html.unescape(block_str), True),
+                                      (block_str, False),
+                                      (html.unescape(block_str), False)):
+                try:
+                    data = json.loads(candidate, strict=strict)
+                    parsed_blocks_count += 1
+                    recovered = True
+                    break
+                except Exception as e:
+                    last_error = e
+            if not recovered:
+                errors.append({
+                    'block_index': idx,
+                    'error': f'JSON Parse Error: {str(last_error)}',
+                    'snippet': block_str.strip()[:120],
+                })
 
         if data:
             collected = collect_all_entities(data, idx)
@@ -340,6 +511,8 @@ def check_structured_data(html_content, url):
         'rdfa_detected': rdfa_detected,
         'recognized_entities_count': len(parsed_entities),
         'entities': parsed_entities,
+        'entity_grounding': assess_entity_grounding(parsed_entities, url),
+        'description_coverage': summarize_descriptions(parsed_entities),
         'parse_errors': errors
     }
 

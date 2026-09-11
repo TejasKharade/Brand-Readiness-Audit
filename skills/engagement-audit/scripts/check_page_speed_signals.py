@@ -4,6 +4,22 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
+
+# --- robots.txt gate --------------------------------------------------------
+# Every fetch in this file asks robots_gate first. The gate is built from the
+# robots.txt that check_robots.py already fetched (passed in as `robots`), so
+# it costs no extra request; only a standalone run fetches robots.txt itself.
+import os as _os
+for _d in (_os.path.dirname(_os.path.abspath(__file__)),
+           _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                         "..", "..", "crawl-access-audit", "scripts")):
+    if _d not in sys.path:
+        sys.path.insert(0, _d)
+try:
+    from robots_gate import RobotsGate
+except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
+    RobotsGate = None
+
 import socket
 import time
 import urllib.parse
@@ -39,8 +55,16 @@ class PageSpeedResourceParser(HTMLParser):
         except Exception:
             pass
 
-def fetch_content_length(url, timeout=3):
+def fetch_content_length(url, timeout=3, gate=None):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AntigravityAudit/1.0"}
+
+    # Measuring a stylesheet's weight still means requesting it. A disallowed
+    # resource is reported as not measured -- honest -- rather than as a fetch
+    # error, which would read as a defect in the site.
+    if gate is not None:
+        decision = gate.allows(url, headers["User-Agent"])
+        if not decision.allowed:
+            return None, "not measured (robots.txt): %s" % decision.reason
 
     def get_fallback():
         try:
@@ -111,6 +135,7 @@ def check_page_speed_signals(params):
     # <5min total audit budget, so it must return within a bounded time.
     RESOURCE_FETCH_DEADLINE_S = 20.0
     deadline_start = time.time()
+    gate = RobotsGate.for_url(url, robots=params.get("robots")) if RobotsGate else None
 
     for res_url in measured_urls:
         if time.time() - deadline_start > RESOURCE_FETCH_DEADLINE_S:
@@ -120,7 +145,7 @@ def check_page_speed_signals(params):
                 "error": f"skipped: {RESOURCE_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded"
             })
             continue
-        length, err = fetch_content_length(res_url)
+        length, err = fetch_content_length(res_url, gate=gate)
         if length is not None:
             total_css_js_bytes += length
         else:

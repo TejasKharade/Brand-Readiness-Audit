@@ -51,17 +51,31 @@ The orchestrator receives target audit parameters:
 
 ### Step 1: Crawl Access Audit (`crawl-access-audit`)
 Run specialized access scripts to evaluate bot accessibility:
-- `scripts/check_robots.py`: Evaluate `robots.txt` for AI crawlers (`GPTBot`, `PerplexityBot`, `ClaudeBot`, `Google-Extended`, …) per RFC 9309 (longest match wins, wildcards honoured) against `/` and every audited page URL; reports the deciding rule per path and agent.
+> **Run `check_robots.py` first, then pass its output as `robots` to every
+> other script that fetches** (`fetch_dual_identity.py`, `check_sitemap.py`,
+> `check_crawl_depth.py`, `check_page_speed_signals.py`,
+> `check_nontext_facts.py`, `fetch_rendered_dom.py`). They gate every request
+> on it via `crawl-access-audit/scripts/robots_gate.py`. Passing it through
+> costs nothing and saves a request per script; omit it and each script fetches
+> `/robots.txt` itself rather than proceeding ungated. If a fetch comes back
+> `skipped_by_robots`, **do not run the content skills on the empty result** —
+> report the reduced coverage instead. The report's
+> `audit_metadata.robots_restricted_fetches` lists every refused request.
+
+- `scripts/check_robots.py`: Evaluate `robots.txt` for AI crawlers per RFC 9309 (longest match wins, wildcards honoured) against `/` and every audited page URL; reports the deciding rule per path and agent, and each agent's documented purpose (`agent_classes`: live-search/assistant **retrieval** vs. model **training**, from `references/ai_crawler_classes.json`). A block that removes the site from live AI search answers is critical/high; a training-only block is medium/low; a block on a user-initiated fetcher that robots.txt may not apply to is not scored.
 - `scripts/fetch_dual_identity.py`: Compare HTTP responses for User-Agent browser vs. AI bot identity.
 - `scripts/check_sitemap.py`: Validate XML sitemap presence and reachability.
 - `scripts/check_page_signals.py`: Inspect indexing meta tags (`noindex`, `nofollow`, canonicals).
 - `scripts/check_crawl_depth.py`: Evaluate internal link structure and URL depth.
+- `scripts/check_tls.py`: One TLS handshake with the host the pages are served from — expired, hostname-mismatched, self-signed or untrusted certificates (which make crawlers abort before fetching anything), and certificates expiring within 14 days.
+- Redirect loops and chains of 3+ hops are reported from the dual fetch's existing `status` / `redirect_count` (no extra requests). `check_sitemap.py`'s `representative_sample` (one URL per URL-structure group) is the recommended source for choosing `sampled_pages`.
 
 ### Step 2: Crawl Render Audit (`crawl-render-audit`)
 Run rendering barrier scripts:
 - `scripts/check_rendering_barriers.py`: Compare initial raw HTML vs. rendered DOM text word counts.
 - `scripts/check_structured_data_hydration.py`: Detect JSON-LD schema trapped behind client-side JS execution.
 - `scripts/check_client_side_redirects.py`: Detect client-side JS and meta refresh redirects.
+- `scripts/fetch_rendered_dom.py` *(optional)*: When the agent has no browser tool, render a page with an already-installed Chrome/Edge/Chromium (sandboxed, throwaway profile, hard timeout) to supply `rendered_html`, so the checks above measure the raw-vs-rendered gap instead of inferring it. Returns `available: false` when no browser exists; then run raw-only. Budget 1–8 s per page — render the homepage and at most one other page.
 
 ### Step 3: Readability Audit (`readability-audit`)
 Run structural and semantic audit scripts:
@@ -69,6 +83,11 @@ Run structural and semantic audit scripts:
 - `scripts/check_semantic_structure.py`: Validate heading hierarchy (`<h1>`, `<h2>`) and outline structure.
 - `scripts/check_nontext_facts.py`: Verify machine-readable alternatives for non-text facts.
 - `scripts/check_content_consistency.py`: Detect contradiction between tabular markup and prose.
+- If you ran `check_structured_data.py` on any page besides the homepage, pass those results through as
+  `readability.additional_pages: [{"url": ..., "structured_data": {...}}]`. No extra request is involved —
+  that page's HTML was already fetched — and it is where the entity-grounding gap normally shows up: a
+  homepage carrying the `Organization` block while product and article pages ship only a breadcrumb trail.
+  Entries that are not objects, or whose page has no recognised entities, are ignored.
 
 ### Step 4: Freshness & Corroboration Audit (`freshness-corroboration`)
 Run temporal and corroboration scripts:
@@ -96,7 +115,7 @@ echo '{
   "skill_outputs": {
     "crawl_access": { ... },
     "crawl_render": { ... },
-    "readability": { ... },
+    "readability": { ..., "additional_pages": [ { "url": "...", "structured_data": { ... } } ] },
     "freshness_corroboration": { ... },
     "engagement": { ... }
   }

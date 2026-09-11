@@ -5,6 +5,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 import sys
 import json
 import re
+import urllib.parse
 from html.parser import HTMLParser
 
 class PageHeaderParser(HTMLParser):
@@ -13,6 +14,7 @@ class PageHeaderParser(HTMLParser):
         self.title_text = []
         self.h1_text = []
         self.jsonld_scripts = []
+        self.meta_description = None
         
         self.in_title = False
         self.in_h1 = False
@@ -25,6 +27,9 @@ class PageHeaderParser(HTMLParser):
 
         if tag_lower == "title":
             self.in_title = True
+        elif tag_lower == "meta" and self.meta_description is None \
+                and attrs_dict.get("name", "").strip().lower() == "description":
+            self.meta_description = attrs_dict.get("content", "")
         elif tag_lower == "h1":
             self.in_h1 = True
         elif tag_lower == "script":
@@ -144,10 +149,12 @@ def check_descriptor_consistency(pages_data):
         title_str = " ".join("".join(parser.title_text).split())
         h1_str = " ".join("".join(parser.h1_text).split())
 
+        desc_str = " ".join((parser.meta_description or "").split())
         parsed_pages.append({
             "url": url,
             "title": title_str if title_str else None,
             "h1": h1_str if h1_str else None,
+            "meta_description": desc_str if desc_str else None,
             "jsonld_scripts": parser.jsonld_scripts
         })
 
@@ -180,14 +187,48 @@ def check_descriptor_consistency(pages_data):
             "url": p["url"],
             "title": p["title"],
             "h1": p["h1"],
+            "meta_description": p["meta_description"],
             "brand_phrase_present_in_title": title_has_brand,
             "brand_phrase_present_in_h1": h1_has_brand
         })
 
+    # The same meta description on DIFFERENT pages is a template default: the
+    # description stops saying what each page is about, so a search result or
+    # AI answer cannot tell the pages apart from their summaries. URLs are
+    # compared by host + path (scheme, query, fragment and a trailing slash
+    # ignored), so one page sampled twice -- with and without a tracking
+    # parameter -- is never reported against itself.
+    def _page_key(u):
+        try:
+            pu = urllib.parse.urlparse(u or "")
+            host = pu.netloc.lower()
+            host = host[4:] if host.startswith("www.") else host
+            return (host, (pu.path or "/").rstrip("/") or "/")
+        except Exception:
+            return (u or "", "")
+
+    by_desc = {}
+    for p in parsed_pages:
+        if p["meta_description"]:
+            by_desc.setdefault(p["meta_description"].casefold(), {"description": p["meta_description"],
+                                                                  "urls": [], "_keys": set()})
+            entry = by_desc[p["meta_description"].casefold()]
+            key = _page_key(p["url"])
+            if key not in entry["_keys"]:
+                entry["_keys"].add(key)
+                entry["urls"].append(p["url"])
+    duplicate_meta_descriptions = [
+        {"description": e["description"], "urls": e["urls"], "page_count": len(e["urls"])}
+        for e in by_desc.values() if len(e["urls"]) >= 2
+    ]
+    distinct_pages = len({_page_key(p["url"]) for p in parsed_pages})
+
     return {
         "candidate_brand_phrase": candidate_brand,
         "pages_audited": len(results),
-        "pages": results
+        "distinct_pages_audited": distinct_pages,
+        "pages": results,
+        "duplicate_meta_descriptions": duplicate_meta_descriptions,
     }
 
 import threading
@@ -247,6 +288,8 @@ if __name__ == "__main__":
         print(json.dumps({
             "candidate_brand_phrase": None,
             "pages_audited": 0,
+            "distinct_pages_audited": 0,
             "pages": [],
+            "duplicate_meta_descriptions": [],
             "script_error": str(e)
         }))

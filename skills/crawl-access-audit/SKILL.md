@@ -1,9 +1,10 @@
 ---
 name: crawl-access-audit
 description: Gathers raw, structured data on whether a website's pages are
-  reachable by AI-assistant and search crawlers — robots.txt rules, actual
-  server behavior under browser vs. bot identities, page-level indexing
-  signals, sitemap health, and crawl depth. Produces structured facts only;
+  reachable by AI-assistant and search crawlers — robots.txt rules (split by
+  live-search vs. training crawlers), actual server behavior under browser vs.
+  bot identities, TLS certificate validity, page-level indexing signals,
+  sitemap health with a representative page sample, and crawl depth. Produces structured facts only;
   does not diagnose root causes, identify blocking systems, or assign
   severity. Use as the first data-gathering stage of an AI-discoverability
   audit, feeding a diagnosis/orchestrator skill.
@@ -61,8 +62,31 @@ that consumes this skill's output.
      tracking-parameter URL whose bare path is allowed) is listed in
      `query_variant_only_blocks` and excluded from `blocked_paths_by_agent`:
      that is duplicate-URL hygiene, not an access defect.
-   - The orchestrator raises **critical** when an AI crawler cannot fetch `/`,
-     and **high** when a tested key page is disallowed for one.
+   - **Retrieval vs. training crawlers.** By default every token in
+     `references/ai_crawler_classes.json` is tested (plus `*`), and each
+     tested agent is reported in `agent_classes` with its documented purpose:
+     `retrieval` (fetches pages for live AI search / assistant answers —
+     `OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `Claude-SearchBot`,
+     `Googlebot`, `Bingbot`, …) or `training` (collects content for model
+     training only — `GPTBot`, `ClaudeBot`, `CCBot`, `Bytespider`,
+     `Google-Extended`, …). Blocking `GPTBot` keeps a site out of future
+     OpenAI model training but does **not** remove it from ChatGPT search
+     citations, which come from `OAI-SearchBot`. `*` is classed `wildcard`; a
+     token not in the file is `unclassified`. Each entry records whether the
+     operator's documentation was checked (`verified`) and
+     `honors_robots_txt`: user-initiated fetchers such as `ChatGPT-User`,
+     `Perplexity-User` and `Meta-ExternalFetcher` are documented as fetching
+     at a person's request with robots.txt possibly not applying, so a
+     robots.txt block on them is **not an effective control** and is never
+     scored — it is only mentioned in the evidence.
+   - The orchestrator raises **critical** when a retrieval (or unclassified)
+     crawler cannot fetch `/`, and **high** when one is disallowed on a tested
+     key page. When every tested retrieval crawler is still allowed and only
+     training tokens (or `*`, with named retrieval crawlers explicitly
+     allowed) are blocked, it raises **medium** at the root and **low** on a
+     key page instead — often a deliberate licensing choice, and not a loss
+     of live AI search visibility. Output without `agent_classes` (older
+     callers) is treated exactly as before: every block is retrieval-impacting.
    - Extracts `crawl_delay` (from the `*` group) and `sitemap_url` /
      `sitemap_urls` if declared. Pass `robots_txt` in the stdin JSON to
      evaluate a file you already hold without fetching.
@@ -170,6 +194,17 @@ that consumes this skill's output.
      ceiling is hit (`time_budget_exceeded: true`, skipped entries recorded
      with an explicit `"skipped: ...budget exceeded"` error) rather than run
      to completion regardless of elapsed time.
+   - **Choosing pages to audit: `representative_sample`.** Pages sharing a URL
+     structure are almost always one template, so the script groups listed
+     URLs by structure (first path segment, and the group's typical depth —
+     no keyword lists, so any language or naming scheme works) and returns
+     up to 6 picks: the homepage, then one URL from each group in descending
+     group size, then a second URL from the largest groups. Non-page files
+     (`.pdf`, images, `.xml`, …) and URLs whose spot-check returned non-2xx
+     are skipped; `url_groups` reports each group's size. Use the homepage
+     plus the first 1–2 other entries as `sampled_pages` — this covers the
+     templates that render the most pages, where the first N sitemap entries
+     are usually all one template (all blog posts, or all products).
 
 5. **Crawl depth (`scripts/check_crawl_depth.py <start_url> <target_url>`)**
    - Bounded BFS to find the shortest click-path from `start_url` to
@@ -195,8 +230,30 @@ that consumes this skill's output.
      everything, and reports `robots_check_unavailable: true` so this
      degraded state is visible in the output.
 
+6. **TLS certificate (`scripts/check_tls.py <host-or-url>`)** — one TLS
+   handshake, no HTTP request. Pass the host the audited pages are actually
+   served from (the host of `bot_fetch.final_url`, not an unresolved alias):
+   - An expired, not-yet-valid, hostname-mismatched, self-signed or revoked
+     certificate makes every standards-compliant client — AI crawlers
+     included — abort before fetching anything, whatever robots.txt allows.
+     The dual-identity fetch shows only a bare connection error with no
+     content; this step names the cause. Failures are classified from
+     OpenSSL's verify code (`failure_kind`, `verify_code`, `verify_message`),
+     with no certificate-parsing dependency.
+   - `untrusted_chain` usually means the server omits its intermediate
+     certificate (browsers recover, most non-browser clients do not), but a
+     trust store missing on the auditing machine looks identical, so the
+     orchestrator reports it as high at reduced confidence rather than critical.
+   - A valid certificate reports `not_after`, `days_remaining` and
+     `expiring_soon` (≤ 14 days). A DNS or connection failure sets
+     `https_reachable: false` with `error` and is **not** a certificate
+     finding — reachability is the dual fetch's job.
+   ```bash
+   python skills/crawl-access-audit/scripts/check_tls.py '{"url": "https://www.example.com/"}'
+   ```
+
 ## Output
-A JSON object combining the raw outputs of all five scripts. Page-signal
+A JSON object combining the raw outputs of all six scripts. Page-signal
 results are grouped under each sampled page's browser/bot fetch pair so the
 orchestrator can compare signals by identity:
 ```json
@@ -212,7 +269,8 @@ orchestrator can compare signals by identity:
     }
   ],
   "sitemap": { "...output of check_sitemap.py..." },
-  "crawl_depth": { "...output of check_crawl_depth.py..." }
+  "crawl_depth": { "...output of check_crawl_depth.py..." },
+  "tls": { "...output of check_tls.py..." }
 }
 ```
 `page_signals` output nests under each fetch, as shown. The orchestrator
@@ -224,7 +282,11 @@ a clean page 1.
 
 Key fields the orchestrator consumes from this skill:
 `robots.malformed`, `robots.root_blocked_agents`, `robots.disallowed` /
-`robots.matched_rules`, `sitemap.sitemap_found`,
+`robots.matched_rules` / `robots.agent_classes`, `sitemap.sitemap_found`,
+`tls.certificate_valid` / `.failure_kind` / `.expiring_soon`, each sampled
+page's `bot_fetch.status` / `.redirect_count` (a crawler fetch that ends on
+a 3xx never reached a page: a redirect loop or too many hops; 3+ hops that do
+resolve are a low-severity efficiency finding),
 `crawl_depth.is_deep_url` / `.url_depth` (meaningful folders only -- a leading locale segment whose language part is a real ISO 639-1 code (`/de/`, `/en-us/`, `/zh-hant/`) and date segments `/2026/03/` are discounted; a two-letter folder that is not a language code (`/lp/`, `/qa/`) still counts and listed in `url_depth_ignored_segments`, so localized sites and dated blog URLs are not falsely reported as deep), and per page
 `page_signals.is_noindex` / `.is_nofollow` / `.duplicate_canonical_tags`,
 plus `bot_blocked` / `bot_challenged` / `rate_limited` /
@@ -237,13 +299,37 @@ happens entirely in the downstream orchestrator/diagnosis skill.
 ## Guardrails & Constraints
 - **Read-only**: never modifies the target site; no login, form submission,
   or CAPTCHA-solving anywhere in these scripts.
-- **Respects robots.txt** for this skill's own crawling in
-  `check_crawl_depth.py`, failing closed (not open) if robots.txt cannot be
-  verified.
+- **Respects robots.txt for every request this marketplace makes.**
+  `scripts/robots_gate.py` is the single gate: the dual-identity fetch, the
+  sitemap URL spot-checks, `check_crawl_depth.py`'s link-following crawl, the
+  engagement skill's resource-weight probes, the readability skill's linked-PDF
+  reads and the render skill's headless browser all ask it before opening a
+  connection. It is built from the robots.txt `check_robots.py` already
+  fetched, so compliance costs **zero extra requests**.
+  - The check is made against the **identity being presented**, not a generic
+    one. `fetch_dual_identity.py` sends a `GPTBot` user-agent, so on a site
+    whose robots.txt says `User-agent: GPTBot / Disallow: /` the bot leg is
+    **not sent at all** — fetching it would mean requesting a forbidden path
+    while identifying as the crawler that was forbidden. The browser leg is
+    evaluated against the `*` group and still runs if `*` permits it.
+  - **RFC 9309 status semantics**, which are not the same as "reachable":
+    `2xx` applies the rules; `4xx` (404 included) means no robots.txt exists
+    and nothing is disallowed; `5xx`, a timeout or a DNS failure means
+    robots.txt is *unreachable*, and the gate **fails closed** and fetches
+    nothing. `robots.txt` itself is always fetchable.
+  - **`Crawl-delay` is honoured** where declared, as a floor on the existing
+    inter-request spacing, capped at 10 s so one hostile directive cannot
+    consume the audit's <5 min budget.
+  - A refused fetch is recorded as refused — `skipped_by_robots` with the
+    deciding rule — and surfaces in the report's
+    `audit_metadata.robots_restricted_fetches`. It is never reported as a
+    site defect: "we were not permitted to look" and "we looked and found
+    nothing" are different claims, and only the second belongs in a finding.
 - **Defensive execution**: every script returns structured JSON on error
   (network failure, timeout, missing dependency) rather than raising an
   unhandled exception or printing a raw stack trace.
-- **Global request budget**: across all five scripts combined, one full
+- **Global request budget**: across all six scripts combined (`check_tls.py`
+  adds a single TLS handshake and no HTTP request), one full
   audit run against a single host should stay within roughly 60-90 total
   HTTP requests (robots.txt attempts + 2 fetches per sampled page + up to
   ~22 sitemap-related requests at the adaptive ceiling: ≤6 child sitemaps +

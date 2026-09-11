@@ -277,6 +277,63 @@ def robot_blocks(robots):
     return root, {p: a for p, a in paths.items() if a}, rules
 
 
+def crawler_class_label(robots, agent):
+    info = ((robots or {}).get("agent_classes") or {}).get(agent) or {}
+    cls = info.get("class") or "unclassified"
+    return f"{cls}: {info['role']}" if info.get("role") and cls in ("retrieval", "training") else cls
+
+
+def split_blocked_by_crawler_class(robots, blocked_agents, path):
+    """Split agents blocked on `path` into
+    (retrieval_impacting, other, retrieval_allowed, ineffective).
+
+    retrieval_impacting -- blocks that remove the page from live AI search /
+      assistant answers: a 'retrieval' token, any 'unclassified' token (unknown
+      purpose, so assume the worst), or '*' when no retrieval crawler was tested
+      and found allowed (nothing proves AI search access survives).
+    other -- 'training' tokens, and '*' when named retrieval crawlers are
+      verifiably still allowed on this path.
+    retrieval_allowed -- tested retrieval tokens, that honor robots.txt, NOT
+      blocked on this path.
+    ineffective -- blocked tokens whose operator documents that robots.txt may
+      not apply (user-initiated fetchers such as ChatGPT-User). The rule does
+      not actually stop them, so they never count toward either severity bucket.
+
+    robots.txt output without `agent_classes` (older callers) leaves every agent
+    'unclassified', which reproduces the previous behavior exactly: every block
+    is treated as retrieval-impacting."""
+    classes = (robots or {}).get("agent_classes") or {}
+    disallowed = ((robots or {}).get("disallowed") or {}).get(path) or {}
+    root_blocked = set((robots or {}).get("root_blocked_agents") or [])
+
+    def info(a):
+        return classes.get(a) or {}
+
+    ineffective = [a for a in blocked_agents if info(a).get("honors_robots_txt") is False]
+    blocked = [a for a in blocked_agents if a not in ineffective]
+    retrieval_allowed = [a for a, i in classes.items()
+                         if (i or {}).get("class") == "retrieval"
+                         and (i or {}).get("honors_robots_txt") is not False
+                         and a not in blocked_agents and a not in root_blocked
+                         and disallowed.get(a) is not True]
+    retrieval_hit, other = [], []
+    for a in blocked:
+        c = info(a).get("class") or "unclassified"
+        if c in ("retrieval", "unclassified") or (c == "wildcard" and not retrieval_allowed):
+            retrieval_hit.append(a)
+        else:
+            other.append(a)
+    return retrieval_hit, other, retrieval_allowed, ineffective
+
+
+def _ineffective_note(ineffective):
+    if not ineffective:
+        return ""
+    return (f" robots.txt also disallows {ineffective}, but their operators document that robots.txt may "
+            f"not apply to these user-initiated fetchers, so that rule is not an effective block and is "
+            f"not scored.")
+
+
 def normalize_crawl_access(access):
     """Accept either the `sampled_pages: [{url, browser_fetch, bot_fetch}]`
     shape documented in crawl-access-audit/SKILL.md, or a flat
@@ -375,6 +432,55 @@ def add_finding(findings, category, title, severity, evidence, suggested_summary
         "confidence": confidence,
     })
 
+# Keys a gated fetcher sets when robots.txt refused the request. Collecting
+# them lets the report state plainly what the audit was not permitted to look
+# at, so a reader never reads a thin report as "the site has nothing" when the
+# truth is "we were told not to look".
+ROBOTS_SKIP_KEYS = ("skipped_by_robots", "robots_skipped_bot_fetch",
+                    "robots_skipped_browser_fetch")
+
+
+def collect_robots_restrictions(skill_outputs, _depth=0):
+    """Every fetch the audit declined to make because robots.txt disallowed it."""
+    found = []
+
+    def walk(node, depth=0):
+        if depth > 8:
+            return
+        if isinstance(node, dict):
+            skipped = any(node.get(k) is True for k in ROBOTS_SKIP_KEYS)
+            if skipped:
+                decision = node.get("robots_decision") or {}
+                decisions = node.get("robots_decisions") or {}
+                if not decision and isinstance(decisions, dict):
+                    decision = next((d for d in decisions.values()
+                                     if isinstance(d, dict) and d.get("allowed") is False), {}) or {}
+                entry = {
+                    "url": node.get("url"),
+                    "reason": decision.get("reason") or node.get("error") or "disallowed by robots.txt",
+                }
+                if decision.get("rule"):
+                    entry["rule"] = decision["rule"]
+                if decision.get("agent"):
+                    entry["user_agent"] = decision["agent"]
+                if entry not in found:
+                    found.append(entry)
+            for v in node.values():
+                walk(v, depth + 1)
+        elif isinstance(node, list):
+            for item in node[:50]:
+                walk(item, depth + 1)
+
+    walk(skill_outputs or {})
+
+    # A gated fetch is flagged twice: on the container (robots_skipped_bot_fetch)
+    # and on the skipped payload nested inside it (skipped_by_robots). They are
+    # one refused request, so the thinner duplicate is dropped rather than
+    # counted as a second restriction.
+    detailed_urls = {e["url"] for e in found if e.get("rule")}
+    return [e for e in found if e.get("rule") or e["url"] not in detailed_urls]
+
+
 def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
     if skill_outputs is None:
         skill_outputs = {}
@@ -409,44 +515,159 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         # silently read nothing.
         root_blocked, path_blocks, rules = robot_blocks(robots)
         if root_blocked:
+            retrieval_hit, other_hit, retrieval_ok, ineffective = split_blocked_by_crawler_class(
+                robots, root_blocked, "/")
+            effective = [a for a in root_blocked if a not in ineffective]
             ev_rules = "; ".join(
-                f"{a}: '{rules.get('/', {}).get(a, {}).get('rule') or 'Disallow: /'}'"
+                f"{a} [{crawler_class_label(robots, a)}]: "
+                f"'{rules.get('/', {}).get(a, {}).get('rule') or 'Disallow: /'}'"
                 f" (group '{rules.get('/', {}).get(a, {}).get('group') or '?'}')"
-                for a in root_blocked)
-            add_finding(
-                findings, "crawl_access",
-                f"AI Crawler{'s' if len(root_blocked) > 1 else ''} Blocked From the Site Root by robots.txt "
-                f"({', '.join(root_blocked)})",
-                "critical",
-                f"robots.txt disallows the homepage (/) for {root_blocked}. Matching rules: {ev_rules}.",
-                f"Update robots.txt so {', '.join(root_blocked)} may fetch public brand content; keep "
-                f"disallow rules scoped to genuinely private paths.",
-                plain_english="Your robots.txt tells these AI crawlers not to read your homepage, so they "
-                "cannot read or cite the site."
-            )
+                for a in effective)
+            if not effective:
+                pass  # only blocks on fetchers that ignore robots.txt: nothing is actually blocked
+            elif retrieval_hit:
+                add_finding(
+                    findings, "crawl_access",
+                    f"AI Crawler{'s' if len(effective) > 1 else ''} Blocked From the Site Root by robots.txt "
+                    f"({', '.join(effective)})",
+                    "critical",
+                    f"robots.txt disallows the homepage (/) for {effective}. Matching rules: {ev_rules}. "
+                    f"Blocked crawlers that fetch pages for live AI search / assistant answers: {retrieval_hit}."
+                    + _ineffective_note(ineffective),
+                    f"Update robots.txt so {', '.join(retrieval_hit)} may fetch public brand content; keep "
+                    f"disallow rules scoped to genuinely private paths.",
+                    plain_english="Your robots.txt tells AI crawlers not to read your homepage, including ones "
+                    "that fetch pages to answer or cite in live AI search, so those assistants cannot read or "
+                    "cite the site."
+                )
+            else:
+                # Every tested retrieval crawler is still allowed: the block only
+                # withholds content from model training (and, for '*', from
+                # crawlers without their own robots group). That is often a
+                # deliberate licensing choice, and it does not remove the site
+                # from live AI search citations -- so it is not a site-wide
+                # access failure and must not trip the crawl_access gate.
+                add_finding(
+                    findings, "crawl_access",
+                    f"Only AI Training / Unlisted Crawlers Blocked From the Site Root by robots.txt "
+                    f"({', '.join(other_hit)})",
+                    "medium",
+                    f"robots.txt disallows the homepage (/) for {other_hit}. Matching rules: {ev_rules}. "
+                    f"Crawlers that fetch pages for live AI search / assistant answers were tested and remain "
+                    f"allowed: {retrieval_ok}." + _ineffective_note(ineffective),
+                    "If keeping content out of model training is intentional, no change is needed. If you want "
+                    "the brand represented in AI models' built-in knowledge (answers given without a live web "
+                    "search), allow these crawlers on public pages.",
+                    plain_english="Your robots.txt keeps these crawlers from collecting your pages to train AI "
+                    "models. AI assistants can still find and cite your site when they search the web live, but "
+                    "models may know less about your brand when answering from memory."
+                )
         if path_blocks:
-            lines = []
+            hi_lines, lo_lines = [], []
             for path, agents in path_blocks.items():
+                retrieval_hit, other_hit, _, ineffective = split_blocked_by_crawler_class(robots, agents, path)
+                agents = [a for a in agents if a not in ineffective]
+                if not agents:
+                    continue  # only fetchers that ignore robots.txt were "blocked" on this path
                 # Group agents by the (rule, group) that decided them, so an agent
                 # with its own robots group is not reported under another's rule.
                 by_rule = {}
                 for a in agents:
                     rinfo = rules.get(path, {}).get(a, {})
                     by_rule.setdefault((rinfo.get("rule"), rinfo.get("group")), []).append(a)
-                parts = [f"{', '.join(ags)} via '{rule}' in group '{group}'"
+                parts = [f"{', '.join(f'{x} [{crawler_class_label(robots, x)}]' for x in ags)} "
+                         f"via '{rule}' in group '{group}'"
                          for (rule, group), ags in by_rule.items()]
-                lines.append(f"{path} -> " + "; ".join(parts))
+                (hi_lines if retrieval_hit else lo_lines).append(f"{path} -> " + "; ".join(parts))
+            if hi_lines:
+                add_finding(
+                    findings, "crawl_access",
+                    "Key Pages Disallowed for AI Crawlers in robots.txt",
+                    "high",
+                    "robots.txt disallows the following audited paths while the site root stays open: "
+                    + "; ".join(hi_lines) + ".",
+                    "Confirm whether these paths should be visible to AI assistants. If yes, narrow or remove "
+                    "the disallow rules for the AI user-agent groups. If the exclusion is intentional, make sure "
+                    "the same content is published on a crawlable URL so assistants can still cite it.",
+                    plain_english="Your robots.txt tells AI crawlers not to read these specific pages, so "
+                    "assistants cannot use or cite what is on them."
+                )
+            if lo_lines:
+                add_finding(
+                    findings, "crawl_access",
+                    "Key Pages Disallowed Only for AI Training / Unlisted Crawlers in robots.txt",
+                    "low",
+                    "robots.txt disallows the following audited paths only for crawlers that collect content "
+                    "for model training (or that lack their own robots group); tested live-search / assistant "
+                    "crawlers remain allowed on them: " + "; ".join(lo_lines) + ".",
+                    "No change is needed if excluding these pages from model training is intentional.",
+                    plain_english="These pages are kept out of AI model training, but AI assistants can still "
+                    "find and cite them through live web search."
+                )
+
+        # TLS certificate (check_tls.py). A certificate every standards-compliant
+        # client refuses makes the site unreachable to crawlers regardless of
+        # robots.txt; the dual fetch only sees a bare connection error.
+        tls = access.get("tls") or {}
+        if tls.get("checked") and tls.get("certificate_valid") is False:
+            kind = tls.get("failure_kind") or "other"
+            host = tls.get("host")
+            reason = tls.get("verify_message") or kind
+            if kind in ("expired", "not_yet_valid", "hostname_mismatch", "self_signed", "revoked"):
+                add_finding(
+                    findings, "crawl_access",
+                    f"TLS Certificate Rejected by Standard Clients ({kind.replace('_', ' ')})",
+                    "critical",
+                    f"TLS handshake with {host}:{tls.get('port')} presented a certificate that fails verification "
+                    f"(OpenSSL verify code {tls.get('verify_code')}: {reason}). HTTP clients that verify "
+                    f"certificates, including AI crawlers, abort the connection before any page is fetched.",
+                    {"expired": "Renew the certificate and enable automatic renewal.",
+                     "not_yet_valid": "Check the server clock and the certificate's validity start date; reissue if it was dated in the future.",
+                     "hostname_mismatch": f"Issue a certificate whose Subject Alternative Names include {host}, or redirect to the hostname the certificate covers.",
+                     "self_signed": "Replace the self-signed certificate with one issued by a publicly trusted CA (e.g. an ACME/Let's Encrypt certificate).",
+                     "revoked": "Issue and install a new certificate; the current one has been revoked."}[kind],
+                    plain_english="Your website's security certificate is not accepted by standard software, so "
+                    "AI crawlers and many visitors are stopped at a security error before they see any content."
+                )
+            elif kind == "untrusted_chain":
+                add_finding(
+                    findings, "crawl_access",
+                    "TLS Certificate Chain Could Not Be Verified (possible missing intermediate)",
+                    "high",
+                    f"TLS handshake with {host}:{tls.get('port')} failed chain verification (OpenSSL verify code "
+                    f"{tls.get('verify_code')}: {reason}). Most often the server does not send its intermediate "
+                    f"certificate: browsers can fetch it on their own, but most non-browser HTTP clients, "
+                    f"crawlers included, cannot and refuse the connection. A trust store missing on the auditing "
+                    f"machine produces the same error, which is why this is not treated as certain.",
+                    "Configure the server to send the full certificate chain (leaf plus intermediates), then "
+                    "confirm with an external TLS checker.",
+                    confidence=0.6,
+                    plain_english="Your website's security certificate appears to be installed without the "
+                    "supporting certificate that non-browser software needs, so some crawlers may refuse to connect."
+                )
+            else:
+                add_finding(
+                    findings, "crawl_access",
+                    "TLS Certificate Failed Verification",
+                    "medium",
+                    f"TLS handshake with {host}:{tls.get('port')} failed certificate verification "
+                    f"(OpenSSL verify code {tls.get('verify_code')}: {reason}).",
+                    "Check the certificate chain and validity with an external TLS checker and correct the reported problem.",
+                    confidence=0.5,
+                    plain_english="Your website's security certificate did not pass a standard check, which can "
+                    "stop some crawlers from connecting."
+                )
+        elif tls.get("checked") and tls.get("certificate_valid") and tls.get("expiring_soon"):
             add_finding(
                 findings, "crawl_access",
-                "Key Pages Disallowed for AI Crawlers in robots.txt",
-                "high",
-                "robots.txt disallows the following audited paths while the site root stays open: "
-                + "; ".join(lines) + ".",
-                "Confirm whether these paths should be visible to AI assistants. If yes, narrow or remove "
-                "the disallow rules for the AI user-agent groups. If the exclusion is intentional, make sure "
-                "the same content is published on a crawlable URL so assistants can still cite it.",
-                plain_english="Your robots.txt tells AI crawlers not to read these specific pages, so "
-                "assistants cannot use or cite what is on them."
+                f"TLS Certificate Expires in {tls.get('days_remaining')} Days",
+                "low",
+                f"The certificate for {tls.get('host')} expires on {tls.get('not_after')} "
+                f"({tls.get('days_remaining')} days from the audit; issuer: {tls.get('issuer')}). Once it "
+                f"lapses, crawlers will refuse to connect.",
+                "Renew the certificate now and confirm automatic renewal is working.",
+                plain_english="Your website's security certificate is about to expire. If it does, crawlers and "
+                "visitors will be blocked by a security error."
             )
 
         dual = access.get("dual_identity", {})
@@ -500,6 +721,48 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 f"Server returned HTTP 429 Too Many Requests during rapid audit fetches (Browser: {dual.get('browser_status')}, Bot: {dual.get('bot_status')}).",
                 "Review server load balancer rate-limiting thresholds to ensure legitimate automated crawlers are not throttled during burst visits.",
                 plain_english="Your website server returned a 'Too Many Requests' (HTTP 429) rate limit warning when auditor requests were sent in rapid succession. This is temporary traffic throttling by your load balancer, not a permanent bot block."
+            )
+
+        # Redirects, from data fetch_dual_identity.py already records (no new
+        # requests). A crawler-identity fetch that ENDS on a 3xx never reached a
+        # page: urllib gives up on a loop or after too many hops and hands back
+        # the last redirect status. A long chain that does resolve is only a
+        # crawl-efficiency cost.
+        fetch_pages = [p for p in (access.get("sampled_pages") or []) if isinstance(p, dict)]
+        if not fetch_pages and isinstance(dual.get("bot_fetch"), dict):
+            fetch_pages = [dual]
+        never_resolved, long_chains = [], []
+        for p in fetch_pages:
+            bot = p.get("bot_fetch") or {}
+            status = bot.get("status")
+            hops = bot.get("redirect_count") or 0
+            page_url = p.get("url") or dual.get("url")
+            if isinstance(status, int) and status in (301, 302, 303, 307, 308):
+                never_resolved.append(f"{page_url} (stopped on HTTP {status} after {hops} redirect(s))")
+            elif isinstance(status, int) and 200 <= status < 300 and hops >= 3:
+                long_chains.append(f"{page_url} -> {bot.get('final_url')} ({hops} hops)")
+        if never_resolved:
+            add_finding(
+                findings, "crawl_access",
+                "Page Never Resolves for Crawlers (redirect loop or too many redirects)",
+                "high",
+                "Fetching as an AI crawler followed redirects without ever reaching a page: "
+                + "; ".join(never_resolved) + ".",
+                "Trace the redirect rules for these URLs (server, CDN and application layers) and remove the "
+                "loop, so each URL resolves to a 200 page in at most one or two hops.",
+                plain_english="These addresses bounce between redirects and never arrive at a page, so crawlers "
+                "give up and cannot read or cite them."
+            )
+        if long_chains:
+            add_finding(
+                findings, "crawl_access",
+                "Long Redirect Chains Before Reaching Content",
+                "low",
+                "These audited URLs resolve only after three or more redirects: " + "; ".join(long_chains) + ".",
+                "Point links, canonicals and sitemap entries at the final URL, and collapse chained redirect "
+                "rules into a single hop.",
+                plain_english="These pages are reached only after several redirects, which slows crawlers and "
+                "wastes the limited number of pages they fetch from your site."
             )
 
         page_sig = access.get("page_signals", {}) or {}
@@ -598,6 +861,19 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         hydration_gaps  = barriers.get("hydration_gaps", {})
         word_counts     = barriers.get("word_counts", {})
 
+        # Sentence-level evidence, present only when a rendered DOM was supplied.
+        # Counts say how much is missing; this says WHICH text is missing, which
+        # is what makes the fix concrete for the site owner.
+        parity = barriers.get("content_parity") or {}
+        parity_note = ""
+        if parity.get("missing_text_samples"):
+            samples = "; ".join(f'"{s}"' for s in parity["missing_text_samples"][:2])
+            parity_note = (
+                f" Compared against the rendered DOM, {parity.get('missing_from_raw_count')} of "
+                f"{parity.get('rendered_sentence_count')} sentences are absent from the raw HTML "
+                f"({parity.get('content_parity_pct')}% content parity). Text a non-JS crawler cannot "
+                f"see includes: {samples}.")
+
         # --- F2: WAF interstitial page ---
         if waf_info.get("waf_challenge_detected"):
             waf_sigs = waf_info.get("waf_signals", [])
@@ -624,7 +900,7 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 findings, "crawl_render",
                 "Confirmed Client-Side Rendering Barrier: Content and Schema Both JS-Only",
                 "high",
-                f"Both content words ({eff_raw} effective raw words) and schema data (JS-trapped types: {trapped}) are loaded exclusively via JavaScript. SPA mount points: {mounts}. Frameworks: {frameworks}.",
+                f"Both content words ({eff_raw} effective raw words) and schema data (JS-trapped types: {trapped}) are loaded exclusively via JavaScript. SPA mount points: {mounts}. Frameworks: {frameworks}." + parity_note,
                 "Implement Server-Side Rendering (SSR) or Static Site Generation (SSG). Embed JSON-LD directly in the static HTML response.",
                 plain_english="AI crawlers that read raw HTML see an empty page shell. Both your main content and your structured schema data are loaded by JavaScript after page load, making them completely invisible to non-JS AI search crawlers."
             )
@@ -663,7 +939,7 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 findings, "crawl_render",
                 "Client-Side Rendering Barrier Detected (SPA / JS-Dependent Content)",
                 "high",
-                evidence_str + ".",
+                evidence_str + "." + parity_note,
                 "Implement Server-Side Rendering (SSR) or Static Site Generation (SSG) for core content pages.",
                 plain_english="Most of your page content is loaded dynamically via JavaScript after the initial page load. AI crawlers that read raw HTML will see very little or no content — they need SSR or SSG to access your information."
             )
@@ -717,19 +993,175 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 plain_english="Your page uses JavaScript-based navigation (SPA routing). This is informational — if your server also returns full HTML for each route, AI crawlers can still access content."
             )
 
+        # --- Internal links that exist only after JavaScript runs ---
+        # A crawler traverses <a href> in the raw HTML. Navigation built from
+        # click handlers or mounted menus is invisible to it, so the interior
+        # pages behind that navigation are never discovered from this page.
+        # Threshold of 5: one or two dynamic widgets adding links is ordinary.
+        link_disc = barriers.get("link_discovery") or {}
+        if (link_disc.get("links_only_after_js_count") or 0) >= 5:
+            add_finding(
+                findings, "crawl_render",
+                "Internal Links Discoverable Only After JavaScript Runs",
+                "medium",
+                f"{link_disc['links_only_after_js_count']} internal links exist in the rendered DOM but not in "
+                f"the raw HTML ({link_disc.get('raw_internal_links')} raw vs "
+                f"{link_disc.get('rendered_internal_links')} rendered). Examples: "
+                f"{link_disc.get('links_only_after_js_samples')}.",
+                "Emit navigation as real <a href=\"...\"> anchors in the server-rendered HTML (they can still be "
+                "enhanced by JavaScript), so crawlers can reach these pages without executing scripts.",
+                plain_english="Your menus and links are built by JavaScript, so crawlers reading the plain page "
+                "never see them and cannot find the pages they lead to."
+            )
+
     # 3. Readability Skill Findings
     readability = skill_outputs.get("readability", {})
     if readability:
         struct_data = readability.get("structured_data", {})
+        # check_structured_data.py has always reported unparseable JSON-LD in
+        # `parse_errors`, but nothing read it: a page whose only JSON-LD block
+        # is broken was reported as "Missing" (wrong fix: add schema, when it
+        # already exists and only needs its syntax corrected), and a broken
+        # block beside a valid one was not reported at all.
+        parse_errors = (struct_data or {}).get("parse_errors") or []
+        total_blocks = (struct_data or {}).get("total_json_ld_blocks", 0) or 0
+
+        def _parse_error_detail(errs):
+            return "; ".join(
+                f"block #{e.get('block_index', '?')}: {e.get('error', 'parse error')}"
+                + (f" (starts: {e['snippet'][:60]!r})" if e.get("snippet") else "")
+                for e in errs[:3])
+
         if struct_data and struct_data.get("recognized_entities_count", 0) == 0:
+            if parse_errors and total_blocks:
+                add_finding(
+                    findings, "readability",
+                    "Schema.org JSON-LD Present but Unparseable",
+                    "high",
+                    f"The page ships {total_blocks} JSON-LD block(s), {len(parse_errors)} of which fail to parse "
+                    f"as JSON, so no Schema.org entity can be read from it: {_parse_error_detail(parse_errors)}.",
+                    "Fix the JSON syntax in the existing <script type=\"application/ld+json\"> block(s) -- "
+                    "commonly a trailing comma, an unescaped quote, or a template placeholder left unrendered -- "
+                    "and re-validate with a structured-data validator.",
+                    plain_english="Your page does include machine-readable brand data, but it contains a syntax "
+                    "error, so search engines and AI systems discard all of it."
+                )
+            else:
+                add_finding(
+                    findings, "readability",
+                    "Missing Schema.org JSON-LD Structured Data",
+                    "high",
+                    "Zero recognized Schema.org entities detected on target page.",
+                    "Add Schema.org JSON-LD markup matching page entity (Organization, Product, Article, etc.).",
+                    plain_english="Your page lacks standardized machine-readable data (Schema.org JSON-LD), which acts like a digital business card telling AI search engines exactly what your brand, product, or organization represents."
+                )
+        elif parse_errors:
             add_finding(
                 findings, "readability",
-                "Missing Schema.org JSON-LD Structured Data",
-                "high",
-                "Zero recognized Schema.org entities detected on target page.",
-                "Add Schema.org JSON-LD markup matching page entity (Organization, Product, Article, etc.).",
-                plain_english="Your page lacks standardized machine-readable data (Schema.org JSON-LD), which acts like a digital business card telling AI search engines exactly what your brand, product, or organization represents."
+                f"{len(parse_errors)} of {total_blocks or '?'} JSON-LD Blocks Could Not Be Parsed",
+                "medium",
+                f"Some Schema.org data on the page is valid, but {len(parse_errors)} block(s) fail to parse and "
+                f"are ignored by consumers: {_parse_error_detail(parse_errors)}.",
+                "Fix the JSON syntax in the failing block(s) so the entities they describe are not silently dropped.",
+                plain_english="Part of your page's machine-readable data has a syntax error, so that part is "
+                "ignored by search engines and AI systems."
             )
+
+        # Schema can be present, valid and still answer neither question an
+        # answer engine asks: who publishes this page, and what is it about.
+        # `entity_grounding` reports which of the two the markup supplies. It
+        # asserts "structural only" solely when every entity is a classified
+        # scaffolding/value type, so an unrecognised type never triggers a
+        # finding below.
+        #
+        # `readability.additional_pages` (optional, [{url, structured_data}])
+        # lets a run that already parsed an interior page report it here. It
+        # costs no extra request -- that page's HTML was fetched by the render
+        # or engagement pass -- and it is where this gap usually lives: a
+        # homepage carries the Organization block while product and article
+        # pages ship nothing but their breadcrumb trail.
+        graded_pages = [(site_url, (struct_data or {}).get("entity_grounding") or {})]
+        for extra in (readability.get("additional_pages") or []):
+            if isinstance(extra, dict):
+                extra_sd = extra.get("structured_data") or {}
+                if extra_sd.get("recognized_entities_count", 0) > 0:
+                    graded_pages.append((extra.get("url") or "(unnamed page)",
+                                         extra_sd.get("entity_grounding") or {}))
+
+        navigation_only = [(u, g) for u, g in graded_pages if g.get("structural_only")]
+        if navigation_only:
+            scaffolding = sorted({t for _, g in navigation_only
+                                  for t in (g.get("structural_entity_types") or [])})
+            page_list = ", ".join(u for u, _ in navigation_only[:3])
+            more = f" (and {len(navigation_only) - 3} more)" if len(navigation_only) > 3 else ""
+            add_finding(
+                findings, "readability",
+                "Structured Data Describes Only Page Navigation, Not the Page's Subject",
+                "medium",
+                f"On {page_list}{more}, every Schema.org entity is page scaffolding or a value object "
+                f"({', '.join(scaffolding) or 'breadcrumb/list types'}) -- there is no entity describing "
+                "the product, article, service or organization the page is actually about. The markup "
+                "validates, but an AI answer engine learns only the breadcrumb trail from it.",
+                "Add a subject entity matching each page (Product, Article, Service, Organization, ...) "
+                "alongside the existing BreadcrumbList, carrying at minimum name, description and url.",
+                plain_english="Those pages' machine-readable data describes only their breadcrumb trail. "
+                "AI systems can see where each page sits in your menu, but not what it is about."
+            )
+
+        root_grounding = (struct_data or {}).get("entity_grounding") or {}
+        if ((struct_data or {}).get("recognized_entities_count", 0) > 0
+                and root_grounding.get("is_site_root")
+                and not root_grounding.get("has_identity_entity")
+                and not root_grounding.get("unclassified_entity_types")
+                and not root_grounding.get("structural_only")):
+            subject_types = root_grounding.get("subject_entity_types") or []
+            add_finding(
+                findings, "readability",
+                "Homepage Schema Has No Organization or Brand Identity Entity",
+                "medium",
+                "The homepage carries Schema.org markup "
+                + (f"({', '.join(subject_types)}) " if subject_types else "")
+                + "but no Organization, Brand, Person or WebSite entity, so nothing in the structured "
+                "data states who the site belongs to. Identity is the anchor every other brand signal "
+                "(sameAs, logo, contact points) attaches to.",
+                "Add an Organization (or Brand/Person for a personal brand) entity to the homepage "
+                "JSON-LD with name, url, logo and sameAs, and reference it as the publisher of the "
+                "page's other entities.",
+                plain_english="Your homepage has machine-readable data, but none of it names the "
+                "organization behind the site. Adding an Organization entry gives AI systems a single "
+                "identity to attach your brand facts to.",
+                confidence=0.9
+            )
+
+        # A `description` is the sentence an answer engine can quote verbatim.
+        # This is a presence/length test only -- no judgement about wording.
+        desc_cov = (struct_data or {}).get("description_coverage") or {}
+        if desc_cov.get("describable_entities", 0) > 0:
+            missing_types = desc_cov.get("missing_description_types") or []
+            short_entities = desc_cov.get("short_description_entities") or []
+            min_chars = desc_cov.get("min_useful_chars", 25)
+            if missing_types or short_entities:
+                parts = []
+                if missing_types:
+                    parts.append(f"no description at all on: {', '.join(missing_types)}")
+                if short_entities:
+                    parts.append("description shorter than "
+                                 f"{min_chars} characters on: "
+                                 + ", ".join(f"{e.get('type')} ({e.get('length')} chars: "
+                                             f"{e.get('text', '')!r})" for e in short_entities))
+                add_finding(
+                    findings, "readability",
+                    "Schema Entities Missing a Usable description Field",
+                    "low",
+                    f"{len(missing_types) + len(short_entities)} of "
+                    f"{desc_cov.get('describable_entities')} describable Schema.org entities lack a "
+                    f"quotable description -- {'; '.join(parts)}.",
+                    "Add a one- or two-sentence `description` to each entity stating plainly what it is, "
+                    "in the same words a person would use when asked.",
+                    plain_english="Some of your structured data entries have no summary sentence. That "
+                    "sentence is often exactly what an AI assistant quotes when it describes you, so "
+                    "leaving it out means the assistant has to invent its own wording."
+                )
 
         semantic = readability.get("semantic_structure", {}) or {}
         headings_blk = semantic.get("headings", {}) or {}
@@ -1160,18 +1592,50 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     plain_english="Your website's structured data (Organization schema) contains no sameAs identity links. Adding links to your official social media profiles (LinkedIn, X/Twitter) helps AI search engines verify that your website belongs to a real, recognized brand."
                 )
             elif same_as_links_found and not has_wiki_sameas:
-                # Check 3b: Has sameAs links but no Wikipedia or Wikidata authority link
-                extra_note = ""
-                if wiki_found is False and data_found is False:
-                    extra_note = " Off-site search also confirmed no Wikipedia or Wikidata entry was found for this brand."
-                add_finding(
-                    findings, "freshness_corroboration",
-                    "Organization sameAs Links Present but No Wikipedia or Wikidata Authority Link",
-                    "low",
-                    f"Organization schema contains sameAs links (e.g. social profiles), but none point to Wikipedia or Wikidata.{extra_note} Note: Wikipedia/Wikidata coverage is an optional external authority signal for eligible entities, not a mandatory requirement.",
-                    "If your organization meets Wikipedia or Wikidata notability guidelines, consider adding an official entity link in your Organization sameAs. Otherwise, the existing social profile sameAs links are sufficient.",
-                    plain_english=f"Your Organization schema has sameAs identity links (e.g. LinkedIn, X/Twitter), but none link to a Wikipedia article or Wikidata entry for '{brand_name_str}'. This is an optional enhancement — only pursue it if your business genuinely meets Wikipedia or Wikidata notability guidelines."
-                )
+                # Check 3b: sameAs links exist, none encyclopedic. Two cases
+                # this used to collapse into one generic nudge:
+                #  - an entry demonstrably exists off-site and simply is not
+                #    linked -- concrete and actionable, so say so directly;
+                #  - the brand already links a public identity registry
+                #    (package registry, code host, company register). That is
+                #    a machine-resolvable identity anchor of the same kind
+                #    Wikidata provides, and most such brands will never meet
+                #    encyclopedia notability, so the nudge is noise for them.
+                authority = entities.get("authority_sameas") or {}
+                registry_hosts = authority.get("registry_hosts") or []
+                if wiki_found or data_found:
+                    where = " and ".join(
+                        [w for w in ("a Wikipedia article" if wiki_found else "",
+                                     "a Wikidata entry" if data_found else "") if w])
+                    add_finding(
+                        findings, "freshness_corroboration",
+                        "Existing Encyclopedic Entry Not Linked From Organization sameAs",
+                        "low",
+                        f"Off-site search found {where} for '{brand_name_str}', but the site's Organization "
+                        "sameAs links do not point to it, so the page never connects itself to the entity "
+                        "record AI systems already hold.",
+                        f"Add the existing {where.replace('a ', '')} URL to the Organization sameAs array "
+                        "so the on-site entity and the off-site record resolve to the same thing.",
+                        plain_english=f"An encyclopedia-style entry for '{brand_name_str}' already exists, but "
+                        "your website does not link to it. Adding that link tells AI systems the entry and "
+                        "your site describe the same organization.",
+                        confidence=0.8
+                    )
+                elif registry_hosts:
+                    pass  # registry-grade identity anchor already present
+                else:
+                    add_finding(
+                        findings, "freshness_corroboration",
+                        "Organization sameAs Links Present but No Wikipedia or Wikidata Authority Link",
+                        "low",
+                        "Organization schema contains sameAs links (e.g. social profiles), but none point to "
+                        "Wikipedia, Wikidata, or a public identity registry (company register, package or code "
+                        "registry). Off-site search also found no Wikipedia or Wikidata entry for this brand. "
+                        "Note: encyclopedic coverage is an optional external authority signal for eligible "
+                        "entities, not a mandatory requirement.",
+                        "If your organization meets Wikipedia or Wikidata notability guidelines, consider adding an official entity link in your Organization sameAs. Otherwise, the existing social profile sameAs links are sufficient.",
+                        plain_english=f"Your Organization schema has sameAs identity links (e.g. LinkedIn, X/Twitter), but none link to a Wikipedia article or Wikidata entry for '{brand_name_str}'. This is an optional enhancement — only pursue it if your business genuinely meets Wikipedia or Wikidata notability guidelines."
+                    )
 
             # Check 4: Name ambiguity / mistaken identity (Round-2 appendix D).
             amb = entities.get("name_ambiguity", {}) or {}
@@ -1329,6 +1793,22 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                         plain_english="Your official brand name is missing from the browser title tag of this page, causing brand orientation friction for AI engines."
                     )
                     break
+            dupes = descriptor.get("duplicate_meta_descriptions") or []
+            if dupes:
+                worst = max(dupes, key=lambda d: d.get("page_count", 0))
+                add_finding(
+                    findings, "engagement",
+                    "Same Meta Description Reused Across Different Pages",
+                    "medium",
+                    f"{worst.get('page_count')} of {descriptor.get('distinct_pages_audited') or descriptor.get('pages_audited')} "
+                    f"audited pages share the identical meta description \"{str(worst.get('description'))[:140]}\": "
+                    f"{worst.get('urls')}."
+                    + (f" {len(dupes) - 1} other description(s) are also shared." if len(dupes) > 1 else ""),
+                    "Write a meta description for each page that states what that specific page covers (its "
+                    "product, topic or question), instead of a site-wide template default.",
+                    plain_english="Several of your pages carry the same summary text, so search results and AI "
+                    "answers show identical descriptions and cannot tell what each page is actually about."
+                )
 
         speed = engagement.get("page_speed_signals", {})
         if speed:
@@ -1464,6 +1944,7 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
             severity_counts["medium"] += 1
 
     audited_pages_cnt = extract_audited_urls(site_url, skill_outputs)
+    robots_restrictions = collect_robots_restrictions(skill_outputs)
     skills_invoked_cnt = max(1, len([k for k in skill_outputs if skill_outputs[k]]))
 
     default_recs = [
@@ -1492,7 +1973,15 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         "audit_metadata": {
             "audited_pages_count": audited_pages_cnt,
             "skills_invoked_count": skills_invoked_cnt,
-            "marketplace_version": "1.0.0"
+            "marketplace_version": "1.0.0",
+            # What this audit was not permitted to fetch, and why. Empty on a
+            # site that allows the audit everywhere it looked. This is coverage
+            # information, not a finding: a page disallowed to crawlers is
+            # already reported by the robots.txt findings, and repeating it
+            # here would double-count it in the score.
+            "robots_restricted_fetches": robots_restrictions,
+            "robots_compliance": ("all fetches allowed by robots.txt" if not robots_restrictions
+                                  else f"{len(robots_restrictions)} fetch(es) skipped to honour robots.txt")
         }
     }
     return report
@@ -1566,7 +2055,9 @@ if __name__ == "__main__":
             "audit_metadata": {
                 "audited_pages_count": 0,
                 "skills_invoked_count": 0,
-                "marketplace_version": "1.0.0"
+                "marketplace_version": "1.0.0",
+                "robots_restricted_fetches": [],
+                "robots_compliance": "not evaluated"
             },
             "script_error": str(e)
         }))

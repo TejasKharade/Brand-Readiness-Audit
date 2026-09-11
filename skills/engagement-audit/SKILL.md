@@ -103,11 +103,15 @@ echo '{
 
 The script extracts `<title>` and `<h1>` elements across all sampled pages, dynamically detects `candidate_brand_phrase` (from JSON-LD `Organization` or recurring capitalized title/H1 phrases), and checks whether the brand phrase is consistently present across titles and H1 headers.
 
+It also records each page's `<meta name="description">` and reports `duplicate_meta_descriptions` — the identical description (whitespace- and case-insensitive) on two or more **different** pages. That is a template default: the summary stops saying what each page is about, so search results and AI answers cannot tell the pages apart. Pages are compared by host + path (scheme, `www.`, query, fragment and trailing slash ignored), so one page sampled twice — e.g. with and without a tracking parameter — is never reported against itself; `distinct_pages_audited` counts pages on that basis. The orchestrator raises a medium finding naming the shared text and the pages.
+
 ---
 
 ### Step 5: Check Page Speed & Resource Signals
 
 Run `scripts/check_page_speed_signals.py` to measure raw page weight signals:
+> **robots.txt:** every resource this script measures is gated by `crawl-access-audit/scripts/robots_gate.py`. Pass `check_robots.py`'s output as `robots` in the script's JSON input so the gate reuses the robots.txt already fetched (zero extra requests); without it the gate fetches `/robots.txt` once itself rather than proceeding ungated. A refused request comes back marked `skipped_by_robots` with the deciding rule — treat it as *not measured*, never as a fault found in the site.
+
 
 ```bash
 echo '{
@@ -213,13 +217,22 @@ The skill produces a structured JSON summary combining script-computed facts and
   "descriptor_consistency": {
     "candidate_brand_phrase": "Acme Widgets",
     "pages_audited": 2,
+    "distinct_pages_audited": 2,
     "pages": [
       {
         "url": "https://example.com",
         "title": "Acme Widgets - Home",
         "h1": "Welcome to Acme Widgets",
+        "meta_description": "Acme Widgets makes industrial widgets.",
         "brand_phrase_present_in_title": true,
         "brand_phrase_present_in_h1": true
+      }
+    ],
+    "duplicate_meta_descriptions": [
+      {
+        "description": "Acme Widgets makes industrial widgets.",
+        "urls": ["https://example.com", "https://example.com/products/w-200"],
+        "page_count": 2
       }
     ]
   },

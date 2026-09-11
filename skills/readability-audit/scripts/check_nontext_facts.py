@@ -20,6 +20,22 @@ Zero external dependencies — standard library only (html.parser, re, urllib.pa
 
 import sys
 import json
+
+# --- robots.txt gate --------------------------------------------------------
+# Every fetch in this file asks robots_gate first. The gate is built from the
+# robots.txt that check_robots.py already fetched (passed in as `robots`), so
+# it costs no extra request; only a standalone run fetches robots.txt itself.
+import os as _os
+for _d in (_os.path.dirname(_os.path.abspath(__file__)),
+           _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                         "..", "..", "crawl-access-audit", "scripts")):
+    if _d not in sys.path:
+        sys.path.insert(0, _d)
+try:
+    from robots_gate import RobotsGate
+except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
+    RobotsGate = None
+
 import re
 import io
 import os
@@ -505,7 +521,7 @@ def _scan_bytes_for_text_ops(buf: bytes) -> bool:
 
 
 def inspect_pdf_stdlib(pdf_url: str, base_url: str, timeout: int = 8,
-                       max_bytes: int = 1024 * 1024) -> dict:
+                       max_bytes: int = 1024 * 1024, gate=None) -> dict:
     """
     Fetches the first `max_bytes` (default 1 MB, hard ceiling 10 MB) of a PDF
     and decides whether it carries an extractable digital text layer.
@@ -626,7 +642,7 @@ def inspect_pdf_stdlib(pdf_url: str, base_url: str, timeout: int = 8,
 # Main audit function
 # ---------------------------------------------------------------------------
 
-def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3) -> dict:
+def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3, robots=None) -> dict:
     parser = NonTextMediaParser()
     try:
         parser.feed(html_content or "")
@@ -693,8 +709,17 @@ def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3) -> 
             seen_pdfs.append(h)
 
     pdf_results = []
+    # Downloading a linked PDF is a fetch of that URL; sites commonly disallow
+    # /files/ or /wp-content/uploads/ precisely to keep crawlers out of them.
+    _gate = RobotsGate.for_url(url, robots=robots) if RobotsGate else None
     for href in seen_pdfs[:max_pdfs]:
-        pdf_results.append(inspect_pdf_stdlib(href, url))
+        if _gate is not None:
+            _decision = _gate.allows(href, "*")
+            if not _decision.allowed:
+                pdf_results.append({"url": href, "skipped_by_robots": True,
+                                    "has_text_layer": None, "error": _decision.reason})
+                continue
+        pdf_results.append(inspect_pdf_stdlib(href, url, gate=_gate))
 
     pdf_no_text = [p for p in pdf_results if p.get("has_text_layer") is False]
 
@@ -816,7 +841,7 @@ if __name__ == "__main__":
         if not url:
             url = params.get("url", "")
 
-        result = check_nontext_facts(html_content, url)
+        result = check_nontext_facts(html_content, url, robots=params.get("robots"))
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

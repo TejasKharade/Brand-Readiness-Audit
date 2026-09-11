@@ -4,6 +4,22 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
+
+# --- robots.txt gate --------------------------------------------------------
+# Every fetch in this file asks robots_gate first. The gate is built from the
+# robots.txt that check_robots.py already fetched (passed in as `robots`), so
+# it costs no extra request; only a standalone run fetches robots.txt itself.
+import os as _os
+for _d in (_os.path.dirname(_os.path.abspath(__file__)),
+           _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                         "..", "..", "crawl-access-audit", "scripts")):
+    if _d not in sys.path:
+        sys.path.insert(0, _d)
+try:
+    from robots_gate import RobotsGate
+except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
+    RobotsGate = None
+
 import gzip
 import ssl
 import urllib.request
@@ -109,11 +125,19 @@ def parse_xml_elements(root):
     return page_urls, index_urls
 
 
-def spot_check_url(url, timeout=5):
+def spot_check_url(url, timeout=5, gate=None):
     """
     Spot-checks whether a URL resolves correctly.
     Uses lightweight HEAD first; falls back to GET if HEAD returns 403/405.
+
+    A URL the site disallows is never probed -- a HEAD is still a request.
+    The caller gets the sentinel status "robots_skipped" so the URL is
+    recorded as not checked, never as a broken link.
     """
+    if gate is not None:
+        decision = gate.allows(url, "*")
+        if not decision.allowed:
+            return "robots_skipped", False
     try:
         req = urllib.request.Request(url, headers=HEADERS, method="HEAD")
         ssl_bypassed = False
@@ -189,8 +213,102 @@ def probe_conventional_path(conventional_url):
 
 SITEMAP_FETCH_DEADLINE_S = 30.0
 
+# ---------------------------------------------------------------------------
+# Representative page sample. Pages that share a URL structure are almost
+# always rendered by the same template, so auditing one URL per structure
+# covers the site far better than the first N sitemap entries (which on most
+# sites are all blog posts, or all products). Grouping is purely structural --
+# first path segment, and the template's typical depth -- with no keyword
+# lists ("docs", "blog", "product"), so it works for any language and any
+# naming scheme. It chooses WHICH pages to audit; it does not audit them.
+# ---------------------------------------------------------------------------
+REPRESENTATIVE_SAMPLE_CAP = 6
+_NON_PAGE_EXTENSIONS = (
+    ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".avif", ".ico",
+    ".xml", ".gz", ".zip", ".rar", ".7z", ".mp3", ".mp4", ".webm", ".mov", ".wav",
+    ".txt", ".json", ".csv", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".css", ".js", ".woff", ".woff2", ".ttf",
+)
+_HOMEPAGE_GROUP = "(homepage)"
+_TOP_LEVEL_GROUP = "(top-level pages)"
 
-def check_sitemap(sitemap_url, max_samples=None, conventional_url=None):
+
+def _url_group(url):
+    path = urllib.parse.urlparse(url).path or "/"
+    segs = [s for s in path.split("/") if s]
+    if not segs:
+        return _HOMEPAGE_GROUP, 0
+    if len(segs) == 1:
+        return _TOP_LEVEL_GROUP, 1
+    return "/" + segs[0] + "/", len(segs)
+
+
+def representative_sample(page_urls, known_status=None, cap=REPRESENTATIVE_SAMPLE_CAP):
+    """Returns (sample, group_counts).
+
+    sample: [{url, group, group_size, reason}] -- the homepage first when it is
+    listed, then one URL from each group in descending group size (the
+    templates that render the most pages matter most), then a second URL from
+    the largest groups while slots remain. Within a group the pick has the
+    group's most common depth, so a section index page does not stand in for
+    the pages beneath it. Non-page files, and URLs whose spot-check returned a
+    non-2xx status, are skipped. Deterministic: sitemap order breaks ties.
+    """
+    known_status = known_status or {}
+    groups, order, depths = {}, [], {}
+    seen = set()
+    for u in page_urls:
+        if not isinstance(u, str) or u in seen:
+            continue
+        seen.add(u)
+        if urllib.parse.urlparse(u).path.lower().endswith(_NON_PAGE_EXTENSIONS):
+            continue
+        st = known_status.get(u)
+        if isinstance(st, int) and not (200 <= st < 300):
+            continue
+        key, depth = _url_group(u)
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append((u, depth))
+        depths.setdefault(key, {}).setdefault(depth, 0)
+        depths[key][depth] += 1
+
+    group_counts = {k: len(v) for k, v in groups.items()}
+    ranked = sorted((k for k in order if k != _HOMEPAGE_GROUP),
+                    key=lambda k: (-group_counts[k], order.index(k)))
+    if _HOMEPAGE_GROUP in groups:
+        ranked = [_HOMEPAGE_GROUP] + ranked
+
+    def typical(key):
+        modal = max(depths[key].items(), key=lambda kv: (kv[1], -kv[0]))[0]
+        return [u for u, d in groups[key] if d == modal] or [u for u, _ in groups[key]]
+
+    sample, taken = [], set()
+    for key in ranked:
+        if len(sample) >= cap:
+            break
+        cands = typical(key)
+        sample.append({"url": cands[0], "group": key, "group_size": group_counts[key],
+                       "reason": "site homepage" if key == _HOMEPAGE_GROUP
+                       else f"first page of a {group_counts[key]}-URL group"})
+        taken.add(cands[0])
+    for key in ranked:
+        if len(sample) >= cap:
+            break
+        cands = [u for u in typical(key) if u not in taken]
+        if key == _HOMEPAGE_GROUP or not cands:
+            continue
+        pick = cands[-1]   # the far end of the group, for variety within one template
+        sample.append({"url": pick, "group": key, "group_size": group_counts[key],
+                       "reason": f"second page of a {group_counts[key]}-URL group"})
+        taken.add(pick)
+
+    top_groups = dict(sorted(group_counts.items(), key=lambda kv: -kv[1])[:12])
+    return sample, top_groups
+
+
+def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=None):
     # Shared wall-clock ceiling across the root fetch, every child sitemap, and
     # every URL spot-check combined. Without it, a slow-but-live server (not
     # down, just slow) can turn up to 6 child fetches + 15 spot-checks, each
@@ -198,6 +316,8 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None):
     # skills in a <5min audit budget, so it must return within a bounded time
     # regardless of how slow the target responds.
     deadline_start = time.time()
+    _gate = RobotsGate.for_url(sitemap_url or conventional_url or "",
+                               robots=robots) if RobotsGate else None
 
     def time_left():
         return SITEMAP_FETCH_DEADLINE_S - (time.time() - deadline_start)
@@ -225,7 +345,10 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None):
             "child_sitemaps_expanded_of_total": None
         },
         "error": None,
-        "time_budget_exceeded": False
+        "time_budget_exceeded": False,
+        # One URL per URL-structure group, for choosing which pages to audit.
+        "representative_sample": [],
+        "url_groups": {},
     }
 
     try:
@@ -320,12 +443,17 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None):
                         "error": f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded",
                         "ssl_verification_bypassed": False})
                     continue
-                status_code, spot_ssl_bypassed = spot_check_url(u, timeout=max(2, min(5, time_left())))
+                status_code, spot_ssl_bypassed = spot_check_url(
+                    u, timeout=max(2, min(5, time_left())), gate=_gate)
                 result["sampled_urls"].append({
                     "url": u,
                     "status": status_code,
                     "ssl_verification_bypassed": spot_ssl_bypassed
                 })
+
+            known_status = {s["url"]: s.get("status") for s in result["sampled_urls"]}
+            result["representative_sample"], result["url_groups"] = representative_sample(
+                page_urls, known_status)
 
     except HTTPError as e:
         result["exists"] = False
@@ -406,7 +534,8 @@ if __name__ == "__main__":
             sitemap_url = sitemap_url.rstrip("/") + "/sitemap.xml"
 
         output = check_sitemap(sitemap_url,
-                               conventional_url=params.get("conventional_url"))
+                               conventional_url=params.get("conventional_url"),
+                               robots=params.get("robots"))
         print(json.dumps(output, indent=2))
     except Exception as e:
         print(json.dumps({"error": f"Script execution failed: {str(e)}"}))

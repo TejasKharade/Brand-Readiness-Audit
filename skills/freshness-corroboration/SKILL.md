@@ -70,6 +70,16 @@ Use as the data-gathering stage for content recency, off-site fact corroboration
    - **Name ambiguity (`name_ambiguity`)** — deterministic mistaken-identity signals from the bare-name results: `target_domain_rank`, `distinct_registrable_domains`, `identity_platform_coverage` (LinkedIn/Crunchbase/Wikipedia/…), `wikipedia_disambiguation_detected`, and a composite `ambiguity_risk` (`low` / `moderate` / `elevated`). `elevated` raises a finding. When `needs_agent_disambiguation_judgment: true`, the agent reads the actual result titles and confirms whether genuinely distinct same-named entities appear, writing back `name_ambiguity.agent_verdict = {"ambiguous": bool, "notes": "..."}` (preferred over the heuristic).
    - **Entity-match evidence (`entity_match_evidence`)** — `wikipedia_result` / `wikidata_result` is the best-scoring match (never a disambiguation page), and `wikipedia_candidates` / `wikidata_candidates` list every on-host result with `match_score` and `match_reason`. The score is a text match, not identity proof: the agent confirms the snippet describes *this* brand (industry / founding / location) rather than a same-named person or company. If a candidate scored 0 but clearly is the brand (article under its legal name), the agent may treat presence as confirmed.
    - Searches: **query 1 (`"[Brand Name]"`) always; query 2 (`"[Brand Name] wikipedia"`) only if query 1 did not surface a wikipedia.org page; query 3 (`"[Brand Name] wikidata"`) only if no Wikipedia page exists.** See the priority ladder in *Shared Search Budget Rules*. Pass `search_budget_remaining`; the script echoes a `search_budget` block.
+   - Classifies each `sameAs` target in `authority_sameas`: links to **public identity registries** — a
+     code or package registry (GitHub, GitLab, npm, PyPI, crates.io, pkg.go.dev, Docker Hub, …), an app store
+     listing, a company register (OpenCorporates, Crunchbase) or a persistent-identifier authority (ORCID,
+     ISNI, ROR, VIAF) — are registry-grade identity anchors of the same kind a Wikidata link provides.
+     Self-published social profiles (LinkedIn, X, Facebook) are deliberately *not* counted as registries.
+     Host matching is exact-or-subdomain, so `dropbox.com` never matches `x.com`. The orchestrator therefore
+     suppresses its optional "no Wikipedia/Wikidata link" nudge for a brand that already links a registry
+     record (most open-source projects and B2B suppliers will never meet encyclopedia notability), and when
+     off-site search *did* find an entry the site does not link, it raises the concrete
+     **"Existing Encyclopedic Entry Not Linked From Organization sameAs"** finding instead of the generic one.
    - Pass search result domains into `scripts/check_entity_disambiguation.py`:
    ```bash
    echo '{"brand_name": "Acme", "domain": "acme.com", "html": "...", "bare_name_results": [...], "wikipedia_results": [...], "wikidata_results": [...]}' | python skills/freshness-corroboration/scripts/check_entity_disambiguation.py

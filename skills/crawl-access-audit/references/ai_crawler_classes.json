@@ -1,0 +1,34 @@
+{
+  "_about": "Purpose classes for robots.txt product tokens. 'retrieval' tokens fetch pages to answer or cite in live AI search / assistant responses, or build the search index those answers draw on; blocking them removes the site from those answers. 'training' tokens govern collection or reuse for model training (some are control tokens, not crawlers); blocking them does not remove the site from live AI search citations. 'honors_robots_txt': false marks user-initiated fetchers whose operator says robots.txt rules may not apply -- a robots.txt block on them is not an effective access control, so it is never scored as one. Any token NOT listed here is 'unclassified' and handled like retrieval (the conservative choice).",
+  "_verification": "'verified' entries were checked against the operator's own crawler documentation on 2026-09-11 (OpenAI developers.openai.com/api/docs/bots; Anthropic support.claude.com article 8896518; Perplexity docs.perplexity.ai/guides/bots; Google developers.google.com/search/docs/crawling-indexing/google-common-crawlers; Apple support.apple.com/en-us/119829; Meta developers.facebook.com/docs/sharing/webmasters/web-crawlers). Entries with verified: false were not re-checked in that pass. Operators rename and add crawlers -- re-verify when updating.",
+  "classes": {
+    "oai-searchbot":        {"class": "retrieval", "role": "search_index", "operator": "OpenAI",       "honors_robots_txt": true,  "verified": true,  "note": "surfaces sites in ChatGPT search; sites opted out are not shown in ChatGPT search answers"},
+    "chatgpt-user":         {"class": "retrieval", "role": "user_fetch",   "operator": "OpenAI",       "honors_robots_txt": false, "verified": true,  "note": "user-initiated fetches; OpenAI says robots.txt rules may not apply, and it does not decide Search inclusion"},
+    "gptbot":               {"class": "training",  "role": "training",     "operator": "OpenAI",       "honors_robots_txt": true,  "verified": true,  "note": "content that may be used to train foundation models; does not control ChatGPT search"},
+
+    "claude-searchbot":     {"class": "retrieval", "role": "search_index", "operator": "Anthropic",    "honors_robots_txt": true,  "verified": true,  "note": "indexes content for Claude search result quality"},
+    "claude-user":          {"class": "retrieval", "role": "user_fetch",   "operator": "Anthropic",    "honors_robots_txt": true,  "verified": true,  "note": "fetches pages for Claude user questions; blocking it may reduce visibility in user-directed search"},
+    "claudebot":            {"class": "training",  "role": "training",     "operator": "Anthropic",    "honors_robots_txt": true,  "verified": true,  "note": "collects content that could contribute to model training"},
+    "anthropic-ai":         {"class": "training",  "role": "training",     "operator": "Anthropic",    "honors_robots_txt": true,  "verified": false, "note": "legacy token no longer listed in Anthropic's documentation; still present in many robots.txt files"},
+
+    "perplexitybot":        {"class": "retrieval", "role": "search_index", "operator": "Perplexity",   "honors_robots_txt": true,  "verified": true,  "note": "surfaces and links sites in Perplexity search results; not used to train foundation models"},
+    "perplexity-user":      {"class": "retrieval", "role": "user_fetch",   "operator": "Perplexity",   "honors_robots_txt": false, "verified": true,  "note": "user-requested fetches; Perplexity says it generally ignores robots.txt"},
+
+    "googlebot":            {"class": "retrieval", "role": "search_index", "operator": "Google",       "honors_robots_txt": true,  "verified": false, "note": "Google Search index, which AI Overviews draw on"},
+    "google-extended":      {"class": "training",  "role": "use_control",  "operator": "Google",       "honors_robots_txt": true,  "verified": true,  "note": "control token (no separate crawler) for Gemini model training and grounding in Gemini Apps; does not affect inclusion or ranking in Google Search"},
+
+    "bingbot":              {"class": "retrieval", "role": "search_index", "operator": "Microsoft",    "honors_robots_txt": true,  "verified": false, "note": "Bing index, which Copilot answers draw on"},
+
+    "applebot":             {"class": "retrieval", "role": "search_index", "operator": "Apple",        "honors_robots_txt": true,  "verified": true,  "note": "powers Spotlight, Siri and Safari search; data may also help train Apple foundation models"},
+    "applebot-extended":    {"class": "training",  "role": "use_control",  "operator": "Apple",        "honors_robots_txt": true,  "verified": true,  "note": "control token (does not crawl) for use in training Apple foundation models; pages disallowing it can still appear in search results"},
+
+    "duckassistbot":        {"class": "retrieval", "role": "user_fetch",   "operator": "DuckDuckGo",   "honors_robots_txt": true,  "verified": false, "note": "DuckAssist answers"},
+
+    "meta-webindexer":      {"class": "retrieval", "role": "search_index", "operator": "Meta",         "honors_robots_txt": true,  "verified": true,  "note": "improves Meta AI search result quality"},
+    "meta-externalfetcher": {"class": "retrieval", "role": "user_fetch",   "operator": "Meta",         "honors_robots_txt": false, "verified": true,  "note": "fetches links at a user's request; Meta says it may bypass robots.txt"},
+    "meta-externalagent":   {"class": "training",  "role": "training",     "operator": "Meta",         "honors_robots_txt": true,  "verified": true,  "note": "training foundation models and product indexing; Meta AI search quality uses Meta-WebIndexer"},
+
+    "ccbot":                {"class": "training",  "role": "training",     "operator": "Common Crawl", "honors_robots_txt": true,  "verified": false, "note": "open web corpus widely used for model training"},
+    "bytespider":           {"class": "training",  "role": "training",     "operator": "ByteDance",    "honors_robots_txt": true,  "verified": false, "note": "model training"}
+  }
+}

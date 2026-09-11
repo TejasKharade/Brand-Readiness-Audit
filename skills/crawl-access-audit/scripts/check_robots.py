@@ -4,6 +4,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -123,6 +124,75 @@ class RFC9309Robots:
         return not evaluate_robots(self.groups, agent, url)["disallowed"]
 
 
+# ---------------------------------------------------------------------------
+# Crawler purpose classes (references/ai_crawler_classes.json). Blocking a
+# training-only token (GPTBot, CCBot) keeps a site out of future model
+# training but NOT out of live AI search citations, which come from separate
+# retrieval tokens (OAI-SearchBot, PerplexityBot, Claude-SearchBot, ...).
+# The class is a documented fact about the token, reported here; deciding
+# how severe a block is stays with the orchestrator.
+# ---------------------------------------------------------------------------
+_FALLBACK_DEFAULT_AGENTS = ["GPTBot", "ClaudeBot", "Google-Extended", "CCBot", "*"]
+
+
+def load_crawler_classes():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "references", "ai_crawler_classes.json")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        classes = data.get("classes", {}) if isinstance(data, dict) else {}
+        return {str(k).lower(): v for k, v in classes.items() if isinstance(v, dict)}
+    except Exception:
+        return {}
+
+
+# Display casing for default agents, matching how operators write the tokens.
+_TOKEN_CASING = {
+    "oai-searchbot": "OAI-SearchBot", "chatgpt-user": "ChatGPT-User", "gptbot": "GPTBot",
+    "claude-searchbot": "Claude-SearchBot", "claude-user": "Claude-User", "claudebot": "ClaudeBot",
+    "anthropic-ai": "anthropic-ai", "perplexitybot": "PerplexityBot", "perplexity-user": "Perplexity-User",
+    "googlebot": "Googlebot", "google-extended": "Google-Extended", "bingbot": "Bingbot",
+    "applebot": "Applebot", "applebot-extended": "Applebot-Extended", "duckassistbot": "DuckAssistBot",
+    "meta-externalfetcher": "Meta-ExternalFetcher", "meta-externalagent": "Meta-ExternalAgent",
+    "meta-webindexer": "Meta-WebIndexer",
+    "ccbot": "CCBot", "bytespider": "Bytespider",
+}
+
+
+def default_bot_agents(classes=None):
+    classes = load_crawler_classes() if classes is None else classes
+    if not classes:
+        return list(_FALLBACK_DEFAULT_AGENTS)
+    return [_TOKEN_CASING.get(t, t) for t in classes] + ["*"]
+
+
+def classify_agents(agents, classes=None):
+    """{agent: {"class", "role", "operator"}}. '*' covers every crawler without
+    its own robots group, so it is classed 'wildcard' and handled like
+    retrieval. Tokens missing from the reference are 'unclassified', also
+    handled like retrieval, so an unknown bot never gets a softer verdict."""
+    classes = load_crawler_classes() if classes is None else classes
+    out = {}
+    for agent in agents:
+        token = _product_token(agent)
+        if token == "*":
+            out[agent] = {"class": "wildcard", "role": "all_unlisted_crawlers", "operator": None,
+                          "honors_robots_txt": None}
+            continue
+        info = classes.get(token)
+        if info:
+            out[agent] = {"class": info.get("class", "unclassified"),
+                          "role": info.get("role"), "operator": info.get("operator"),
+                          # False: the operator says robots.txt may not apply
+                          # (user-initiated fetchers), so a block is not effective.
+                          "honors_robots_txt": info.get("honors_robots_txt")}
+        else:
+            out[agent] = {"class": "unclassified", "role": None, "operator": None,
+                          "honors_robots_txt": None}
+    return out
+
+
 def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
     # Strip existing protocol if given to build candidates reliably
     if domain.startswith("http://"):
@@ -158,11 +228,20 @@ def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
         "matched_rules": {},       # {path: {agent: {"rule", "group"}}}
         "root_blocked_agents": [], # agents that may not fetch "/" (the homepage)
         "blocked_paths_by_agent": {},  # {agent: [tested paths disallowed]}
+        # {agent: {class: retrieval|training|wildcard|unclassified, role, operator}}
+        "agent_classes": classify_agents(bot_user_agents),
         "crawl_delay": None,
         "sitemap_url": None,
         "sitemap_urls": [],
         "error": None,
-        "fetch_deadline_exceeded": False
+        "fetch_deadline_exceeded": False,
+        # Raw directives + HTTP status, so robots_gate.RobotsGate can govern
+        # every other fetch in the audit without re-requesting robots.txt.
+        # `reachable` alone is not enough: RFC 9309 treats 404 as "allow all"
+        # and 5xx/unreachable as "disallow all", and both are `reachable:
+        # false` here.
+        "robots_txt": "",
+        "fetch_status": None,
     }
 
     content = ""
@@ -195,6 +274,7 @@ def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
         attempt_content = ""
         attempt_malformed = False
 
+        attempt_status = None
         # Handle HTTP/network/timeout failures without crashing
         try:
             req = urllib.request.Request(
@@ -208,6 +288,7 @@ def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
             with urllib.request.urlopen(req, timeout=6) as response:
                 attempt_content = response.read().decode("utf-8", errors="replace")
 
+                attempt_status = getattr(response, "status", None)
                 if response.status != 200:
                     attempt_error = f"HTTP {response.status}"
                 else:
@@ -218,16 +299,20 @@ def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
                         attempt_error = "Returned HTML instead of robots.txt"
                         
         except HTTPError as e:
+            attempt_status = e.code
             attempt_error = f"HTTP {e.code}"
         except (URLError, socket.timeout) as e:
             attempt_error = str(e)
         except Exception as e:
             attempt_error = str(e)
 
+        if attempt_status is not None:
+            result["fetch_status"] = attempt_status
         if attempt_error is None and not attempt_malformed:
             # Found a reachable, non-HTML robots.txt
             success_candidate = robots_url
             content = attempt_content
+            result["fetch_status"] = attempt_status or 200
             break
         else:
             if attempt_malformed and first_malformed is None:
@@ -257,6 +342,9 @@ def check_robots(domain, bot_user_agents, test_paths=None, robots_txt=None):
     # Success state
     result["reachable"] = True
     result["resolved_url"] = success_candidate
+    result["robots_txt"] = content
+    if result.get("fetch_status") is None:
+        result["fetch_status"] = 200
 
     # Treat empty robots.txt as valid/usable, parse whatever is there
     try:
@@ -361,7 +449,10 @@ if __name__ == "__main__":
         if not domain_arg:
             domain_arg = params.get("domain") or params.get("url") or "example.com"
 
-        bot_agents = params.get("bot_user_agents", ["GPTBot", "ClaudeBot", "Google-Extended", "CCBot", "*"])
+        # Default: every token in references/ai_crawler_classes.json (retrieval
+        # AND training) plus "*", so a training-only block can be told apart
+        # from a block that removes the site from live AI search answers.
+        bot_agents = params.get("bot_user_agents") or default_bot_agents()
         test_paths = params.get("test_paths", ["/"])
 
         output = check_robots(domain_arg, bot_agents, test_paths,

@@ -2,6 +2,12 @@
 
 List of User-Agent strings for common AI assistants and search crawlers.
 
+> [!NOTE]
+> **Which crawler does what** (live AI search / assistant retrieval vs. model training, and whether a
+> robots.txt rule actually applies to it) is recorded separately in `ai_crawler_classes.json`, which
+> `check_robots.py` reads. That file's entries marked `"verified": true` were checked against each
+> operator's own crawler documentation; the User-Agent strings below were not.
+
 > [!CAUTION]
 > **Verification Disclaimer:** The values in this table were assembled from general knowledge and unverified documentation samples. They have **NOT** been live-tested or independently verified against current provider documentation. All User-Agent strings are marked as `Unverified-Pending` and MUST be verified before relying on test results for final submission.
 

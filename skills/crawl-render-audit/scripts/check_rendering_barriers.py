@@ -25,7 +25,9 @@ Fixes applied (v2):
 
 import sys
 import json
+import html
 import re
+import urllib.parse
 from html.parser import HTMLParser
 from collections import Counter
 
@@ -174,6 +176,16 @@ VOID_TAGS = {
 CONTENT_AREA_TAGS = {"main", "article", "section"}
 BOILERPLATE_TAGS  = {"header", "footer", "nav", "aside"}
 
+# Block-level tags that end a run of text. Without these breaks, adjacent
+# elements' text runs together into one long pseudo-sentence and the
+# raw-vs-rendered sentence comparison below matches on the wrong boundaries.
+TEXT_BLOCK_TAGS = {
+    "p", "div", "section", "article", "main", "header", "footer", "nav", "aside",
+    "ul", "ol", "li", "dl", "dt", "dd", "table", "tr", "td", "th", "form",
+    "fieldset", "figure", "figcaption", "blockquote", "pre", "hr", "br",
+    "h1", "h2", "h3", "h4", "h5", "h6", "address", "details", "summary",
+}
+
 # Custom elements that ship server-rendered / progressively-enhanced content and
 # must NOT be treated as a client-side-rendering bootstrap signal.
 SSR_CUSTOM_ELEMENTS = {
@@ -265,6 +277,16 @@ class RobustContentParser(HTMLParser):
         self._in_title         = False
         self.waf_id_class_hits = []
         self.waf_inline_hit    = False
+
+        # Visible text kept verbatim (block-delimited) so raw and rendered can
+        # be compared sentence by sentence, not just by counts -- a count says
+        # "content is missing", the sentences say WHICH content. Boilerplate is
+        # excluded on the same basis as the word counters, which also keeps
+        # cookie banners and nav labels out of the comparison.
+        self._text_chunks = []
+        # Every <a href> seen, including inside nav/header: link discovery is
+        # precisely about navigation, so boilerplate must NOT be excluded here.
+        self.link_hrefs = []
 
     # ---- helpers ----
 
@@ -365,6 +387,13 @@ class RobustContentParser(HTMLParser):
         if tag_lower == "title":
             self._in_title = True
 
+        if tag_lower in TEXT_BLOCK_TAGS:
+            self._text_chunks.append("\n")
+        if tag_lower == "a" and self._hidden_depth == 0:
+            href = attrs_dict.get("href", "").strip()
+            if href:
+                self.link_hrefs.append(href)
+
         if tag_lower == "p" and self._hidden_depth == 0:
             self.p_count += 1
             if self._in_boilerplate == 0:
@@ -427,6 +456,9 @@ class RobustContentParser(HTMLParser):
 
     def handle_endtag(self, tag):
         tag_lower = tag.lower()
+
+        if tag_lower in TEXT_BLOCK_TAGS and not self._skip_stack:
+            self._text_chunks.append("\n")
 
         # F12: pop skip-stack on matching close tag
         if self._skip_stack and self._skip_stack[-1] == tag_lower:
@@ -499,6 +531,7 @@ class RobustContentParser(HTMLParser):
 
         # F1: exclude boilerplate from both buffers
         if self._in_boilerplate == 0:
+            self._text_chunks.append(data)
             self._all_words.extend(words)
         if self._content_depth > 0 and self._in_boilerplate == 0:
             self._main_words.extend(words)
@@ -516,6 +549,113 @@ class RobustContentParser(HTMLParser):
 
     @property
     def page_title(self):      return " ".join(self._page_title_parts).strip()
+
+    @property
+    def visible_text(self):    return "".join(self._text_chunks)
+
+
+# ---------------------------------------------------------------------------
+# Sentence-level raw-vs-rendered comparison
+#
+# Counts answer "how much is missing"; sentences answer "WHAT is missing",
+# which is what a site owner actually needs in order to act. The comparison
+# normalises both sides to lowercase alphanumerics before matching, so an
+# apostrophe written as &rsquo; in the raw HTML and as a literal character in
+# the serialised DOM (or any other entity/punctuation difference) does not
+# read as missing content.
+# ---------------------------------------------------------------------------
+
+SENTENCE_MIN_CHARS = 25
+SENTENCE_MIN_WORDS = 4
+SENTENCE_PROBE_WORDS = 7
+MAX_SENTENCES_COMPARED = 400      # bounds the work on very large pages
+
+
+def _normalise_for_match(text):
+    return " ".join(re.sub(r"[^0-9a-z]+", " ", html.unescape(text or "").lower()).split())
+
+
+def extract_sentences(visible_text):
+    """Substantive sentences from block-delimited visible text. Fragments and
+    code-like strings are dropped: they are noisy to compare and useless as
+    evidence."""
+    out = []
+    for candidate in re.split(r"(?<=[.!?])\s+|\n+", visible_text or ""):
+        s = " ".join(candidate.split())
+        if len(s) < SENTENCE_MIN_CHARS or len(s.split()) < SENTENCE_MIN_WORDS:
+            continue
+        if re.search(r"[{}<>|\\]|\)\s*;|=>|function\s*\(", s):
+            continue
+        out.append(s)
+        if len(out) >= MAX_SENTENCES_COMPARED:
+            break
+    return out
+
+
+def compare_sentence_parity(raw_parser, rend_parser):
+    """Which rendered sentences are absent from the raw HTML a non-JS crawler
+    receives. Returns None when there is no rendered DOM to compare against."""
+    if rend_parser is None:
+        return None
+    rendered_sentences = extract_sentences(rend_parser.visible_text)
+    raw_sentences = extract_sentences(raw_parser.visible_text)
+    raw_norm = _normalise_for_match(raw_parser.visible_text)
+
+    missing = []
+    for s in rendered_sentences:
+        norm = _normalise_for_match(s)
+        if not norm:
+            continue
+        probe = " ".join(norm.split()[:SENTENCE_PROBE_WORDS])
+        if probe and probe not in raw_norm:
+            missing.append(s)
+
+    total = len(rendered_sentences)
+    parity = round((1 - len(missing) / total) * 100, 1) if total else 100.0
+    return {
+        "rendered_sentence_count": total,
+        "raw_sentence_count": len(raw_sentences),
+        "missing_from_raw_count": len(missing),
+        "content_parity_pct": parity,
+        # Evidence: the actual text a non-JS crawler cannot see.
+        "missing_text_samples": [s[:220] for s in missing[:5]],
+        "comparison_capped": total >= MAX_SENTENCES_COMPARED,
+    }
+
+
+def compare_link_discovery(raw_parser, rend_parser, page_url):
+    """Internal links that exist only after JavaScript runs -- navigation built
+    from onClick handlers or mounted menus rather than <a href>, which crawlers
+    cannot traverse. Returns None without a rendered DOM."""
+    if rend_parser is None:
+        return None
+    base_host = (urllib.parse.urlparse(page_url or "").netloc or "").lower()
+
+    def internal_set(parser):
+        out = set()
+        for href in parser.link_hrefs:
+            if href.startswith(("#", "javascript:", "mailto:", "tel:", "data:")):
+                continue
+            try:
+                full = urllib.parse.urljoin(page_url or "", href)
+                p = urllib.parse.urlparse(full)
+            except Exception:
+                continue
+            if p.scheme not in ("http", "https"):
+                continue
+            if base_host and p.netloc.lower() != base_host:
+                continue
+            out.add(f"{p.scheme}://{p.netloc}{p.path}".rstrip("/"))
+        return out
+
+    raw_links, rend_links = internal_set(raw_parser), internal_set(rend_parser)
+    only_rendered = sorted(rend_links - raw_links)
+    return {
+        "raw_internal_links": len(raw_links),
+        "rendered_internal_links": len(rend_links),
+        "links_only_after_js_count": len(only_rendered),
+        "links_only_after_js_samples": only_rendered[:5],
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -773,6 +913,11 @@ def check_rendering_barriers(raw_html, rendered_html, url):
                 "headings": len(rend.headings), "jsonld_blocks": rend.jsonld_block_count,
             } if rend else None),
         },
+        # Both are null without a rendered DOM. They do not feed the barrier
+        # verdict above (which stands on its own signals); they say WHICH text
+        # and WHICH links a non-JS crawler misses, as evidence for the fix.
+        "content_parity": compare_sentence_parity(raw, rend),
+        "link_discovery": compare_link_discovery(raw, rend, url),
         "client_side_rendering_signals": {
             "spa_mount_points":          raw.spa_mount_points,
             "detected_frameworks":       sorted(all_frameworks),

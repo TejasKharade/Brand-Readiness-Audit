@@ -201,6 +201,75 @@ _NON_ENTITY_TYPES = {"breadcrumblist", "itemlist", "webpage", "webpagelement",
                      "siteNavigationElement".lower(), "collectionpage"}
 
 
+# Public identity registries: places that hold a *record* of an entity with a
+# canonical, machine-resolvable URL, as opposed to a self-published social
+# profile. A sameAs link to one of these anchors the brand in a database AI
+# systems already resolve against, which is the job a Wikidata link does. Many
+# real brands -- an open-source project, a B2B supplier, a local firm -- will
+# never meet encyclopedia notability, so "no Wikipedia link" is not a defect
+# when a registry record is linked instead.
+#
+# Social profiles (LinkedIn, X, Facebook, Instagram, YouTube) are deliberately
+# NOT here: they are self-asserted pages, not registry records, and the audit
+# already treats them as ordinary sameAs links.
+AUTHORITY_REGISTRY_HOSTS = {
+    # encyclopedic / knowledge graph
+    "wikipedia.org": "encyclopedia",
+    "wikidata.org": "knowledge_graph",
+    "dbpedia.org": "knowledge_graph",
+    # source code and package registries
+    "github.com": "code_registry",
+    "gitlab.com": "code_registry",
+    "codeberg.org": "code_registry",
+    "sourceforge.net": "code_registry",
+    "npmjs.com": "package_registry",
+    "pypi.org": "package_registry",
+    "crates.io": "package_registry",
+    "pkg.go.dev": "package_registry",
+    "rubygems.org": "package_registry",
+    "packagist.org": "package_registry",
+    "nuget.org": "package_registry",
+    "mvnrepository.com": "package_registry",
+    "hub.docker.com": "package_registry",
+    "huggingface.co": "model_registry",
+    # app stores (a listing is a reviewed, canonical record)
+    "apps.apple.com": "app_store",
+    "play.google.com": "app_store",
+    # company and organization registers
+    "opencorporates.com": "company_register",
+    "crunchbase.com": "company_register",
+    # persistent identifier authorities
+    "orcid.org": "persistent_id",
+    "isni.org": "persistent_id",
+    "ror.org": "persistent_id",
+    "viaf.org": "persistent_id",
+}
+
+
+def classify_authority_sameas(links):
+    """Split sameAs links into registry-grade identity anchors and the rest.
+
+    Host matching goes through host_is(), so 'dropbox.com' is never mistaken
+    for a match on 'x.com' and 'notgithub.com.evil.net' never matches
+    'github.com'.
+    """
+    registry_links = []
+    for url_str in links or []:
+        host = host_of(url_str)
+        if not host:
+            continue
+        for target, kind in AUTHORITY_REGISTRY_HOSTS.items():
+            if host_is(host, target):
+                registry_links.append({"url": url_str, "host": target, "kind": kind})
+                break
+    return {
+        "registry_links": registry_links[:10],
+        "registry_hosts": sorted({r["host"] for r in registry_links}),
+        "registry_kinds": sorted({r["kind"] for r in registry_links}),
+        "has_registry_sameas": bool(registry_links),
+    }
+
+
 def extract_same_as_links(html_content):
     """Harvest `sameAs` from ANY plausible entity node in the JSON-LD graph --
     Organization and all its subtypes, every LocalBusiness subtype (Dentist,
@@ -435,6 +504,7 @@ def check_entity_disambiguation(params):
         "same_as_links_found": len(same_as_links) > 0,
         "same_as_on_organization_typed_node": on_org_node,
         "has_wikidata_or_wikipedia_sameas": has_wiki_sameas,
+        "authority_sameas": classify_authority_sameas(same_as_links),
         "bare_name_search": {
             "search_result_domains": search_domains,
             "target_domain_in_top_results": target_in_top_results
@@ -517,6 +587,7 @@ if __name__ == "__main__":
             "same_as_links_found": False,
             "same_as_on_organization_typed_node": False,
             "has_wikidata_or_wikipedia_sameas": False,
+            "authority_sameas": classify_authority_sameas([]),
             "bare_name_search": {
                 "search_result_domains": [],
                 "target_domain_in_top_results": None
