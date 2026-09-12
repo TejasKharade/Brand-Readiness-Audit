@@ -16,6 +16,28 @@ Serves as the entrypoint master orchestrator for conducting complete end-to-end 
 
 ---
 
+## Quick-Start (Audit Execution Runbook)
+
+> [!IMPORTANT]
+> **Zero-Delay Execution — Start Immediately in Turn 1**:
+> When an audit is requested, do NOT spend turns browsing directories or reading sub-skill files. Follow this 4-turn execution runbook:
+> 
+> 1. **Turn 1 — Parallel Baseline Discovery (Launch together in one turn)**:
+>    - `python skills/crawl-access-audit/scripts/check_robots.py <url>`
+>    - `python skills/crawl-access-audit/scripts/check_sitemap.py <sitemap_or_url>`
+>    - `python skills/crawl-access-audit/scripts/check_tls.py <url>`
+> 2. **Turn 2 — Targeted Page Access & Raw HTML Retrieval**:
+>    - Select `sampled_pages` (the homepage + **at most 1** key page from sitemap `representative_sample`).
+>    - Run `python skills/crawl-access-audit/scripts/fetch_dual_identity.py <page_url>` for each sampled page (with `robots` passed). Do NOT probe extra User-Agents.
+>    - Run `check_page_signals.py` and `check_crawl_depth.py`.
+> 3. **Turn 3 — Content, Structure & Engagement Analysis (Zero Re-Fetches & Zero Code Writing)**:
+>    - Pass the retrieved `browser_fetch.content` (raw HTML) directly to Step 2, 3, 4, and 5 scripts using the exact payloads documented below. Do NOT re-fetch URLs.
+>    - **Do NOT author custom runner scripts (e.g. `run_turn2.py`, `execute_pipeline.py`) or dump intermediate JSON files in the workspace root.** Run scripts directly via stdin/CLI.
+> 4. **Turn 4 — Terminal Synthesis (Single-Pass Execution)**:
+>    - Run `synthesize_report.py` strictly once, piping all collected sub-skill outputs directly to `reports/<site_domain>_audit_report.json`.
+
+---
+
 ## Inputs
 
 The orchestrator receives target audit parameters:
@@ -55,17 +77,25 @@ The orchestrator receives target audit parameters:
 > signal to retry the same call.
 
 ### Step 1: Crawl Access Audit (`crawl-access-audit`)
-Run specialized access scripts to evaluate bot accessibility:
-> **Run `check_robots.py` first, then pass its output as `robots` to every
-> other script that fetches** (`fetch_dual_identity.py`, `check_sitemap.py`,
-> `check_crawl_depth.py`, `check_page_speed_signals.py`,
-> `check_nontext_facts.py`, `fetch_rendered_dom.py`). They gate every request
-> on it via `crawl-access-audit/scripts/robots_gate.py`. Passing it through
-> costs nothing and saves a request per script; omit it and each script fetches
-> `/robots.txt` itself rather than proceeding ungated. If a fetch comes back
-> `skipped_by_robots`, **do not run the content skills on the empty result** —
-> report the reduced coverage instead. The report's
-> `audit_metadata.robots_restricted_fetches` lists every refused request.
+
+Execute Step 1 in two tightly coordinated phases to avoid sequential turn latency:
+
+#### Phase 1A — Baseline Discovery (MANDATORY PARALLEL LAUNCH):
+Issue these three independent baseline checks **together in a single turn**:
+1. `scripts/check_robots.py`: Evaluate `robots.txt` for AI crawlers per RFC 9309 (longest match wins, wildcards honoured) against `/` and audited page URLs; reports deciding rules and documented purpose (`agent_classes`: live-search/assistant **retrieval** vs. model **training**). Its output supplies the `robots` rules gate for Phase 1B fetches.
+2. `scripts/check_sitemap.py`: Validate XML sitemap presence and reachability across child sitemaps. Its `representative_sample` output (one URL per URL-structure group) supplies the target URLs for choosing `sampled_pages`.
+3. `scripts/check_tls.py`: Independent TLS handshake with the host — checks expired, hostname-mismatched, self-signed/untrusted certs, or certs expiring within 14 days.
+
+> **Do NOT run these three checks sequentially across separate conversation turns.** Launching them simultaneously completes baseline discovery in ~11s instead of 60–90s.
+
+#### Phase 1B — Bot Identity & Crawl Verification (After Phase 1A returns):
+Once Phase 1A results are returned, proceed with page-level access checks:
+- **Pass `check_robots.py` output as `robots` to every subsequent fetch script** (`fetch_dual_identity.py`, `check_crawl_depth.py`, `check_page_speed_signals.py`, `check_nontext_facts.py`, `fetch_rendered_dom.py`). They gate every request on it via `crawl-access-audit/scripts/robots_gate.py`. Passing it through costs nothing and saves a request per script; omit it and each script fetches `/robots.txt` itself rather than proceeding ungated. If a fetch comes back `skipped_by_robots`, **do not run the content skills on the empty result** — report the reduced coverage instead. The report's `audit_metadata.robots_restricted_fetches` lists every refused request.
+- Use `check_sitemap.py`'s `representative_sample` (one URL per URL-structure group) to select `sampled_pages`.
+- `scripts/fetch_dual_identity.py`: Compare HTTP responses for User-Agent browser vs. AI bot identity. Run `fetch_dual_identity.py` exactly once per sampled page using its configured bot identity. **Do NOT probe additional User-Agents (e.g. ClaudeBot, PerplexityBot) beyond what `fetch_dual_identity.py` emits.** If `bot_blocked: true` is returned, that is sufficient, conclusive evidence of an edge bot barrier — further per-UA confirmation fetches or debugging probes are strictly prohibited and consume budget without altering findings.
+- `scripts/check_page_signals.py`: Inspect indexing meta tags (`noindex`, `nofollow`, canonicals).
+- `scripts/check_crawl_depth.py`: Evaluate internal link structure and URL depth.
+- Redirect loops and chains of 3+ hops are reported from the dual fetch's existing `status` / `redirect_count` (no extra requests).
 
 > [!IMPORTANT]
 > **Fetch each page's HTML exactly once, then reuse it for every skill.**
@@ -83,27 +113,27 @@ Run specialized access scripts to evaluate bot accessibility:
 > twice. A redundant re-fetch costs as much as the original ~30s
 > dual-identity fetch and is pure waste toward the 5-minute budget.
 
-- `scripts/check_robots.py`: Evaluate `robots.txt` for AI crawlers per RFC 9309 (longest match wins, wildcards honoured) against `/` and every audited page URL; reports the deciding rule per path and agent, and each agent's documented purpose (`agent_classes`: live-search/assistant **retrieval** vs. model **training**, from `references/ai_crawler_classes.json`). A block that removes the site from live AI search answers is critical/high; a training-only block is medium/low; a block on a user-initiated fetcher that robots.txt may not apply to is not scored.
-- `scripts/fetch_dual_identity.py`: Compare HTTP responses for User-Agent browser vs. AI bot identity.
-- `scripts/check_sitemap.py`: Validate XML sitemap presence and reachability.
-- `scripts/check_page_signals.py`: Inspect indexing meta tags (`noindex`, `nofollow`, canonicals).
-- `scripts/check_crawl_depth.py`: Evaluate internal link structure and URL depth.
-- `scripts/check_tls.py`: One TLS handshake with the host the pages are served from — expired, hostname-mismatched, self-signed or untrusted certificates (which make crawlers abort before fetching anything), and certificates expiring within 14 days.
-- Redirect loops and chains of 3+ hops are reported from the dual fetch's existing `status` / `redirect_count` (no extra requests). `check_sitemap.py`'s `representative_sample` (one URL per URL-structure group) is the recommended source for choosing `sampled_pages`.
-
 ### Step 2: Crawl Render Audit (`crawl-render-audit`)
-Run rendering barrier scripts:
-- `scripts/check_rendering_barriers.py`: Compare initial raw HTML vs. rendered DOM text word counts.
-- `scripts/check_structured_data_hydration.py`: Detect JSON-LD schema trapped behind client-side JS execution.
-- `scripts/check_client_side_redirects.py`: Detect client-side JS and meta refresh redirects.
-- `scripts/fetch_rendered_dom.py` *(optional)*: When the agent has no browser tool, render a page with an already-installed Chrome/Edge/Chromium (sandboxed, throwaway profile, hard timeout) to supply `rendered_html`, so the checks above measure the raw-vs-rendered gap instead of inferring it. Returns `available: false` when no browser exists; then run raw-only. Budget 1–8 s per page — render the homepage and at most one other page.
+Run rendering barrier scripts (all scripts accept JSON via stdin or argv[1]):
+- `scripts/check_rendering_barriers.py`: `{"url": url, "raw_html": raw_html, "rendered_html": rendered_html or ""}`
+  - Compare initial raw HTML vs. rendered DOM text word counts.
+- `scripts/check_structured_data_hydration.py`: `{"url": url, "raw_html": raw_html, "rendered_html": rendered_html or ""}`
+  - Detect JSON-LD schema trapped behind client-side JS execution.
+- `scripts/check_client_side_redirects.py`: `{"url": url, "raw_html": raw_html}`
+  - Detect client-side JS and meta refresh redirects.
+- `scripts/fetch_rendered_dom.py` *(optional)*: `{"url": url, "robots": robots}`
+  - Optional Chrome headless render. **Skip when target site serves bot/WAF challenge or to protect the 5-minute budget** — pass `rendered_html: ""` to the checks above.
 
 ### Step 3: Readability Audit (`readability-audit`)
 Run structural and semantic audit scripts:
-- `scripts/check_structured_data.py`: Validate Schema.org JSON-LD completeness across 9 schema types.
-- `scripts/check_semantic_structure.py`: Validate heading hierarchy (`<h1>`, `<h2>`) and outline structure.
-- `scripts/check_nontext_facts.py`: Verify machine-readable alternatives for non-text facts.
-- `scripts/check_content_consistency.py`: Detect contradiction between tabular markup and prose.
+- `scripts/check_structured_data.py`: `{"url": url, "html": raw_html}`
+  - Validate Schema.org JSON-LD completeness across 9 schema types.
+- `scripts/check_semantic_structure.py`: `{"url": url, "html": raw_html}`
+  - Validate heading hierarchy (`<h1>`, `<h2>`) and outline structure.
+- `scripts/check_nontext_facts.py`: `{"url": url, "html": raw_html, "robots": robots}`
+  - Verify machine-readable alternatives for non-text facts (images, audio/video, icons).
+- `scripts/check_content_consistency.py`: `{"url": url, "html": raw_html}`
+  - Detect contradiction between tabular markup and prose.
 - If you ran `check_structured_data.py` on any page besides the homepage, pass those results through as
   `readability.additional_pages: [{"url": ..., "structured_data": {...}}]`. No extra request is involved —
   that page's HTML was already fetched — and it is where the entity-grounding gap normally shows up: a
@@ -112,23 +142,33 @@ Run structural and semantic audit scripts:
 
 ### Step 4: Freshness & Corroboration Audit (`freshness-corroboration`)
 Run temporal and corroboration scripts:
-- `scripts/check_content_dates.py`: Extract publication, modification, and copyright dates.
-- `scripts/check_temporal_decay.py`: Detect post recency decay on blog/listing pages.
-- `scripts/check_citation_consistency.py`: Corroborate on-site facts against external web search snippets.
-- `scripts/check_entity_disambiguation.py`: Evaluate `sameAs` entity links (Wikidata, Wikipedia).
+- `scripts/check_content_dates.py`: `{"url": url, "html": raw_html}`
+  - Extract publication, modification, and copyright dates.
+- `scripts/check_temporal_decay.py`: `{"url": url, "html": raw_html}`
+  - Detect post recency decay on blog/listing pages.
+- `scripts/check_citation_consistency.py`: `{"url": url, "html": raw_html}`
+  - Corroborate on-site facts against external web search snippets.
+- `scripts/check_entity_disambiguation.py`: `{"url": url, "html": raw_html}`
+  - Evaluate `sameAs` entity links (Wikidata, Wikipedia).
 
 ### Step 5: On-Site Engagement Audit (`engagement-audit`)
 Run visitor orientation and engagement scripts:
-- `scripts/check_navigation_reachability.py`: Audit 1-level homepage navigation reachability for key URLs.
-- `scripts/check_content_depth.py`: Detect page intent, then assess content depth against advisory bands for content-bearing intents only; extract heading/paragraph text pairs.
-- `scripts/check_mobile_responsive_signals.py`: Check `<meta viewport>` and inline media queries.
-- `scripts/check_descriptor_consistency.py`: Audit cross-page brand phrase consistency in titles/H1s.
-- `scripts/check_page_speed_signals.py`: Measure HTML byte size, CSS/JS resource bytes, and image counts.
-- `scripts/check_landing_readiness.py`: Per sampled page, evaluate cold AI-referral entry — orientation (brand / description / `<h1>`), a forward action (CTA / nav / contact), hygiene (placeholder text, default `<title>`, dead links, mixed content), and reported friction signals.
+- `scripts/check_navigation_reachability.py`: `{"homepage_url": site_url, "html": homepage_raw_html}`
+  - Audit 1-level homepage navigation reachability for key URLs.
+- `scripts/check_content_depth.py`: `{"url": url, "html": raw_html}`
+  - Detect page intent, then assess content depth against advisory bands for content-bearing intents only.
+- `scripts/check_mobile_responsive_signals.py`: `{"url": url, "html": raw_html}`
+  - Check `<meta viewport>` and inline media queries.
+- `scripts/check_descriptor_consistency.py`: `{"pages": [{"url": u1, "html": h1}, {"url": u2, "html": h2}]}`
+  - Audit cross-page brand phrase consistency in titles/H1s.
+- `scripts/check_page_speed_signals.py`: `{"url": url, "robots": robots}`
+  - Measure HTML byte size, CSS/JS resource bytes, and image counts.
+- `scripts/check_landing_readiness.py`: `{"url": url, "html": raw_html}`
+  - Per sampled page, evaluate cold AI-referral entry — orientation (brand / description / `<h1>`), forward action CTA, and hygiene.
 
 ### Step 6: Master Synthesis (`scripts/synthesize_report.py`)
 
-Run `scripts/synthesize_report.py` to aggregate all sub-skill findings:
+Run `scripts/synthesize_report.py` to aggregate all sub-skill findings in a **strict single pass**:
 
 ```bash
 echo '{
@@ -140,8 +180,14 @@ echo '{
     "freshness_corroboration": { ... },
     "engagement": { ... }
   }
-}' | python skills/audit-orchestrator/scripts/synthesize_report.py
+}' | python skills/audit-orchestrator/scripts/synthesize_report.py > reports/<site_domain>_audit_report.json
 ```
+
+> [!IMPORTANT]
+> **Single-Pass Execution Rules**:
+> - **Execute `synthesize_report.py` strictly once as the final terminal step.** Do NOT run it a second time, do NOT re-synthesize, and do NOT create custom scratch audit scripts (e.g. `run_audit.py`).
+> - **Proactive recommendations are automatically populated**: If not supplied in the input payload, the script automatically derives tailored recommendations from findings and strategic AI readiness best practices (`/llms.txt`, crawler logs, entity schema). Do NOT launch a follow-up turn to "review" or "add recommendations".
+> - **Self-validating schema**: The script automatically validates its output against `references/audit_report_schema.json` before emitting, guaranteeing complete contract compliance in one step.
 
 The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), calculates five independent per-category scores (0.0 to 100.0, see Guardrails below), and outputs a structured JSON report. There is deliberately no single blended overall score — the handout's required schema asks for `site`/`audited_at`/a severity-count `summary`/`findings` and nothing more; a report of well-evidenced, correctly-severed findings is the deliverable, not a formula on top of them.
 

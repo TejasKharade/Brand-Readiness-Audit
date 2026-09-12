@@ -30,6 +30,7 @@ import urllib.parse
 
 import time
 import math
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ---------------------------------------------------------------------------
 # Adaptive sampling. Instead of fixed "first 3 / first 5" caps, both the number
@@ -39,7 +40,7 @@ import math
 # budget so the audit never becomes a rate-abusing crawl (handout: <5 min,
 # no rate abuse). Sampling is evenly spaced by index and therefore deterministic.
 # ---------------------------------------------------------------------------
-URL_SAMPLE_MIN, URL_SAMPLE_MAX = 5, 15
+URL_SAMPLE_MIN, URL_SAMPLE_MAX = 5, 12
 CHILD_SITEMAP_MIN, CHILD_SITEMAP_MAX = 3, 6
 
 
@@ -462,21 +463,61 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
             sampled = [page_urls[i] for i in range(0, len(page_urls), step)][:sample_cap]
             result["sampling_strategy"]["urls_sampled"] = len(sampled)
 
-            for u in sampled:
-                if time_left() <= 0:
-                    result["time_budget_exceeded"] = True
+            if time_left() <= 0:
+                result["time_budget_exceeded"] = True
+                for u in sampled:
                     result["sampled_urls"].append({
-                        "url": u, "status": None,
+                        "url": u,
+                        "status": None,
                         "error": f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded",
-                        "ssl_verification_bypassed": False})
-                    continue
-                status_code, spot_ssl_bypassed = spot_check_url(
-                    u, timeout=max(2, min(5, time_left())), gate=_gate)
-                result["sampled_urls"].append({
-                    "url": u,
-                    "status": status_code,
-                    "ssl_verification_bypassed": spot_ssl_bypassed
-                })
+                        "ssl_verification_bypassed": False
+                    })
+            else:
+                def _probe(u):
+                    rem = time_left()
+                    if rem <= 0:
+                        return u, None, False, f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded"
+                    try:
+                        to = max(2, min(5, rem))
+                        status_code, spot_ssl_bypassed = spot_check_url(
+                            u, timeout=to, gate=_gate)
+                        return u, status_code, spot_ssl_bypassed, None
+                    except Exception:
+                        return u, "error", False, None
+
+                workers = min(5, len(sampled))
+                probe_results = [None] * len(sampled)
+                with ThreadPoolExecutor(max_workers=workers) as executor:
+                    future_to_idx = {
+                        executor.submit(_probe, u): i for i, u in enumerate(sampled)
+                    }
+                    for future in as_completed(future_to_idx):
+                        idx = future_to_idx[future]
+                        try:
+                            u_res, status_code, spot_ssl_bypassed, err = future.result()
+                            probe_results[idx] = (status_code, spot_ssl_bypassed, err)
+                        except Exception:
+                            probe_results[idx] = ("error", False, None)
+
+                for i, u in enumerate(sampled):
+                    res = probe_results[i]
+                    if not res:
+                        res = ("error", False, None)
+                    status_code, spot_ssl_bypassed, err = res
+                    if err:
+                        result["time_budget_exceeded"] = True
+                        result["sampled_urls"].append({
+                            "url": u,
+                            "status": status_code,
+                            "error": err,
+                            "ssl_verification_bypassed": spot_ssl_bypassed
+                        })
+                    else:
+                        result["sampled_urls"].append({
+                            "url": u,
+                            "status": status_code,
+                            "ssl_verification_bypassed": spot_ssl_bypassed
+                        })
 
             known_status = {s["url"]: s.get("status") for s in result["sampled_urls"]}
             result["representative_sample"], result["url_groups"] = representative_sample(
@@ -527,6 +568,9 @@ def read_stdin_safe(timeout=5.0):
     return res[0] if res else ""
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1].strip().lower() in ("--help", "-h", "help"):
+        print("Usage: python check_sitemap.py <sitemap_url>")
+        sys.exit(0)
     try:
         sitemap_url = None
         params = {}

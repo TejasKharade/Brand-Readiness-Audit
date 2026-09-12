@@ -4,6 +4,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 import sys
 import json
+import re
 from datetime import datetime, timezone
 
 SEVERITY_DEDUCTION = {"critical": 20.0, "high": 10.0, "medium": 5.0, "low": 2.0}
@@ -460,6 +461,27 @@ def _build_default_recommendations(skill_outputs, findings):
     if (mobile and mobile.get("viewport_meta_present") is False
             and "viewport" not in finding_titles):
         recs.append("Include <meta name='viewport' content='width=device-width, initial-scale=1'> on all page templates.")
+
+    # Supplement sparse opportunities with actionable summaries from high-severity findings
+    if len(recs) < 3 and findings:
+        for f in findings:
+            if len(recs) >= 3:
+                break
+            action = (f.get("suggested_action") or {}).get("summary")
+            if action and action not in recs and not any(r.lower() in action.lower() for r in recs):
+                recs.append(action)
+
+    # Universal strategic forward-looking Brand AI readiness best practices
+    strategic_fallbacks = [
+        "Publish a curated '/llms.txt' markdown file at the site root to guide AI answer engines directly to core brand context and documentation.",
+        "Monitor server access logs regularly for AI crawler user-agents (GPTBot, ClaudeBot, PerplexityBot) to identify retrieval spikes and prevent rate-limiting.",
+        "Maintain comprehensive Schema.org JSON-LD (Organization, Product, Article) with canonical entity URLs and sameAs disambiguation.",
+    ]
+    for sf in strategic_fallbacks:
+        if len(recs) >= 3:
+            break
+        if sf not in recs:
+            recs.append(sf)
 
     return recs
 
@@ -2322,7 +2344,52 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                                   else f"{len(robots_restrictions)} fetch(es) skipped to honour robots.txt")
         }
     }
+    validate_report_schema(report)
     return report
+
+
+def validate_report_schema(report):
+    """Self-check report against references/audit_report_schema.json constraints."""
+    if not isinstance(report, dict):
+        raise ValueError("Report must be a JSON object")
+    for req in ("site", "audited_at", "category_scores", "summary", "findings", "proactive_recommendations", "audit_metadata"):
+        if req not in report:
+            raise ValueError(f"Schema violation: missing required top-level key '{req}'")
+
+    scores = report.get("category_scores") or {}
+    for cat in ("crawl_access", "crawl_render", "readability", "freshness_corroboration", "engagement"):
+        if cat not in scores or not isinstance(scores[cat], (int, float)) or not (0.0 <= scores[cat] <= 100.0):
+            raise ValueError(f"Schema violation: category_score for '{cat}' must be in [0.0, 100.0]")
+
+    summary = report.get("summary") or {}
+    for s_key in ("total_findings", "critical", "high", "medium", "low"):
+        if s_key not in summary or not isinstance(summary[s_key], int) or summary[s_key] < 0:
+            raise ValueError(f"Schema violation: summary key '{s_key}' must be a non-negative integer")
+
+    for f in report.get("findings") or []:
+        for f_req in ("id", "category", "title", "severity", "evidence", "suggested_action"):
+            if f_req not in f:
+                raise ValueError(f"Schema violation: finding missing required field '{f_req}'")
+        if not re.match(r"^F-[0-9]{3,}$", str(f.get("id", ""))):
+            raise ValueError(f"Schema violation: finding id '{f.get('id')}' does not match pattern ^F-[0-9]{{3,}}$")
+        if f.get("severity") not in ("critical", "high", "medium", "low"):
+            raise ValueError(f"Schema violation: invalid finding severity '{f.get('severity')}'")
+        act = f.get("suggested_action")
+        if not isinstance(act, dict) or "summary" not in act or "priority" not in act:
+            raise ValueError(f"Schema violation: suggested_action must have 'summary' and 'priority'")
+        if act.get("priority") not in ("critical", "high", "medium", "low"):
+            raise ValueError(f"Schema violation: invalid suggested_action priority '{act.get('priority')}'")
+
+    recs = report.get("proactive_recommendations")
+    if not isinstance(recs, list) or not all(isinstance(r, str) for r in recs):
+        raise ValueError("Schema violation: proactive_recommendations must be a list of strings")
+
+    meta = report.get("audit_metadata") or {}
+    for m_req in ("audited_pages_count", "skills_invoked_count", "marketplace_version"):
+        if m_req not in meta:
+            raise ValueError(f"Schema violation: audit_metadata missing required key '{m_req}'")
+
+    return True
 
 import threading
 
@@ -2341,6 +2408,9 @@ def read_stdin_safe(timeout=5.0):
     return res[0] if res else ""
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1].strip().lower() in ("--help", "-h", "help"):
+        print("Usage: python synthesize_report.py [json_payload_or_stdin]")
+        sys.exit(0)
     try:
         params = {}
 

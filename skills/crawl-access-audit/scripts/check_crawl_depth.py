@@ -318,6 +318,9 @@ def read_stdin_safe(timeout=5.0):
     return res[0] if res else ""
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1].strip().lower() in ("--help", "-h", "help"):
+        print("Usage: python check_crawl_depth.py <start_url> [target_url]")
+        sys.exit(0)
     try:
         start_url = None
         target_url = None

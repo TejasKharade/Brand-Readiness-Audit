@@ -104,6 +104,11 @@ that consumes this skill's output.
    - Fetches the page once with a normal browser User-Agent and once with
      the configured bot User-Agent (2-second delay between the two
      requests to the same host).
+   - **Do not probe additional User-Agents beyond what `fetch_dual_identity.py` emits.**
+     If `bot_blocked: true` is returned, that is conclusive evidence of an edge bot
+     barrier; additional per-UA confirmation fetches (e.g. testing ClaudeBot or
+     PerplexityBot individually) are NOT part of this skill's procedure and consume
+     budget without altering findings. The orchestrator reads `bot_blocked` directly.
    - For each of the two fetches, returns `status` (or `"timeout"`),
      `final_url`, `redirect_count`, `response_time`, `response_headers`
      (raw, unclassified — see Guardrails), and `content`.
@@ -184,12 +189,12 @@ that consumes this skill's output.
      If `child_sitemaps_total > child_sitemaps_sampled`, treat `url_count`
      as a sample across the expanded children only, not a site-wide total.
    - Spot-checks an ADAPTIVE sample of listed URLs —
-     `clamp(ceil(sqrt(url_count)), 5, 15)`, evenly spaced by index (not the
+     `clamp(ceil(sqrt(url_count)), 5, 12)`, evenly spaced by index (not the
      first N) — using a HEAD request that falls back to GET on 403/405.
      `sampling_strategy.urls_sampled` records the count actually used.
    - A 30s wall-clock ceiling covers the root fetch, every child sitemap, and
      every URL spot-check combined -- on a slow-but-live host this bounds the
-     script even at the full 6-child/15-URL adaptive ceiling, which otherwise
+     script even at the full 6-child/12-URL adaptive ceiling, which otherwise
      has no fixed limit on its own. Remaining work is skipped once the
      ceiling is hit (`time_budget_exceeded: true`, skipped entries recorded
      with an explicit `"skipped: ...budget exceeded"` error) rather than run
@@ -333,7 +338,7 @@ happens entirely in the downstream orchestrator/diagnosis skill.
   audit run against a single host should stay within roughly 60-90 total
   HTTP requests (robots.txt attempts + 2 fetches per sampled page + up to
   ~22 sitemap-related requests at the adaptive ceiling: ≤6 child sitemaps +
-  ≤15 URL spot-checks + 1 root + up to 60 crawl-depth requests at the
+  ≤12 URL spot-checks + 1 root + up to 60 crawl-depth requests at the
   adaptive ceiling). Every adaptive cap in this skill is clamped precisely
   so this ceiling holds for a 20-page site and a 200,000-page site alike —
   the audit never becomes a rate-abusing crawl.
