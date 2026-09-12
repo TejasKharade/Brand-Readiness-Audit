@@ -27,21 +27,37 @@ Use as the data-gathering stage for content recency, off-site fact corroboration
 - `brand_name`: Target brand or organization name.
 - `domain`: Target site domain (e.g. `example.com`).
 - `html`: Already-fetched HTML content for the target page (homepage, About page, or blog/news listing).
+- `status` (optional but strongly recommended): The HTTP status code of the fetch that produced `html` —
+  reuse it from wherever `html` came from (e.g. `crawl-access-audit`'s `browser_fetch.status` for the
+  homepage). Without it, `check_content_dates.py`/`check_temporal_decay.py` cannot tell a real page from a
+  404/410/5xx error page that happens to carry a date-like string (a stale copyright year in a shared error
+  template), and will report a fabricated staleness finding instead of the real defect: the page not
+  loading. Always pass it when auditing anything other than a page you've already confirmed is a live 2xx.
 - `facts_to_verify` (optional): List of key brand facts found on site (e.g., founding year, headquarters location) to corroborate via web search.
 
 ## Procedure & Script Execution Flow
 
 1. **On-Site Content Dates Analysis (`scripts/check_content_dates.py`)** — *No Search*
    ```bash
-   echo '{"html": "...", "url": "https://example.com"}' | python skills/freshness-corroboration/scripts/check_content_dates.py
+   echo '{"html": "...", "url": "https://example.com", "status": 200}' | python skills/freshness-corroboration/scripts/check_content_dates.py
    ```
+   - **Pass `status` from the fetch that produced `html`.** A non-2xx status short-circuits to
+     `{"checked": false, "fetch_status": ..., "skip_reason": ...}` with every date field `null` — the script
+     never scans a 404/410/5xx error page's body for dates, since a shared error template's stale footer
+     year would otherwise be misreported as this page's own content age. `checked` defaults true when
+     `status` is omitted (older callers), so this is backward compatible, but always pass it when available.
    - Extracts `dateModified` / `datePublished` from JSON-LD, parses them, and computes `date_modified_age_days` / `effective_content_age_days` — the **strongest freshness signal**. Also emits `content_date_issues` (`dateModified` < `datePublished`, future dates, unparseable values).
    - Scans **visible text only** (script/style/HTML-comment bodies stripped) for temporal anchors and the copyright year, so bundled-library banners (`/* jQuery … Copyright 2015 */`) and inline JS vars can no longer supply a wrong year. `copyright_years_all` lists every year seen; `copyright_year` is the max.
 
 2. **Temporal Decay / Listing Recency (`scripts/check_temporal_decay.py`)** — *No Search*
    ```bash
-   echo '{"url": "https://example.com/blog", "html": "..."}' | python skills/freshness-corroboration/scripts/check_temporal_decay.py
+   echo '{"url": "https://example.com/blog", "html": "...", "status": 200}' | python skills/freshness-corroboration/scripts/check_temporal_decay.py
    ```
+   - **Pass `status`** the same way as `check_content_dates.py` above, and for the same reason: without it, a
+     blog/listing URL that actually 404s gets scanned like real content, and any date-like text in the error
+     page's body (often the site's shared chrome) is reported as "the most recent post" — a fabricated
+     staleness claim standing in for the real defect, which is that the page doesn't load at all. A non-2xx
+     `status` short-circuits to `{"checked": false, "fetch_status": ..., "skip_reason": ...}` instead.
    - Best-effort heuristic parsing of article/blog listing pages for visible dates.
    - Reports `most_recent_post_date_found`, `post_count_found`, and `detection_confidence` (`high` for `<time datetime="...">` tags, `low` for loose text pattern matching).
    - *Known Limitation*: Loose text date matching applies boilerplate filtering (footers/copyrights), but incidental non-boilerplate year mentions (e.g. sidebars or testimonials) remain a known trade-off, which is why results without structured `<time>` tags are explicitly flagged with `detection_confidence: "low"`.
@@ -108,6 +124,8 @@ Use as the data-gathering stage for content recency, off-site fact corroboration
 ```json
 {
   "content_dates": {
+    "checked": true,
+    "fetch_status": 200,
     "date_published": "2025-01-15T08:00:00Z",
     "date_modified": "2025-06-20T10:00:00Z",
     "date_modified_age_days": 82,
@@ -119,6 +137,8 @@ Use as the data-gathering stage for content recency, off-site fact corroboration
     "copyright_year_age_years": 1
   },
   "temporal_decay": {
+    "checked": true,
+    "fetch_status": 200,
     "most_recent_post_date_found": "June 1, 2025",
     "most_recent_post_date_iso": "2025-06-01",
     "days_since_last_post": 92,

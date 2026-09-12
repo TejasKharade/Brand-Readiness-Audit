@@ -152,7 +152,24 @@ def parse_comparable_date(date_str):
 
     return (0, 0, 0, s)
 
-def check_temporal_decay(html_content, url):
+def check_temporal_decay(html_content, url, status=None):
+    # Same reasoning as check_content_dates.py: a 404/410/5xx page still
+    # often returns a body (a custom error template, or the site's shared
+    # chrome carrying a stale footer date), and scanning it for "the most
+    # recent post date" would report a fabricated staleness claim in place
+    # of the real defect -- this page doesn't load. When the caller supplies
+    # the fetch's status, a non-2xx short-circuits straight to an honest
+    # "not analyzed" result instead of a low-confidence guess.
+    if status is not None and not (isinstance(status, int) and 200 <= status < 300):
+        return {
+            "url": url, "checked": False, "fetch_status": status,
+            "skip_reason": f"page fetch returned HTTP {status}, not real content -- listing not scanned",
+            "most_recent_post_date_found": None, "most_recent_post_date_iso": None,
+            "date_precision": None, "days_since_last_post": None, "is_decayed": False,
+            "decay_threshold_days": DECAY_THRESHOLD_DAYS, "post_count_found": 0,
+            "has_relative_recent_timestamps": False, "detection_confidence": "low",
+            "text_date_snippets": []
+        }
     if not html_content:
         html_content = ""
 
@@ -232,6 +249,8 @@ def check_temporal_decay(html_content, url):
 
     return {
         "url": url,
+        "checked": True,
+        "fetch_status": status,
         "most_recent_post_date_found": most_recent_post_date_found,
         "most_recent_post_date_iso": most_recent_iso,
         "date_precision": date_precision,
@@ -292,11 +311,12 @@ if __name__ == "__main__":
         if not url:
             url = params.get('url', '')
 
-        result = check_temporal_decay(html_content, url)
+        result = check_temporal_decay(html_content, url, status=params.get("status"))
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({
             "url": None,
+            "checked": False,
             "most_recent_post_date_found": None,
             "most_recent_post_date_iso": None,
             "date_precision": None,

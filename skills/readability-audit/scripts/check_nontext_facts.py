@@ -39,6 +39,7 @@ except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
 import re
 import io
 import os
+import time
 import zlib
 import urllib.request
 import urllib.parse
@@ -510,6 +511,18 @@ _PDF_MAX_STREAMS  = 25
 _PDF_MAX_STREAM_BYTES = 3 * 1024 * 1024
 _PDF_HARD_CEIL_BYTES  = 10 * 1024 * 1024
 
+# Wall-clock ceiling across ALL linked-PDF inspections on one page. Every other
+# network-bound script in this marketplace enforces one (check_sitemap.py 30s,
+# check_page_speed_signals.py 20s, fetch_dual_identity.py 20s); this loop was
+# the only one that did not, and a per-request `timeout` does not bound it: the
+# socket timeout resets on every chunk that arrives, so a server trickling a
+# 1 MB PDF a few bytes at a time never trips it and the audit hangs past the
+# handout's <5 min runtime constraint. 25s is deliberately just above the
+# nominal cost of the default 3 PDFs x 8s per-request timeout, so a healthy
+# site's behaviour is completely unchanged -- this only ever fires on a
+# pathologically slow host.
+PDF_INSPECTION_DEADLINE_S = 25.0
+
 
 def _scan_bytes_for_text_ops(buf: bytes) -> bool:
     if not buf:
@@ -559,11 +572,34 @@ def inspect_pdf_stdlib(pdf_url: str, base_url: str, timeout: int = 8,
                 "Range":      f"bytes=0-{max_bytes - 1}",
             }
         )
+        # Read in chunks against a wall-clock budget rather than one blocking
+        # `resp.read(max_bytes)`. The socket `timeout` only bounds the gap
+        # BETWEEN chunks -- it resets every time a byte arrives -- so a host
+        # trickling a 1 MB PDF a few bytes at a time never trips it and this
+        # single call would hang indefinitely, taking the whole audit past the
+        # <5 min runtime constraint with it. `read1` returns whatever has
+        # actually arrived instead of blocking for a full buffer, so the
+        # deadline below is checked promptly rather than once per 64 KB.
+        _read_start = time.time()
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             result["http_status"] = resp.status
-            raw = resp.read(max_bytes)
+            _read1 = getattr(resp, "read1", None) or resp.read
+            chunks, got = [], 0
+            while got < max_bytes:
+                if time.time() - _read_start > timeout:
+                    result["read_deadline_exceeded"] = True
+                    break
+                chunk = _read1(min(65536, max_bytes - got))
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                got += len(chunk)
+            raw = b"".join(chunks)
         result["byte_size_fetched"] = len(raw)
-        result["truncated"] = len(raw) >= max_bytes
+        # A budget-truncated read is truncated in the same sense as a
+        # size-truncated one: downstream must treat an inconclusive scan as
+        # has_text_layer=None, never as "this PDF has no text layer".
+        result["truncated"] = len(raw) >= max_bytes or bool(result.get("read_deadline_exceeded"))
 
         if not raw.startswith(PDF_MAGIC):
             result["error"] = "Response does not start with PDF magic bytes (%PDF)"
@@ -712,6 +748,7 @@ def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3, rob
     # Downloading a linked PDF is a fetch of that URL; sites commonly disallow
     # /files/ or /wp-content/uploads/ precisely to keep crawlers out of them.
     _gate = RobotsGate.for_url(url, robots=robots) if RobotsGate else None
+    _pdf_start = time.time()
     for href in seen_pdfs[:max_pdfs]:
         if _gate is not None:
             _decision = _gate.allows(href, "*")
@@ -719,7 +756,16 @@ def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3, rob
                 pdf_results.append({"url": href, "skipped_by_robots": True,
                                     "has_text_layer": None, "error": _decision.reason})
                 continue
-        pdf_results.append(inspect_pdf_stdlib(href, url, gate=_gate))
+        _left = PDF_INSPECTION_DEADLINE_S - (time.time() - _pdf_start)
+        if _left <= 1.0:
+            # Budget spent. Report the PDF as NOT MEASURED (has_text_layer stays
+            # None), never as "no text layer" -- an unread PDF is not a defect.
+            pdf_results.append({
+                "url": href, "has_text_layer": None, "deadline_exceeded": True,
+                "error": f"skipped: {PDF_INSPECTION_DEADLINE_S:.0f}s PDF-inspection budget exceeded"})
+            continue
+        pdf_results.append(inspect_pdf_stdlib(
+            href, url, timeout=int(max(2, min(8, _left))), gate=_gate))
 
     pdf_no_text = [p for p in pdf_results if p.get("has_text_layer") is False]
 

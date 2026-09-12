@@ -5,7 +5,6 @@
   "required": [
     "site",
     "audited_at",
-    "category_scores",
     "summary",
     "findings",
     "proactive_recommendations",
@@ -20,24 +19,6 @@
       "type": "string",
       "format": "date-time",
       "description": "ISO 8601 UTC timestamp of audit execution"
-    },
-    "category_scores": {
-      "type": "object",
-      "description": "Five independent, self-contained scores (0-100), one per audit category. Each starts at 100 and is reduced by a fixed amount per finding in that category (critical -20, high -10, medium -5, low -2), scaled by the finding's confidence -- no cross-category weighting, no overall blended score, no caps. A category's number can be verified by hand directly from the findings list.",
-      "required": [
-        "crawl_access",
-        "crawl_render",
-        "readability",
-        "freshness_corroboration",
-        "engagement"
-      ],
-      "properties": {
-        "crawl_access": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
-        "crawl_render": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
-        "readability": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
-        "freshness_corroboration": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
-        "engagement": { "type": "number", "minimum": 0.0, "maximum": 100.0 }
-      }
     },
     "summary": {
       "type": "object",
@@ -73,7 +54,7 @@
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "How sure this finding is real, distinct from severity (how bad it'd be if true). Defaults to 1.0 (full weight); scales how much this finding deducts from its category's score."
+            "description": "How sure this finding is real, distinct from severity (how bad it'd be if true). Defaults to 1.0 (full weight, full certainty)."
           }
         }
       }
@@ -90,7 +71,16 @@
       "properties": {
         "audited_pages_count": { "type": "integer", "minimum": 1 },
         "skills_invoked_count": { "type": "integer", "minimum": 1 },
-        "marketplace_version": { "type": "string" }
+        "marketplace_version": { "type": "string" },
+        "coverage_blocked": {
+          "type": "boolean",
+          "description": "True when the AI-bot identity's fetch was blocked, soft-blocked, or challenged by live security infrastructure (WAF/CDN) rather than by robots.txt -- see the critical crawl_access finding this triggers. When true, findings for the categories in categories_not_audited were deliberately not generated, since they would otherwise be built from a browser-identity or headless-rendered view of pages a real AI crawler never reaches."
+        },
+        "categories_not_audited": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Category names whose findings were skipped entirely because coverage_blocked is true (crawl_render, readability, engagement -- all derived from this site's own fetched/rendered HTML). Zero findings there reflects 'not evaluated', not 'verified clean'. freshness_corroboration is deliberately never listed here: its citation_consistency/entity_disambiguation checks corroborate via external web search, not this site's blocked fetch, and keep running even when coverage_blocked -- only its content_dates/temporal_decay sub-checks are skipped."
+        }
       }
     }
   }

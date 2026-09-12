@@ -6,8 +6,6 @@ import sys
 import json
 from datetime import datetime, timezone
 
-SEVERITY_DEDUCTION = {"critical": 20.0, "high": 10.0, "medium": 5.0, "low": 2.0}
-
 # check_structured_data.py scores attribute completeness across 9 Schema.org
 # types, but for a long time only `article_completeness` was ever read here --
 # a Product declaring an Offer with no price and no availability was detected
@@ -49,40 +47,6 @@ SCHEMA_COMPLETENESS_RULES = (
      "name, url and logo are the identity triple other brand facts attach to"),
 )
 
-
-def _finding_confidence(f):
-    """A finding may declare `confidence` in [0, 1] when the check itself is
-    uncertain (a year-only date guess, a string-match heuristic no agent
-    confirmed, a moderate rather than elevated ambiguity signal). Missing or
-    invalid confidence defaults to 1.0 -- full weight, matching every finding
-    that predates this field and every finding a script/agent is fully sure
-    of. This is NOT the same as severity: severity says how bad the thing
-    would be if true; confidence says how sure we are it's actually true."""
-    c = f.get("confidence", 1.0)
-    try:
-        return max(0.0, min(1.0, float(c)))
-    except (TypeError, ValueError):
-        return 1.0
-
-
-def calculate_category_score(findings, category_name):
-    """Each finding in this category deducts its severity's fixed point
-    value from a 100-point starting score, scaled by how confident the check
-    is that the finding is real (a confidence-0.5 critical finding costs half
-    of 20, not the full 20). That's the whole model: no cross-category
-    weighting, no diminishing returns, no caps -- every category's number is
-    self-contained and can be verified by hand straight from the findings
-    list, which is deliberately more important here than protecting against
-    a many-small-findings edge case that this marketplace's checks mostly
-    avoid anyway (they aggregate repeats into one finding with a count in the
-    evidence -- "5 low-overlap FAQ pairs" -- rather than emitting five)."""
-    score = 100.0
-    for f in findings:
-        if f.get("category") != category_name:
-            continue
-        sev = str(f.get("severity", "medium")).lower()
-        score -= SEVERITY_DEDUCTION.get(sev, 5.0) * _finding_confidence(f)
-    return max(0.0, min(100.0, round(score, 1)))
 
 # Names of CONTAINERS that hold pages/URLs an audit step substantively
 # looked at (matched by name, not by a fixed path -- crawl-access-audit's
@@ -296,18 +260,29 @@ def normalize_crawl_access(access):
             divergence = any(br_fp.get(k) != bot_fp.get(k) for k in
                              ("cloudflare_challenge", "captcha", "generic_block",
                               "login_wall", "thin_content"))
+            bf_status, bot_status_val = bf.get("status"), bot.get("status")
+            bot_soft_blocked = bool(
+                isinstance(bot_status_val, int) and 200 <= bot_status_val < 300
+                and isinstance(bf_status, int) and 200 <= bf_status < 300
+                and bot_fp.get("thin_content") and not br_fp.get("thin_content")
+            )
             dual_candidates.append({
                 "url": url,
-                "browser_status": bf.get("status"),
-                "bot_status": bot.get("status"),
-                "bot_blocked": bot.get("status") in (401, 403) or bot_fp.get("generic_block", False),
+                "browser_status": bf_status,
+                "bot_status": bot_status_val,
+                "bot_blocked": bot_status_val in (401, 403) or bot_fp.get("generic_block", False),
+                "bot_soft_blocked": bot_soft_blocked,
                 "bot_challenged": (
                     (bot_fp.get("cloudflare_challenge") and not br_fp.get("cloudflare_challenge"))
                     or (bot_fp.get("captcha") and not br_fp.get("captcha"))
                 ),
-                "rate_limited": 429 in (bf.get("status"), bot.get("status")),
+                "rate_limited": 429 in (bf_status, bot_status_val),
                 "browser_fetch": bf, "bot_fetch": bot,
                 "comparison_metrics": {"fingerprint_divergence": divergence},
+                # Not reconstructable from bf/bot alone -- carried forward only
+                # when the caller's page item already had it (e.g. it nested
+                # dual_fetch()'s full result rather than just the two fetches).
+                "robots_decisions": p.get("robots_decisions"),
             })
         for fetch in (bot, bf):
             sig = fetch.get("page_signals") if isinstance(fetch, dict) else None
@@ -355,10 +330,9 @@ def add_finding(findings, category, title, severity, evidence, suggested_summary
             "priority": priority.lower()
         },
         # How sure this specific finding is, in [0, 1] -- distinct from
-        # severity (how bad it would be if true). Scales its scoring weight;
-        # see _finding_confidence / calculate_category_score. Defaults to
-        # 1.0 (full weight) for the vast majority of findings that are
-        # deterministic facts, not heuristic guesses.
+        # severity (how bad it would be if true). Defaults to 1.0 (full
+        # weight) for the vast majority of findings that are deterministic
+        # facts, not heuristic guesses.
         "confidence": confidence,
     })
 
@@ -411,13 +385,13 @@ def collect_robots_restrictions(skill_outputs, _depth=0):
     return [e for e in found if e.get("rule") or e["url"] not in detailed_urls]
 
 
-def _build_default_recommendations(skill_outputs, findings):
+def _build_default_recommendations(skill_outputs, findings, coverage_blocked=False):
     """Fallback `proactive_recommendations` used only when the caller doesn't
     supply its own. Every item here is gated on the actual signal it talks
     about -- this used to be a fixed 5-item list applied unconditionally
-    regardless of what the audit found, so a site that scored 100/100 on
-    crawl_render with zero CSR findings still got told to "Implement
-    Server-Side Rendering", and a site whose navigation already linked every
+    regardless of what the audit found, so a site with zero CSR findings
+    still got told to "Implement Server-Side Rendering", and a site whose
+    navigation already linked every
     key page still got told to fix its navigation -- directly contradicting
     the findings assembled a few lines above in the same function. Each
     recommendation below survives only if its own underlying signal shows
@@ -434,11 +408,39 @@ def _build_default_recommendations(skill_outputs, findings):
             and "robots.txt" not in finding_titles and "blocked" not in finding_titles):
         recs.append("Ensure robots.txt allows access to AI crawler user-agents (GPTBot, PerplexityBot, ClaudeBot).")
 
-    render = skill_outputs.get("crawl_render", {}) or {}
-    csr = (render.get("rendering_barriers", {}) or {}).get("client_side_rendering_signals", {}) or {}
-    if (csr.get("likely_client_side_rendering_barrier")
-            and "rendering" not in finding_titles and "client-side" not in finding_titles):
-        recs.append("Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.")
+    # When AI-bot access is blocked at the infrastructure level, render- and
+    # engagement-derived signals below come from a browser-identity (or
+    # headless-render) view of pages a real AI crawler never saw --
+    # recommending SSR or navigation tweaks from that data would imply a
+    # confidence coverage_blocked explicitly says we don't have. The sameAs
+    # recommendation is left out of this gate: entity_disambiguation
+    # corroborates via external web search, not this site's blocked fetch.
+    if coverage_blocked:
+        # ...but staying silent is the wrong answer too. These are the
+        # recommendations that DON'T depend on reading the blocked pages --
+        # they address the block itself, and they are the highest-value advice
+        # this whole report can give, since nothing downstream matters until a
+        # crawler can actually fetch a page.
+        recs.extend([
+            "Allowlist verified AI crawlers at the WAF/CDN layer (Cloudflare, Akamai, Fastly, Datadome), "
+            "not in robots.txt -- robots.txt is advisory and cannot override an edge block.",
+            "Verify crawler identity by reverse DNS + forward-confirmed lookup of the request IP (the method "
+            "OpenAI, Anthropic, Perplexity and Google all document), rather than by User-Agent string, which "
+            "is trivially spoofed and so is never a safe basis for either allowing or blocking.",
+            "Publish the AI-facing content a crawler is currently refused at a path the WAF does not "
+            "challenge (a static docs/about/product page), so assistants have at least one reachable, "
+            "quotable source for the brand while the edge rules are being fixed.",
+            "Re-run this audit once the block is lifted: every content, rendering, freshness and engagement "
+            "check was intentionally skipped, so no conclusion about page quality can be drawn from this "
+            "report yet.",
+        ])
+
+    if not coverage_blocked:
+        render = skill_outputs.get("crawl_render", {}) or {}
+        csr = (render.get("rendering_barriers", {}) or {}).get("client_side_rendering_signals", {}) or {}
+        if (csr.get("likely_client_side_rendering_barrier")
+                and "rendering" not in finding_titles and "client-side" not in finding_titles):
+            recs.append("Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.")
 
     freshness = skill_outputs.get("freshness_corroboration", {}) or {}
     entity = freshness.get("entity_disambiguation", {}) or {}
@@ -448,31 +450,103 @@ def _build_default_recommendations(skill_outputs, findings):
         if not has_wiki and not has_registry and "sameas" not in finding_titles:
             recs.append("Add authoritative sameAs references (Wikidata, Wikipedia, LinkedIn) to Organization schema markup.")
 
-    engagement = skill_outputs.get("engagement", {}) or {}
-    nav = engagement.get("navigation_reachability", {}) or {}
-    unreachable_key_pages = [r for r in (nav.get("key_content_reachability") or [])
-                             if not r.get("directly_linked_from_homepage")]
-    if (unreachable_key_pages
-            and "unreachable" not in finding_titles and "navigation" not in finding_titles):
-        recs.append("Ensure key product/service landing pages are directly linked from homepage navigation.")
+    if not coverage_blocked:
+        engagement = skill_outputs.get("engagement", {}) or {}
+        nav = engagement.get("navigation_reachability", {}) or {}
+        unreachable_key_pages = [r for r in (nav.get("key_content_reachability") or [])
+                                 if not r.get("directly_linked_from_homepage")]
+        if (unreachable_key_pages
+                and "unreachable" not in finding_titles and "navigation" not in finding_titles):
+            recs.append("Ensure key product/service landing pages are directly linked from homepage navigation.")
 
-    mobile = engagement.get("mobile_responsiveness", {}) or {}
-    if (mobile and mobile.get("viewport_meta_present") is False
-            and "viewport" not in finding_titles):
-        recs.append("Include <meta name='viewport' content='width=device-width, initial-scale=1'> on all page templates.")
+        mobile = engagement.get("mobile_responsiveness", {}) or {}
+        if (mobile and mobile.get("viewport_meta_present") is False
+                and "viewport" not in finding_titles):
+            recs.append("Include <meta name='viewport' content='width=device-width, initial-scale=1'> on all page templates.")
 
     return recs
 
 
+FINDING_REQUIRED_FIELDS = ("title", "severity", "evidence", "suggested_action")
+VALID_SEVERITIES = ("critical", "high", "medium", "low")
+
+
+def _sanitize_skill_outputs(skill_outputs):
+    """Make a partially-broken `skill_outputs` survivable.
+
+    Every finding section below reads its inputs as `x.get("k", {}).get(...)`,
+    which raises AttributeError the moment a value is a non-dict (`42`, a bare
+    string) or an explicit `null`. Because the CLI wrapper catches that and
+    falls back to the empty error report, ONE malformed sub-skill output used
+    to discard every other category's perfectly good findings and emit a
+    zero-finding report -- the worst possible failure mode for an audit, since
+    it looks like a clean site. A sub-skill that crashed, timed out, or was
+    skipped legitimately produces junk here, so this is the expected path, not
+    a defensive nicety: coerce what cannot be read into `{}` and keep going on
+    everything that can."""
+    if not isinstance(skill_outputs, dict):
+        return {}
+    clean = {}
+    for skill, data in skill_outputs.items():
+        if not isinstance(data, dict):
+            continue                       # a non-dict category has nothing readable in it
+        # One level down is where sub-skill sections live (`robots`, `sitemap`,
+        # `structured_data`, ...); a null there is the common shape when an
+        # agent records "this check did not run".
+        clean[skill] = {k: ({} if v is None else v) for k, v in data.items()}
+    return clean
+
+
+def _sanitize_explicit_findings(explicit_findings):
+    """Caller-injected findings are part of the contract (the orchestrator may
+    add agent-judged findings the scripts cannot produce), so a malformed one
+    must not take the whole report down with it -- ids are assigned by
+    renumbering later, which does `f["id"] = ...` and dies on a non-dict."""
+    out = []
+    for f in explicit_findings or []:
+        if not isinstance(f, dict):
+            continue
+        f = dict(f)
+        sev = str(f.get("severity", "medium")).lower()
+        f["severity"] = sev if sev in VALID_SEVERITIES else "medium"
+        f.setdefault("category", "other")
+        f.setdefault("title", "Untitled finding")
+        f.setdefault("evidence", "No evidence supplied with this injected finding.")
+        action = f.get("suggested_action")
+        if not isinstance(action, dict):
+            action = {"summary": str(action) if action else "No suggested action supplied.",
+                      "priority": f["severity"]}
+        action.setdefault("summary", "No suggested action supplied.")
+        prio = str(action.get("priority", f["severity"])).lower()
+        action["priority"] = prio if prio in VALID_SEVERITIES else f["severity"]
+        f["suggested_action"] = action
+        out.append(f)
+    return out
+
+
 def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
-    if skill_outputs is None:
-        skill_outputs = {}
-    if explicit_findings is None:
-        explicit_findings = []
+    skill_outputs = _sanitize_skill_outputs(skill_outputs)
+    explicit_findings = _sanitize_explicit_findings(explicit_findings)
     if proactive_recommendations is None:
         proactive_recommendations = []
+    if not isinstance(proactive_recommendations, list):
+        proactive_recommendations = [str(proactive_recommendations)]
 
     findings = list(explicit_findings)
+
+    # Set when the bot-identity fetch is blocked/challenged/soft-blocked by
+    # live security infrastructure (WAF/CDN) rather than by robots.txt. A
+    # non-JS AI crawler reaches 0% of the site in that case, so scoring
+    # content readability, schema completeness, or engagement from a
+    # browser-identity (or headless-render) view of pages the real crawler
+    # never saw would report a false "high quality" site. Stop then and
+    # there: crawl_render, readability and engagement (sections 2/3/5) skip
+    # building findings entirely when this is set, and freshness_corroboration
+    # (section 4) skips only its on-page content_dates/temporal_decay
+    # sub-checks -- its citation_consistency/entity_disambiguation checks
+    # corroborate via external web search, not this site's blocked fetch, and
+    # remain valid.
+    coverage_blocked = False
 
     # 1. Crawl Access Skill Findings
     access = skill_outputs.get("crawl_access", {})
@@ -659,34 +733,89 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         browser_status = dual.get("browser_status")
         bot_status = dual.get("bot_status")
         browser_ok = isinstance(browser_status, int) and 200 <= browser_status < 300
-        if dual.get("bot_blocked") or (dual.get("bot_challenged") and fingerprint_diverged):
-            # The two fingerprints diverging does not imply the browser identity
-            # succeeded -- a WAF can also block a plain browser-UA fetch (e.g. an
-            # interactive JS challenge) while giving the bot identity a harder,
-            # differently-shaped block (e.g. a static deny with no challenge at
-            # all). Word the evidence for whichever actually happened.
-            if browser_ok:
-                evidence = (f"Browser status {browser_status} succeeded while AI Bot status {bot_status} "
-                           f"was blocked/challenged with diverging fingerprints.")
-                plain = ("Your web security firewall (e.g. Cloudflare) lets human web browsers view the "
-                        "site normally, but blocks automated AI crawlers when they attempt to read your content.")
+        bot_soft_blocked = dual.get("bot_soft_blocked", False)
+        enforcement_mismatch = bool(
+            dual.get("bot_blocked") or bot_soft_blocked
+            or (dual.get("bot_challenged") and fingerprint_diverged)
+        )
+        if enforcement_mismatch:
+            # This request was actually SENT and answered/challenged -- it was
+            # not skipped_by_robots -- so whatever stopped it is enforcement
+            # infrastructure (WAF/CDN/bot-management), not robots.txt. Try to
+            # cite the specific permissive rule so the evidence isn't just an
+            # assertion: prefer the exact gate decision recorded for this
+            # fetch, falling back to the site-wide root_blocked_agents list
+            # already computed above for the robots.txt findings.
+            robots_bot_decision = (dual.get("robots_decisions") or {}).get("bot") or {}
+            tested_agent = robots_bot_decision.get("agent")
+            root_blocked_set = set(root_blocked)
+            permit_evidence = None
+            if robots_bot_decision.get("allowed") is True:
+                permit_evidence = (
+                    f"robots.txt permits this exact request (agent "
+                    f"'{tested_agent or 'the tested AI bot'}': {robots_bot_decision.get('reason') or 'no matching Disallow rule'}"
+                    + (f", rule '{robots_bot_decision['rule']}'" if robots_bot_decision.get("rule") else "")
+                    + ") -- the block is not a robots.txt policy, it is enforced by live security "
+                      "infrastructure that robots.txt has no authority over.")
+            elif not root_blocked_set or (tested_agent and tested_agent not in root_blocked_set):
+                permit_evidence = (
+                    "robots.txt does not disallow this request at the site root "
+                    f"(root_blocked_agents: {sorted(root_blocked_set) or 'none'})"
+                    + (f", and the tested agent '{tested_agent}' is not among them" if tested_agent else "")
+                    + " -- the block is not a robots.txt policy, it is enforced by live security "
+                      "infrastructure that robots.txt has no authority over.")
+
+            if bot_soft_blocked:
+                block_desc = (f"Both identities returned an HTTP 2xx status (Browser {browser_status}, "
+                             f"AI Bot {bot_status}), but the AI Bot response is a near-empty shell while the "
+                             f"Browser response is real content -- a WAF/CDN interstitial served with a "
+                             f"healthy status code instead of 401/403, which status-code or block-page-text "
+                             f"matching alone would miss.")
+            elif browser_ok:
+                block_desc = (f"Browser status {browser_status} succeeded while AI Bot status {bot_status} "
+                             f"was blocked/challenged with diverging fingerprints.")
             else:
-                evidence = (f"Neither identity retrieved real content (Browser status {browser_status}, "
-                           f"AI Bot status {bot_status}), but their response fingerprints diverge -- the AI "
-                           f"Bot identity hits a distinct, harder block than the browser identity (e.g. a "
-                           f"static WAF deny vs. an interactive challenge), so fixing whatever blocks the "
-                           f"browser identity would not by itself restore AI crawler access.")
-                plain = ("Your website blocks both regular browser-style requests and AI crawlers, but by "
-                        "different mechanisms -- the AI crawler hits a harder, bot-specific block underneath "
-                        "the browser-facing one.")
-            add_finding(
-                findings, "crawl_access",
-                "AI Bot Identity HTTP Fetch Blocked or Challenged",
-                "critical",
-                evidence,
-                "Remove Cloudflare/WAF challenge rules targeting AI bot User-Agents.",
-                plain_english=plain
-            )
+                block_desc = (f"Neither identity retrieved real content (Browser status {browser_status}, "
+                             f"AI Bot status {bot_status}), but their response fingerprints diverge -- the AI "
+                             f"Bot identity hits a distinct, harder block than the browser identity (e.g. a "
+                             f"static WAF deny vs. an interactive challenge), so fixing whatever blocks the "
+                             f"browser identity would not by itself restore AI crawler access.")
+
+            if permit_evidence:
+                coverage_blocked = True
+                add_finding(
+                    findings, "crawl_access",
+                    "robots.txt Permits Crawling But the Fetch Is Blocked Anyway (Policy/Enforcement Mismatch)",
+                    "critical",
+                    f"{block_desc} {permit_evidence}",
+                    "Your robots.txt already grants access -- the fix belongs in your WAF/CDN/bot-management "
+                    "layer (Cloudflare, Akamai, Datadome, etc.), not in robots.txt: add an allow rule or "
+                    "exception for verified AI crawler User-Agents (GPTBot, ClaudeBot, PerplexityBot, "
+                    "OAI-SearchBot) so enforcement matches the access policy you've already published.",
+                    plain_english="Your site's published crawling rules (robots.txt) say AI crawlers are "
+                    "welcome here, but your security system blocks or challenges them anyway before they ever "
+                    "see a page. This is more serious than a robots.txt disallow: your own stated policy is "
+                    "being silently overridden by infrastructure the crawler can't negotiate with, so the "
+                    "rest of this audit could not evaluate what a real AI crawler actually sees on this site."
+                )
+            else:
+                # Enforcement blocked the fetch, but nothing in this run lets
+                # us affirmatively cite robots.txt as the permitting policy --
+                # still critical, just without overclaiming the mismatch framing.
+                coverage_blocked = True
+                add_finding(
+                    findings, "crawl_access",
+                    "AI Bot Identity HTTP Fetch Blocked or Challenged",
+                    "critical",
+                    block_desc,
+                    "Remove Cloudflare/WAF challenge rules targeting AI bot User-Agents.",
+                    plain_english=("Your web security firewall (e.g. Cloudflare) lets human web browsers view "
+                                   "the site normally, but blocks automated AI crawlers when they attempt to "
+                                   "read your content." if browser_ok else
+                                   "Your website blocks both regular browser-style requests and AI crawlers, "
+                                   "but by different mechanisms -- the AI crawler hits a harder, bot-specific "
+                                   "block underneath the browser-facing one.")
+                )
         elif dual.get("bot_challenged") and not fingerprint_diverged:
             add_finding(
                 findings, "crawl_access",
@@ -859,7 +988,7 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
 
     # 2. Crawl Render Skill Findings
     render = skill_outputs.get("crawl_render", {})
-    if render:
+    if render and not coverage_blocked:
         barriers    = render.get("rendering_barriers", {})
         sd_hydr_raw = render.get("structured_data_hydration", {})
         sd_hydr     = sd_hydr_raw.get("hydration_analysis", {})
@@ -1052,7 +1181,7 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
 
     # 3. Readability Skill Findings
     readability = skill_outputs.get("readability", {})
-    if readability:
+    if readability and not coverage_blocked:
         struct_data = readability.get("structured_data", {})
         # check_structured_data.py has always reported unparseable JSON-LD in
         # `parse_errors`, but nothing read it: a page whose only JSON-LD block
@@ -1975,8 +2104,13 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     "things with the same name show up, so an assistant can attribute the wrong facts to you."
                 )
 
+        # content_dates and temporal_decay are extracted from this site's own
+        # HTML -- unlike citation_consistency/entity_disambiguation above,
+        # which corroborate via external web search and stay valid evidence
+        # even when this site's own fetch is blocked. Gated the same as
+        # crawl_render/readability/engagement.
         dates = freshness.get("content_dates", {})
-        if dates:
+        if dates and not coverage_blocked and dates.get("checked", True):
             if (dates.get("copyright_year_age_years") or 0) >= 2:
                 add_finding(
                     findings, "freshness_corroboration",
@@ -2039,7 +2173,8 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 break  # one finding is enough
 
         decay = freshness.get("temporal_decay", {})
-        if decay and decay.get("is_decayed") and not decay.get("has_relative_recent_timestamps"):
+        if (decay and not coverage_blocked and decay.get("checked", True)
+                and decay.get("is_decayed") and not decay.get("has_relative_recent_timestamps")):
             conf = decay.get("detection_confidence", "low")
             add_finding(
                 findings, "freshness_corroboration",
@@ -2057,9 +2192,34 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 plain_english="Your blog or news listing has not published new content in over a year, causing AI search engines to rank your brand lower for query freshness."
             )
 
+        # content_dates / temporal_decay decline to scan a non-2xx fetch
+        # (see check_content_dates.py / check_temporal_decay.py) rather than
+        # report a fabricated staleness claim scraped off an error page's
+        # incidental text (a stale copyright year in a shared 404 template,
+        # for example). Surface the real defect instead: the target page
+        # doesn't load.
+        unreachable = [d for d in (dates, decay) if isinstance(d, dict) and d.get("checked") is False]
+        if unreachable and not coverage_blocked:
+            status_code = unreachable[0].get("fetch_status")
+            skipped = sorted({("content dates" if d is dates else "listing recency")
+                              for d in unreachable})
+            add_finding(
+                findings, "freshness_corroboration",
+                f"Target Page Unreachable for Freshness Analysis (HTTP {status_code})",
+                "medium",
+                f"The page this check was pointed at for {' and '.join(skipped)} returned HTTP "
+                f"{status_code} instead of real content, so freshness could not be evaluated -- the "
+                f"response is an error page, not the content whose recency was in question.",
+                "Fix or remove whatever links to this URL (navigation, sitemap, or an outdated reference "
+                "elsewhere on the site), or point this check at the correct current URL.",
+                plain_english="The page this check tried to read doesn't actually load -- it returns an "
+                "error instead of content, so there's nothing here to judge as fresh or stale. That's "
+                "itself worth fixing: something is pointing AI crawlers and visitors at a dead page."
+            )
+
     # 5. Engagement Skill Findings
     engagement = skill_outputs.get("engagement", {})
-    if engagement:
+    if engagement and not coverage_blocked:
         reach = engagement.get("navigation_reachability", {})
         for item in reach.get("key_content_reachability", []):
             if item.get("directly_linked_from_homepage") is False:
@@ -2272,14 +2432,6 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
     for i, f in enumerate(findings, start=1):
         f["id"] = f"F-{i:03d}"
 
-    # Calculate Category Scores -- five independent, self-contained numbers.
-    # No overall blended score: the handout's required schema never asks for
-    # one (site/audited_at/summary/findings is the floor), and a single
-    # weighted-and-gated number invites exactly the "why does this weight
-    # matter" scrutiny a plain per-category score doesn't.
-    category_names = ["crawl_access", "crawl_render", "readability", "freshness_corroboration", "engagement"]
-    category_scores = {cat: calculate_category_score(findings, cat) for cat in category_names}
-
     # Severity Summary Counts
     severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
     for f in findings:
@@ -2293,12 +2445,21 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
     robots_restrictions = collect_robots_restrictions(skill_outputs)
     skills_invoked_cnt = max(1, len([k for k in skill_outputs if skill_outputs[k]]))
 
-    default_recs = _build_default_recommendations(skill_outputs, findings)
+    default_recs = _build_default_recommendations(skill_outputs, findings, coverage_blocked)
+
+    # freshness_corroboration is deliberately not listed here even when
+    # coverage_blocked: its citation_consistency/entity_disambiguation checks
+    # corroborate via external web search, not this site's own (blocked)
+    # fetch, and stay valid evidence -- only its content_dates/temporal_decay
+    # sub-checks (this site's own HTML) are skipped, inside section 4 above.
+    categories_not_audited = (
+        ["crawl_render", "readability", "engagement"]
+        if coverage_blocked else []
+    )
 
     report = {
         "site": site_url,
         "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "category_scores": category_scores,
         "summary": {
             "total_findings": len(findings),
             "critical": severity_counts["critical"],
@@ -2316,10 +2477,22 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
             # site that allows the audit everywhere it looked. This is coverage
             # information, not a finding: a page disallowed to crawlers is
             # already reported by the robots.txt findings, and repeating it
-            # here would double-count it in the score.
+            # here would double-count it.
             "robots_restricted_fetches": robots_restrictions,
             "robots_compliance": ("all fetches allowed by robots.txt" if not robots_restrictions
-                                  else f"{len(robots_restrictions)} fetch(es) skipped to honour robots.txt")
+                                  else f"{len(robots_restrictions)} fetch(es) skipped to honour robots.txt"),
+            # True when the AI-bot fetch was blocked/challenged by live
+            # security infrastructure (see the critical crawl_access finding
+            # for which). When true, `categories_not_audited` lists the
+            # categories whose findings were intentionally not generated
+            # rather than built from a browser-identity view the real
+            # crawler never gets -- zero findings there reflects "not
+            # evaluated", not "verified clean". freshness_corroboration is
+            # excluded from that list: its off-site checks (external web
+            # search) stay valid regardless, only its on-page sub-checks are
+            # skipped.
+            "coverage_blocked": coverage_blocked,
+            "categories_not_audited": categories_not_audited
         }
     }
     return report
@@ -2376,10 +2549,6 @@ if __name__ == "__main__":
         print(json.dumps({
             "site": None,
             "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "category_scores": {
-                "crawl_access": 0.0, "crawl_render": 0.0, "readability": 0.0,
-                "freshness_corroboration": 0.0, "engagement": 0.0
-            },
             "summary": {"total_findings": 0, "critical": 0, "high": 0, "medium": 0, "low": 0},
             "findings": [],
             "proactive_recommendations": [],
@@ -2388,7 +2557,9 @@ if __name__ == "__main__":
                 "skills_invoked_count": 0,
                 "marketplace_version": "1.0.0",
                 "robots_restricted_fetches": [],
-                "robots_compliance": "not evaluated"
+                "robots_compliance": "not evaluated",
+                "coverage_blocked": False,
+                "categories_not_audited": []
             },
             "script_error": str(e)
         }))

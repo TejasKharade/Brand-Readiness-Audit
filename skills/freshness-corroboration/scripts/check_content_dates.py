@@ -205,7 +205,27 @@ def extract_visible_dates(visible_text, now):
     return sorted(found, reverse=True)
 
 
-def check_content_dates(html_content, url):
+def check_content_dates(html_content, url, status=None):
+    # A non-2xx fetch (404, 410, 5xx, ...) still often returns a body -- a
+    # custom error template, or the site's shared chrome/footer -- and that
+    # body can carry a real-looking date (a stale copyright year in the
+    # footer). Scanning it as if it were the page's own content used to
+    # report "this content is N years old" when the true defect is "this
+    # page doesn't load at all." `status`, when the caller supplies it, is
+    # decisive: don't guess at freshness from an error page's incidental text.
+    if status is not None and not (isinstance(status, int) and 200 <= status < 300):
+        return {
+            "url": url, "checked": False, "fetch_status": status,
+            "skip_reason": f"page fetch returned HTTP {status}, not real content -- dates not extracted",
+            "date_published": None, "date_modified": None,
+            "date_published_age_days": None, "date_modified_age_days": None,
+            "effective_content_age_days": None, "effective_content_age_source": None,
+            "content_date_issues": [], "explicit_temporal_anchors_found": [],
+            "visible_dates_found": [], "visible_dates_count": 0,
+            "latest_visible_date": None, "latest_visible_date_age_days": None,
+            "copyright_year": None, "copyright_years_all": [], "copyright_year_age_years": None,
+            "scanning_scope": "not_scanned (non-2xx fetch)"
+        }
     if not html_content:
         html_content = ""
 
@@ -288,6 +308,8 @@ def check_content_dates(html_content, url):
 
     return {
         "url": url,
+        "checked": True,
+        "fetch_status": status,
         "date_published": date_published,
         "date_modified": date_modified,
         "date_published_age_days": date_published_age_days,
@@ -354,11 +376,12 @@ if __name__ == "__main__":
         if not url:
             url = params.get('url', '')
 
-        result = check_content_dates(html_content, url)
+        result = check_content_dates(html_content, url, status=params.get("status"))
         print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({
             "url": None,
+            "checked": False,
             "date_published": None,
             "date_modified": None,
             "date_published_age_days": None,

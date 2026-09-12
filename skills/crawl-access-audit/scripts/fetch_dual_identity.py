@@ -505,6 +505,20 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None,
         or
         (bot_fp.get("captcha", False) and not br_fp.get("captcha", False))
     )
+    # A 2xx status carrying content that looks nothing like the browser's real
+    # page is a "soft block": a custom WAF/CDN interstitial served with a
+    # healthy status code instead of 401/403, worded however that particular
+    # vendor happens to word it (e.g. "Checking search engine crawler...").
+    # GENERIC_BLOCK_SIGNALS can never enumerate every vendor's copy, so this
+    # is detected structurally instead: thin_content flips from False
+    # (browser got a real page) to True (bot got almost nothing) while both
+    # requests reported "success".
+    bot_soft_blocked = bool(
+        isinstance(bot_status, int) and 200 <= bot_status < 300
+        and isinstance(browser_status, int) and 200 <= browser_status < 300
+        and bot_fp.get("thin_content") and not br_fp.get("thin_content")
+    )
+
     rate_limited = (bot_status == 429) or (browser_status == 429)
 
     # A bot-identity fetch that never completes (timeout / connection reset)
@@ -536,6 +550,7 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None,
         "browser_status": browser_status,
         "bot_status": bot_status,
         "bot_blocked": bot_blocked,
+        "bot_soft_blocked": bot_soft_blocked,
         "bot_challenged": bot_challenged,
         "rate_limited": rate_limited,
         "browser_fetch": browser_result,

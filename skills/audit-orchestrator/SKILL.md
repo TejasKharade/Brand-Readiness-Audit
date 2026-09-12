@@ -54,6 +54,31 @@ The orchestrator receives target audit parameters:
 > ("this page/resource is too slow to reliably serve a crawler"), not as a
 > signal to retry the same call.
 
+**Worst-case wall-clock ceilings** (every network-bound script enforces one; a
+healthy site uses a small fraction of each):
+
+| Script | Ceiling | Calls in a 2-page audit |
+|---|---|---|
+| `check_robots.py` | 18 s (4 candidates) | 1 |
+| `check_tls.py` | 6 s (one handshake) | 1 |
+| `fetch_dual_identity.py` | 20 s (`DUAL_FETCH_TOTAL_BUDGET_S`) | 2 |
+| `check_sitemap.py` | 30 s (`SITEMAP_FETCH_DEADLINE_S`) | 1 |
+| `check_crawl_depth.py` | 20–45 s (`derive_budget`) | 1 |
+| `fetch_rendered_dom.py` | 25 s default (45 max) | ≤2 |
+| `check_page_speed_signals.py` | 20 s (`RESOURCE_FETCH_DEADLINE_S`) | ≤2 |
+| `check_nontext_facts.py` | 25 s (`PDF_INSPECTION_DEADLINE_S`) | ≤2 |
+
+Summed sequentially against a uniformly pathological host that maxes out every
+one of them, that is ~5 minutes **before** any agent overhead — which is why
+the parallelism and the 2-page cap above are requirements, not suggestions: run
+independent calls in one turn and the wall clock collapses to the slowest
+single script, leaving the budget dominated by your own tool-call latency. If a
+run is nonetheless trending long, **shed work in this order** (each step keeps
+the report valid, just less complete — say so in the report rather than
+silently dropping it): the rendered DOM on the second page → the second sampled
+page entirely → `check_crawl_depth.py` → `check_page_speed_signals.py`. Never
+shed Step 1: without `crawl_access` there is no report worth emitting.
+
 ### Step 1: Crawl Access Audit (`crawl-access-audit`)
 Run specialized access scripts to evaluate bot accessibility:
 > **Run `check_robots.py` first, then pass its output as `robots` to every
@@ -91,6 +116,34 @@ Run specialized access scripts to evaluate bot accessibility:
 - `scripts/check_tls.py`: One TLS handshake with the host the pages are served from — expired, hostname-mismatched, self-signed or untrusted certificates (which make crawlers abort before fetching anything), and certificates expiring within 14 days.
 - Redirect loops and chains of 3+ hops are reported from the dual fetch's existing `status` / `redirect_count` (no extra requests). `check_sitemap.py`'s `representative_sample` (one URL per URL-structure group) is the recommended source for choosing `sampled_pages`.
 
+> [!IMPORTANT]
+> **Stop then and there if the site's security infrastructure disallows bots.**
+> Check `fetch_dual_identity.py`'s result for the homepage BEFORE running Steps
+> 2-5: if `bot_blocked`, `bot_soft_blocked`, or `bot_challenged` (with
+> `comparison_metrics.fingerprint_divergence: true`) is set, a real non-JS AI
+> crawler reaches 0% of this site — **do not** invoke `crawl-render-audit`,
+> `readability-audit`, or `engagement-audit` at all, and in Step 4 run only
+> `check_citation_consistency.py` / `check_entity_disambiguation.py` (they
+> corroborate via external web search, not this site's own blocked fetch) —
+> skip `check_content_dates.py` / `check_temporal_decay.py`, which need this
+> site's own HTML. Running a headless browser or reading
+> `browser_fetch.content` still "succeeds" in that state — Chromium executing
+> JavaScript can solve the very challenge that stops a real crawler, and a
+> plain browser-identity fetch can simply never have been challenged in the
+> first place — but feeding that view into downstream checks manufactures a
+> false "high quality" report for content no AI crawler can actually reach,
+> drowns the one finding that matters in unrelated low-severity noise (alt
+> text, blog dates), and wastes the runtime budget rendering and analyzing
+> pages this audit already knows are unreachable. Go straight to Step 6 with
+> `crawl_access` populated (plus, optionally, the two off-site freshness
+> checks). `synthesize_report.py` enforces this as a backstop too — it sets
+> `audit_metadata.coverage_blocked: true` and skips generating findings for
+> `crawl_render`/`readability`/`engagement`, and for freshness's
+> `content_dates`/`temporal_decay` sub-checks, on its own if it receives their
+> output anyway, so an agent that skips this check does not silently produce
+> a misleading report — but skipping the calls themselves is what actually
+> saves the runtime budget.
+
 ### Step 2: Crawl Render Audit (`crawl-render-audit`)
 Run rendering barrier scripts:
 - `scripts/check_rendering_barriers.py`: Compare initial raw HTML vs. rendered DOM text word counts.
@@ -112,8 +165,11 @@ Run structural and semantic audit scripts:
 
 ### Step 4: Freshness & Corroboration Audit (`freshness-corroboration`)
 Run temporal and corroboration scripts:
-- `scripts/check_content_dates.py`: Extract publication, modification, and copyright dates.
-- `scripts/check_temporal_decay.py`: Detect post recency decay on blog/listing pages.
+- `scripts/check_content_dates.py`: Extract publication, modification, and copyright dates. **Pass `status`**
+  (the HTTP status of the fetch that produced this page's `html`, e.g. `browser_fetch.status` from Step 1) —
+  without it, a 404/410/5xx page's error body can be scanned for dates like real content, misreporting a
+  dead page as stale content instead of the reachability defect it actually is.
+- `scripts/check_temporal_decay.py`: Detect post recency decay on blog/listing pages. Pass `status` the same way.
 - `scripts/check_citation_consistency.py`: Corroborate on-site facts against external web search snippets.
 - `scripts/check_entity_disambiguation.py`: Evaluate `sameAs` entity links (Wikidata, Wikipedia).
 
@@ -143,7 +199,7 @@ echo '{
 }' | python skills/audit-orchestrator/scripts/synthesize_report.py
 ```
 
-The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), calculates five independent per-category scores (0.0 to 100.0, see Guardrails below), and outputs a structured JSON report. There is deliberately no single blended overall score — the handout's required schema asks for `site`/`audited_at`/a severity-count `summary`/`findings` and nothing more; a report of well-evidenced, correctly-severed findings is the deliverable, not a formula on top of them.
+The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), and outputs a structured JSON report. There is deliberately no score of any kind, per-category or overall — the handout's required schema asks for `site`/`audited_at`/a severity-count `summary`/`findings` and nothing more; a report of well-evidenced, correctly-severed findings is the deliverable, not a formula on top of them.
 
 ---
 
@@ -155,13 +211,6 @@ Produces the master audit report conforming to `references/audit_report_schema.j
 {
   "site": "https://example.com",
   "audited_at": "2026-09-06T21:28:45Z",
-  "category_scores": {
-    "crawl_access": 80.0,
-    "crawl_render": 90.0,
-    "readability": 85.0,
-    "freshness_corroboration": 95.0,
-    "engagement": 85.0
-  },
   "summary": {
     "total_findings": 3,
     "critical": 1,
@@ -191,10 +240,28 @@ Produces the master audit report conforming to `references/audit_report_schema.j
   "audit_metadata": {
     "audited_pages_count": 5,
     "skills_invoked_count": 5,
-    "marketplace_version": "1.0.0"
+    "marketplace_version": "1.0.0",
+    "robots_restricted_fetches": [],
+    "robots_compliance": "all fetches allowed by robots.txt",
+    "coverage_blocked": false,
+    "categories_not_audited": []
   }
 }
 ```
+
+When `coverage_blocked` is `true` (see the callout after Step 1), `categories_not_audited` lists the categories
+whose findings were skipped entirely: `["crawl_render", "readability", "engagement"]` — all three derived from this
+site's own fetched/rendered HTML. `freshness_corroboration` is deliberately never in that list: its
+`citation_consistency`/`entity_disambiguation` checks corroborate via external web search, not this site's blocked
+fetch, and keep running (only its `content_dates`/`temporal_decay` sub-checks, which need this site's own HTML, are
+skipped). `findings` carries a critical `crawl_access` entry titled either
+`"robots.txt Permits Crawling But the Fetch Is Blocked Anyway (Policy/Enforcement Mismatch)"`
+(when robots.txt can be shown to permit the exact request that was blocked — the common case, since a request
+robots.txt actually refused is never sent in the first place) or `"AI Bot Identity HTTP Fetch Blocked or Challenged"`
+(the same underlying block, worded without the policy-mismatch claim when that permission can't be affirmatively
+cited). Those three categories simply have zero findings in that case — that reflects "not evaluated", not
+"verified clean", and a reader must check `coverage_blocked` before reading an absence of findings there as a
+clean bill of health.
 
 `audited_pages_count` counts distinct URLs found in `crawl_access.sampled_pages` and `engagement...key_content_reachability` (the two named containers that represent "pages this audit actually looked at" — a page fully sampled, or a key URL checked for nav reachability), wherever those containers are nested, plus each skill's own top-level `url`/`homepage_url`/`site` field. It deliberately does NOT sweep every dict with a `url`-shaped key anywhere in `skill_outputs` — that also picks up sitemap spot-checks (a single HEAD request, not full analysis) and raw on-page link lists (a URL merely noticed as an href target, never fetched), wildly overcounting. If you add a new per-page container to a sub-skill, name it (or register it) the same way rather than assuming a generic URL sweep will find it.
 
@@ -217,9 +284,14 @@ Produces the master audit report conforming to `references/audit_report_schema.j
 > `sitemap_found` vs `exists`).
 
 > [!IMPORTANT]
-> **Deterministic Synthesis**:
-> `synthesize_report.py` calculates each of the five `category_scores` independently and deterministically. Each category starts at 100.0; every finding in that category deducts a fixed amount by severity (`critical`: -20.0, `high`: -10.0, `medium`: -5.0, `low`: -2.0), scaled by the finding's `confidence` in [0, 1] (a confidence-0.5 critical finding costs 10, not 20 — missing/invalid confidence defaults to 1.0, full weight); the result is clamped to 0.0-100.0. That's the entire model: no cross-category weighting, no diminishing-returns decay on repeated same-severity findings, no foundational-score gates, no blended overall number. Every category's score can be verified by hand directly from the findings list — deliberately favoring "a judge can check this in one pass" over the more elaborate weighted-and-gated model this project used earlier, which required tracing a weighted mean through per-category decay curves and a confidence-softened cap to see why a headline number landed where it did.
->
-> This is a considered simplification, not an oversight — an earlier iteration of this scoring layer did have per-category diminishing returns and foundational gates capping the overall score when a critical `crawl_access`/`crawl_render` finding hit. Both pieces addressed real concerns (many small findings shouldn't crush a category out of proportion to severity; a site that fails at the foundational crawl-access/render level shouldn't average out to "decent" just because other categories look clean), but neither is required by the handout's schema, and in practice this marketplace's checks already aggregate repeat instances into one finding with a count in the evidence ("5 low-overlap FAQ pairs", not five findings) rather than emitting duplicates — so the decay protection was hardening against a scenario the check design mostly prevents anyway. **The foundational-severity reasoning itself is still real and still visible** — a `crawl_access` or `crawl_render` critical finding still deducts a full -20 from its own category, same as any other critical, and a reader comparing `category_scores` sees immediately that access/render is the weak point; it just no longer reaches through to suppress an overall number that no longer exists.
+> **No Scoring, By Design**:
+> `synthesize_report.py` computes no score of any kind — no per-category number, no overall blended figure. The
+> handout's required schema is `site`/`audited_at`/a severity-count `summary`/`findings`/`suggested_action` and
+> nothing more; it never asks for a score. A report of well-evidenced, correctly-severed findings (severity plus
+> `confidence`, the latter distinct from severity — see the `findings[].confidence` field) is the deliverable
+> itself, not an input to a formula on top of it. This project's earlier iterations did compute scores — first a
+> single blended `brand_ai_readiness_score` with per-category weighting/decay/gates, then a simplified
+> per-category-only `category_scores` — both were removed as unnecessary machinery once weighed against a schema
+> that never required either.
 >
 > All findings are renumbered sequentially (`F-001`, `F-002`, ...) after assembly, so caller-supplied explicit findings that carry their own ids cannot leave gaps in the sequence; every id matches `^F-[0-9]{3,}$`.

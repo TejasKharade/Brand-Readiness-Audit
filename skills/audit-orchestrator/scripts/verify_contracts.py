@@ -62,7 +62,7 @@ def orchestrator_read_keys(root):
     src = open(os.path.join(root, "skills", "audit-orchestrator", "scripts",
                             "synthesize_report.py"), encoding="utf-8").read()
     start = src.index("def synthesize_report")
-    end = src.index("# Calculate Category Scores")
+    end = src.index("# Severity Summary Counts")
     region = src[start:end]
     keys = set(re.findall(r'\.get\(["\']([a-z_0-9]+)["\']', region))
     keys |= set(re.findall(r'pick\([^,]+,\s*((?:["\'][a-z_0-9]+["\']\s*,?\s*)+)', region))
@@ -88,6 +88,8 @@ def shape_probes(root):
     from check_semantic_structure import check_semantic_structure
     from check_landing_readiness import check_landing_readiness
     from robots_gate import RobotsGate, robots_token
+    from check_content_dates import check_content_dates
+    from check_temporal_decay import check_temporal_decay
     import fetch_dual_identity
 
     bots = ["GPTBot", "ClaudeBot", "*"]
@@ -140,6 +142,123 @@ def shape_probes(root):
     probe("dual-identity: browser also blocked -> evidence must not claim it 'succeeded'",
           not any("succeeded" in f["evidence"] for f in
                  synthesize_report("https://probe.example/", {"crawl_access": blocked_dual})["findings"]))
+
+    # Policy/enforcement mismatch: robots.txt permits the exact request that
+    # live infrastructure then blocks anyway. This is the case the audit
+    # exists to catch and used to under-report -- a WAF/Cloudflare 403 on a
+    # bot identity robots.txt never disallowed. Must fire as a critical
+    # finding citing the permissive rule, and must "stop then and there":
+    # coverage_blocked suppresses findings for the four downstream categories
+    # even when their raw output is supplied, because that output reflects a
+    # browser/render view of pages a real AI crawler never reaches.
+    permissive_robots = check_robots("probe.example", bots, ["/"], robots_txt="User-agent: *\nAllow: /\n")
+    mismatch_dual = {"browser_status": 200, "bot_status": 403, "bot_blocked": True,
+                     "comparison_metrics": {"fingerprint_divergence": True},
+                     "robots_decisions": {"bot": {"allowed": True, "agent": "GPTBot",
+                                                   "reason": "no matching Disallow rule"}}}
+    mismatch_rep = synthesize_report("https://probe.example/", {
+        "crawl_access": {"robots": permissive_robots, "dual_identity": mismatch_dual},
+        "crawl_render": {"rendering_barriers": {"client_side_rendering_signals": {
+            "likely_client_side_rendering_barrier": True}}},
+    })
+    probe("policy mismatch: permissive robots.txt + blocked bot fetch -> Policy/Enforcement Mismatch finding",
+          any("Policy/Enforcement Mismatch" in f["title"] and "robots.txt permits" in f["evidence"]
+              for f in mismatch_rep["findings"]))
+    probe("policy mismatch: sets coverage_blocked and lists the 3 fully html-dependent categories skipped",
+          mismatch_rep["audit_metadata"]["coverage_blocked"] is True
+          and set(mismatch_rep["audit_metadata"]["categories_not_audited"]) ==
+              {"crawl_render", "readability", "engagement"})
+    probe("policy mismatch: coverage_blocked suppresses a downstream CSR finding even though input was supplied",
+          not any("Client-Side Rendering" in f["title"] for f in mismatch_rep["findings"]))
+
+    # Same block, but nothing in this run can affirmatively prove robots.txt
+    # permits it (no robots_decisions, and some agent IS blocked at root) --
+    # must fall back to the older, non-overclaiming title rather than assert
+    # a policy mismatch it cannot cite evidence for.
+    partial_block_robots = check_robots("probe.example", bots, ["/"],
+                                        robots_txt="User-agent: ClaudeBot\nDisallow: /\n")
+    unprovable_dual = {"browser_status": 200, "bot_status": 403, "bot_blocked": True,
+                       "comparison_metrics": {"fingerprint_divergence": True}}
+    unprovable_rep = synthesize_report("https://probe.example/",
+        {"crawl_access": {"robots": partial_block_robots, "dual_identity": unprovable_dual}})
+    probe("policy mismatch fallback: no robots_decisions + some agent blocked -> generic title, not overclaimed",
+          any(f["title"] == "AI Bot Identity HTTP Fetch Blocked or Challenged" for f in unprovable_rep["findings"])
+          and not any("Policy/Enforcement Mismatch" in f["title"] for f in unprovable_rep["findings"]))
+
+    # Coverage-blocked carve-out: entity_disambiguation/citation_consistency
+    # corroborate via external web search, not this site's blocked fetch, so
+    # they must still fire; content_dates is this site's own HTML, so it
+    # must not.
+    stale_dates = {"effective_content_age_days": 900, "effective_content_age_source": "date_modified",
+                   "date_published": "2023-01-01", "date_modified": "2023-01-01"}
+    checked_ent_for_mismatch = check_entity_disambiguation({
+        "brand_name": "Probe", "domain": "probe.example",
+        "html": "<html><head><title>Probe</title></head><body>hi</body></html>"})
+    carveout_rep = synthesize_report("https://probe.example/", {
+        "crawl_access": {"robots": permissive_robots, "dual_identity": mismatch_dual},
+        "freshness_corroboration": {"content_dates": stale_dates,
+                                    "entity_disambiguation": checked_ent_for_mismatch},
+    })
+    probe("coverage_blocked carve-out: off-site entity finding still fires",
+          any("sameAs" in f["title"] for f in carveout_rep["findings"]))
+    probe("coverage_blocked carve-out: on-page stale-date finding is suppressed",
+          not any("Stale" in f["title"] for f in carveout_rep["findings"]))
+    probe("coverage_blocked carve-out: freshness_corroboration is NOT in categories_not_audited",
+          "freshness_corroboration" not in carveout_rep["audit_metadata"]["categories_not_audited"])
+
+    # bot_soft_blocked: both fetches answer 2xx, so status-code/keyword
+    # matching alone (the previous detection) would miss this entirely -- a
+    # custom WAF interstitial worded however that vendor wrote it.
+    soft_dual = {"browser_status": 200, "bot_status": 200, "bot_blocked": False, "bot_soft_blocked": True,
+                "comparison_metrics": {"fingerprint_divergence": True},
+                "robots_decisions": {"bot": {"allowed": True, "agent": "GPTBot", "reason": "no rules"}}}
+    soft_rep = synthesize_report("https://probe.example/",
+        {"crawl_access": {"robots": permissive_robots, "dual_identity": soft_dual}})
+    probe("soft block: 200/200 with asymmetric thin_content -> Policy/Enforcement Mismatch fires anyway",
+          any("Policy/Enforcement Mismatch" in f["title"] and "near-empty shell" in f["evidence"]
+              for f in soft_rep["findings"]))
+
+    # Negative control: a genuinely healthy dual-identity fetch must NOT trip
+    # coverage_blocked, and downstream findings must still be generated --
+    # proving the short-circuit only fires on an actual enforcement mismatch.
+    clean_dual = {"browser_status": 200, "bot_status": 200, "bot_blocked": False, "bot_soft_blocked": False,
+                 "bot_challenged": False, "comparison_metrics": {"fingerprint_divergence": False}}
+    clean_rep = synthesize_report("https://probe.example/", {
+        "crawl_access": {"robots": permissive_robots, "dual_identity": clean_dual},
+        "crawl_render": {"rendering_barriers": {"client_side_rendering_signals": {
+            "likely_client_side_rendering_barrier": True}}},
+    })
+    probe("no mismatch: healthy dual-identity fetch leaves coverage_blocked False, downstream findings still run",
+          clean_rep["audit_metadata"]["coverage_blocked"] is False
+          and any("Client-Side Rendering" in f["title"] for f in clean_rep["findings"]))
+
+    # A 404/410/5xx page still often returns a body (a custom error template,
+    # or the site's shared chrome carrying a stale copyright year) -- scanning
+    # it like real content used to report a fabricated staleness finding in
+    # place of the real defect: the page doesn't load.
+    error_page_html = ("<html><body><main><h1>404 Not Found</h1></main>"
+                       "<footer>&copy; 2019 Example Corp.</footer></body></html>")
+    dates_404 = check_content_dates(error_page_html, "https://probe.example/blog", status=404)
+    decay_404 = check_temporal_decay(error_page_html, "https://probe.example/blog", status=404)
+    probe("content_dates: non-2xx status -> checked False, no date extracted from the error body",
+          dates_404["checked"] is False and dates_404["copyright_year"] is None)
+    probe("temporal_decay: non-2xx status -> checked False, no fabricated post date",
+          decay_404["checked"] is False and decay_404["most_recent_post_date_found"] is None)
+    dead_page_rep = synthesize_report("https://probe.example/", {
+        "freshness_corroboration": {"content_dates": dates_404, "temporal_decay": decay_404}})
+    dead_page_titles = [f["title"] for f in dead_page_rep["findings"]]
+    probe("dead page: no fabricated 'Outdated Copyright' / 'Recency Decay' finding",
+          not any("Copyright" in t or "Decay" in t for t in dead_page_titles))
+    probe("dead page: honest 'Target Page Unreachable' finding fires, citing the real HTTP status",
+          any("Unreachable" in t and "404" in t for t in dead_page_titles))
+    # Negative control: a genuinely live 2xx page's real staleness must still
+    # be reported -- the fix must not suppress detection on healthy pages.
+    live_html = "<html><body><p>&copy; 2019 Probe Inc.</p></body></html>"
+    dates_live = check_content_dates(live_html, "https://probe.example/blog", status=200)
+    live_titles = [f["title"] for f in synthesize_report(
+        "https://probe.example/", {"freshness_corroboration": {"content_dates": dates_live}})["findings"]]
+    probe("live 200 page: real 'Outdated Copyright' finding still fires (fix doesn't over-suppress)",
+          any("Copyright" in t for t in live_titles))
 
     ambiguous_verdict_ent = dict(unreachable_ent)
     ambiguous_verdict_ent["name_ambiguity"] = {
@@ -498,9 +617,8 @@ def shape_probes(root):
     training_only = check_robots("probe.example", ["GPTBot", "CCBot", "OAI-SearchBot", "*"], ["/"],
                                  robots_txt="User-agent: GPTBot\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n")
     rep = synthesize_report("https://probe.example/", {"crawl_access": {"robots": training_only}})
-    probe("robots: training-only root block -> no critical finding, crawl_access barely dented",
-          not any(f["severity"] == "critical" for f in rep["findings"])
-          and rep["category_scores"]["crawl_access"] > 90)
+    probe("robots: training-only root block -> no critical/high finding, at most medium",
+          not any(f["severity"] in ("critical", "high") for f in rep["findings"]))
     search_block = check_robots("probe.example", ["GPTBot", "OAI-SearchBot", "*"], ["/"],
                                 robots_txt="User-agent: OAI-SearchBot\nDisallow: /\n")
     probe("robots: live-search crawler root block -> critical",
@@ -514,6 +632,64 @@ def shape_probes(root):
     probe("structured data: unparseable JSON-LD -> 'Present but Unparseable', not 'Missing'",
           any("Unparseable" in t for t in titles({"readability": {"structured_data": broken_sd}}))
           and not any("Missing Schema.org" in t for t in titles({"readability": {"structured_data": broken_sd}})))
+
+    # ---- Fallback guarantee: a report is ALWAYS emitted, and a partially
+    # broken input degrades to a partial report rather than an empty one. A
+    # sub-skill that crashed, timed out or was skipped hands this function
+    # junk, so these are expected inputs. The dangerous failure is not a
+    # crash (the CLI wrapper catches that) -- it is the empty zero-finding
+    # report the wrapper then prints, which reads as "clean site".
+    good_access = {"robots": {
+        "reachable": True, "root_blocked_agents": ["OAI-SearchBot"], "blocked_paths_by_agent": {},
+        "disallowed": {"/": {"OAI-SearchBot": True}},
+        "matched_rules": {"/": {"OAI-SearchBot": {"rule": "Disallow: /", "group": "oai-searchbot"}}},
+        "agent_classes": {"OAI-SearchBot": {"class": "retrieval", "role": "search_index",
+                                            "honors_robots_txt": True}}}}
+    for label, junk in (("non-dict category", "a string"), ("numeric category", 42),
+                        ("list category", [1, 2, 3])):
+        mixed = {"crawl_access": good_access, "readability": junk}
+        try:
+            partial = synthesize_report("https://probe.example/", mixed)
+            kept = any("robots.txt" in f["title"] for f in partial["findings"])
+        except Exception:
+            kept = False
+        probe(f"fallback: a {label} does not discard other categories' findings", kept)
+    # A null SUB-object (one level below the category) is the shape an agent
+    # produces for "this check did not run"; it is read as `x.get(k, {})`,
+    # which returns the null itself, not the default -- the category-level
+    # null above never crashed, this one did.
+    try:
+        null_sub = synthesize_report("https://probe.example/", {
+            "crawl_access": dict(good_access, dual_identity=None, sitemap=None, tls=None,
+                                 page_signals=None, crawl_depth=None)})
+        null_ok = any("robots.txt" in f["title"] for f in null_sub["findings"])
+    except Exception:
+        null_ok = False
+    probe("fallback: null sub-objects ('check did not run') do not discard the category", null_ok)
+    try:
+        bad_ef = synthesize_report("https://probe.example/", {},
+                                   explicit_findings=[{"no": "fields"}, None, "str"])
+        ef_ok = (isinstance(bad_ef.get("findings"), list)
+                 and all({"id", "title", "severity", "evidence", "suggested_action"} <= set(f)
+                         for f in bad_ef["findings"]))
+    except Exception:
+        ef_ok = False
+    probe("fallback: malformed caller-injected findings are repaired, not fatal", ef_ok)
+    try:
+        synthesize_report("https://probe.example/", "garbage", explicit_findings="nope",
+                          proactive_recommendations="also-not-a-list")
+        junk_ok = True
+    except Exception:
+        junk_ok = False
+    probe("fallback: wholly non-dict/non-list arguments still produce a report", junk_ok)
+
+    # The PDF text-layer loop is the one network path whose per-request
+    # timeout cannot bound it (the socket timeout resets on every chunk), so
+    # its wall-clock ceiling is what keeps the audit inside the <5 min
+    # runtime constraint on a slow host.
+    from check_nontext_facts import PDF_INSPECTION_DEADLINE_S
+    probe("runtime: linked-PDF inspection declares a wall-clock ceiling",
+          isinstance(PDF_INSPECTION_DEADLINE_S, (int, float)) and 0 < PDF_INSPECTION_DEADLINE_S <= 45)
     return failures
 
 

@@ -111,6 +111,23 @@ that consumes this skill's output.
      independently (see `references/content_fingerprints.md` for exact signal
      lists and rationale): `cloudflare_challenge`, `captcha`, `generic_block`,
      `login_wall` (see reference doc for 3-condition rule), and `thin_content`.
+   - Returns `bot_blocked` (bot status 401/403, or `generic_block` matched a
+     known signal), `bot_soft_blocked` (both fetches answered 2xx, but the
+     bot's content is `thin_content` while the browser's is not -- a custom
+     WAF/CDN interstitial served with a healthy status code, worded however
+     that vendor happens to word it, which no fixed keyword list can
+     enumerate in advance), `bot_challenged`, `rate_limited`, and
+     `robots_decisions: {browser, bot}` (each identity's gate decision,
+     including the exact `rule`/`reason` that permitted or refused it) at the
+     **top level of the dual-fetch result** -- alongside, not instead of, the
+     nested `browser_fetch`/`bot_fetch` payloads. **These top-level fields
+     are the orchestrator's only reliable signal that robots.txt permitted a
+     request the site's own security infrastructure then blocked anyway (a
+     policy/enforcement mismatch, more serious than a robots.txt disallow) --
+     dropping them while assembling `sampled_pages` below silently disables
+     that detection**, since `synthesize_report.py` can only fall back to
+     reconstructing a coarser guess from the raw fetch bodies, which cannot
+     recover `robots_decisions` at all.
    - `thin_content` is NOT a fixed character cutoff. Text is split into
      main-body text vs. chrome (`<nav>`/`<header>`/`<footer>`/`<aside>`), and
      the page is flagged thin only when the main-body text is near-empty
@@ -265,7 +282,13 @@ orchestrator can compare signals by identity:
       "browser_fetch": { "...output of fetch_dual_identity.py's browser side...",
                           "page_signals": { "...output of check_page_signals.py..." } },
       "bot_fetch": { "...output of fetch_dual_identity.py's bot side...",
-                     "page_signals": { "...output of check_page_signals.py..." } }
+                     "page_signals": { "...output of check_page_signals.py..." } },
+      "bot_blocked": false,
+      "bot_soft_blocked": false,
+      "bot_challenged": false,
+      "rate_limited": false,
+      "comparison_metrics": { "fingerprint_divergence": false },
+      "robots_decisions": { "browser": { "allowed": true }, "bot": { "allowed": true } }
     }
   ],
   "sitemap": { "...output of check_sitemap.py..." },
@@ -273,7 +296,13 @@ orchestrator can compare signals by identity:
   "tls": { "...output of check_tls.py..." }
 }
 ```
-`page_signals` output nests under each fetch, as shown. The orchestrator
+`page_signals` output nests under each fetch, as shown. Each `sampled_pages`
+entry must also carry forward `bot_blocked` / `bot_soft_blocked` /
+`bot_challenged` / `rate_limited` / `comparison_metrics` / `robots_decisions`
+from `fetch_dual_identity.py`'s own return value for that page -- do not
+nest only `browser_fetch`/`bot_fetch` and drop the rest; those top-level
+fields are what the orchestrator uses to detect a policy/enforcement
+mismatch (see step 2 above). The orchestrator
 (`synthesize_report.py` → `normalize_crawl_access`) accepts this
 `sampled_pages` shape **and** a flat `{"dual_identity": …, "page_signals": …}`
 single-page shape; when given `sampled_pages` it selects the first page whose
@@ -289,8 +318,9 @@ a 3xx never reached a page: a redirect loop or too many hops; 3+ hops that do
 resolve are a low-severity efficiency finding),
 `crawl_depth.is_deep_url` / `.url_depth` (meaningful folders only -- a leading locale segment whose language part is a real ISO 639-1 code (`/de/`, `/en-us/`, `/zh-hant/`) and date segments `/2026/03/` are discounted; a two-letter folder that is not a language code (`/lp/`, `/qa/`) still counts and listed in `url_depth_ignored_segments`, so localized sites and dated blog URLs are not falsely reported as deep), and per page
 `page_signals.is_noindex` / `.is_nofollow` / `.duplicate_canonical_tags`,
-plus `bot_blocked` / `bot_challenged` / `rate_limited` /
-`comparison_metrics.fingerprint_divergence` from the dual fetch.
+plus `bot_blocked` / `bot_soft_blocked` / `bot_challenged` / `rate_limited` /
+`comparison_metrics.fingerprint_divergence` / `robots_decisions` from the
+dual fetch.
 
 No field in this output should assign a severity, name a root cause (e.g.
 "blocked by Cloudflare"), or state a suggested fix — that interpretation
