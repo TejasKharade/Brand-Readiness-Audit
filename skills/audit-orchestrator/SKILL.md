@@ -184,20 +184,49 @@ Run visitor orientation and engagement scripts:
 
 ### Step 6: Master Synthesis (`scripts/synthesize_report.py`)
 
-Run `scripts/synthesize_report.py` to aggregate all sub-skill findings:
+> [!IMPORTANT]
+> **This step is mandatory and always runs — the audit's deliverable IS this
+> report.** Run it even when the audit went badly: a sub-skill crashed, the
+> site was WAF-blocked, only Step 1 completed. A partial report that states
+> what it could not measure is the correct output; prose in the chat is not a
+> deliverable, and neither is stopping after collecting evidence.
+>
+> **Write the payload to a file and pass its path — never `echo` it.** A real
+> `skill_outputs` contains the fetched HTML of every sampled page and runs
+> **20 KB–800 KB**. A shell command line caps out far below that (cmd.exe at
+> 8 KB, `CreateProcess` at 32 KB), so `echo '<json>' | python …` silently
+> truncates a real payload, and the report then describes nothing. Use a file:
 
 ```bash
-echo '{
+python skills/audit-orchestrator/scripts/synthesize_report.py --input payload.json --out report.json
+```
+
+`payload.json` is written by you and has this shape:
+
+```json
+{
   "site": "https://example.com",
   "skill_outputs": {
-    "crawl_access": { ... },
-    "crawl_render": { ... },
-    "readability": { ..., "additional_pages": [ { "url": "...", "structured_data": { ... } } ] },
-    "freshness_corroboration": { ... },
-    "engagement": { ... }
-  }
-}' | python skills/audit-orchestrator/scripts/synthesize_report.py
+    "crawl_access": { "...": "..." },
+    "crawl_render": { "...": "..." },
+    "readability": { "additional_pages": [{ "url": "...", "structured_data": {} }] },
+    "freshness_corroboration": { "...": "..." },
+    "engagement": { "...": "..." }
+  },
+  "findings": [],
+  "proactive_recommendations": []
+}
 ```
+
+`--out` writes the report to disk (it is also printed to stdout). `findings`
+and `proactive_recommendations` are optional: use them to inject agent-judged
+findings the scripts cannot produce on their own. Piping the payload on stdin
+also works for programmatic callers, and a `--input` file always wins over it.
+
+If the payload cannot be parsed, the script does **not** fall back to a clean
+empty report — it emits a report carrying a `critical` "Audit Input Could Not
+Be Read" finding plus `audit_metadata.input_error`, because a zero-finding
+report is otherwise indistinguishable from a healthy site.
 
 The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), and outputs a structured JSON report. There is deliberately no score of any kind, per-category or overall — the handout's required schema asks for `site`/`audited_at`/a severity-count `summary`/`findings` and nothing more; a report of well-evidenced, correctly-severed findings is the deliverable, not a formula on top of them.
 

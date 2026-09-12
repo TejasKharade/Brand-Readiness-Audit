@@ -716,6 +716,39 @@ def shape_probes(root):
     probe("output design: F-001 is the highest-severity finding",
           bool(mixed_sev) and mixed_sev[0]["id"] == "F-001"
           and mixed_sev[0]["severity"] == min((f["severity"] for f in mixed_sev), key=lambda s: rank[s]))
+
+    # ---- The audit must ALWAYS end in a report, and an untrustworthy report
+    # must say so in itself. A real payload carries every sampled page's HTML
+    # (20 KB-800 KB), which no shell command line can carry, so a truncated
+    # payload is the normal failure -- and it used to be swallowed, emitting a
+    # clean zero-finding report for "https://example.com" instead of the site
+    # under audit.
+    import subprocess as _sp
+    _sr = os.path.join(root, "skills", "audit-orchestrator", "scripts", "synthesize_report.py")
+
+    def _cli(args=(), stdin_text=""):
+        r = _sp.run([sys.executable, _sr, *args], input=stdin_text,
+                    capture_output=True, text=True, cwd=root)
+        try:
+            return json.loads(r.stdout)
+        except Exception:
+            return None
+
+    truncated = _cli(stdin_text='{"site":"https://real.example","skill_outputs":{"crawl_access":{"ro')
+    probe("report always emitted: a truncated payload still yields parseable JSON", truncated is not None)
+    probe("report always emitted: a truncated payload is NOT reported as example.com",
+          bool(truncated) and "example.com" not in truncated.get("site", ""))
+    probe("report always emitted: unreadable input raises a critical finding, not a clean report",
+          bool(truncated) and any(f["severity"] == "critical" and "Could Not Be Read" in f["title"]
+                                  for f in truncated.get("findings", [])))
+    probe("report always emitted: unreadable input is recorded in audit_metadata.input_error",
+          bool(truncated) and "input_error" in truncated.get("audit_metadata", {}))
+    probe("report always emitted: no input at all still yields a report",
+          _cli() is not None)
+    # The file channel is what makes a real payload deliverable at all.
+    probe("synthesize_report.py accepts --input <file> and --out <file>",
+          "--input" in open(_sr, encoding="utf-8").read()
+          and "--out" in open(_sr, encoding="utf-8").read())
     return failures
 
 
