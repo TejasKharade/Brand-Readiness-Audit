@@ -237,6 +237,7 @@ def parse_entity(entity, block_idx, id_map=None):
         questions_detected = 0
         questions_complete = 0
         
+        pairs = []
         for q in q_list:
             q_res = resolve_entity_ref(q, id_map or {})
             if isinstance(q_res, dict):
@@ -247,29 +248,51 @@ def parse_entity(entity, block_idx, id_map=None):
                 ans_text = ans_res.get('text') if isinstance(ans_res, dict) else None
                 if q_name and ans_text:
                     questions_complete += 1
-                    
+                    pairs.append({'question': q_name, 'answer': ans_text})
+
         details['faq_completeness'] = {
             'main_entity_present': bool(main_entity),
             'questions_detected': questions_detected,
-            'questions_complete': questions_complete
+            'questions_complete': questions_complete,
+            # Carried through for check_faq_visible_text_match() -- capped
+            # length is fine here, the full text still lives in the entity.
+            'pairs': pairs,
         }
 
     # 3. Organization / LocalBusiness Completeness
     if any(t in ['Organization', 'Corporation', 'LocalBusiness', 'Store', 'Restaurant'] for t in types_normalized):
+        telephone = entity.get('telephone')
+        address_text = flatten_address(entity.get('address'))
         details['organization_completeness'] = {
             'has_name': bool(entity.get('name')),
             'has_url': bool(entity.get('url')),
             'has_logo': bool(entity.get('logo')),
-            'has_telephone': bool(entity.get('telephone'))
+            'has_telephone': bool(telephone),
+            # Carried through for check_nap_consistency() -- Name/Address/
+            # Phone agreement between schema and the page's own visible text
+            # is the on-site instance of "agreement across the web matters".
+            'telephone': telephone if isinstance(telephone, str) else None,
+            'address_text': address_text,
         }
 
     # 4. Article Completeness
     if any(t in ['Article', 'NewsArticle', 'BlogPosting'] for t in types_normalized):
+        author_names = extract_author_names(entity.get('author'))
         details['article_completeness'] = {
             'has_headline': bool(entity.get('headline') or entity.get('name')),
             'has_author': bool(entity.get('author')),
             'has_date_published': bool(entity.get('datePublished')),
-            'has_image': bool(entity.get('image'))
+            'has_image': bool(entity.get('image')),
+            # E-E-A-T: a byline naming a real person/organization is a cited
+            # AI-trust signal; a CMS default left in place ("admin") is not.
+            # Deliberately a narrow, high-confidence placeholder list only --
+            # "Staff Writer" / "Editorial Team" are legitimate organizational
+            # bylines used by real publications and are NOT flagged.
+            'author_names': author_names,
+            'generic_placeholder_author': (
+                bool(author_names)
+                and all(n.strip().lower() in GENERIC_AUTHOR_PLACEHOLDERS for n in author_names)
+            ),
         }
 
     # 5. BreadcrumbList Completeness
@@ -452,6 +475,227 @@ def summarize_descriptions(parsed_entities):
     }
 
 
+# --- FAQ schema vs. visible text --------------------------------------------
+# FAQPage schema is only trustworthy when its answers correspond to something
+# a visitor -- and therefore a non-JS crawler reading raw HTML -- can actually
+# see. Stale schema left over after a content edit, or FAQ schema written
+# purely to game rankings without ever showing the content on the page, both
+# produce the same signature: an answer sharing almost no vocabulary with
+# anything visible on the page.
+_STOPWORDS = {
+    "a", "an", "the", "and", "or", "but", "is", "are", "was", "were", "be",
+    "been", "being", "to", "of", "in", "on", "at", "for", "with", "by", "from",
+    "as", "that", "this", "these", "those", "it", "its", "you", "your", "we",
+    "our", "they", "their", "he", "she", "his", "her", "do", "does", "did",
+    "can", "could", "will", "would", "should", "may", "might", "not", "no",
+    "yes", "if", "then", "so", "than", "also", "about", "into", "over", "more",
+    "most", "some", "any", "all", "each", "other", "such", "only", "just",
+    "very", "up", "down", "out", "off", "have", "has", "had", "there", "here",
+    "what", "which", "who", "when", "where", "how", "why",
+}
+
+# Too little signal below this to draw any conclusion -- a 2-word answer
+# ("Yes indeed") would score near-0% or near-100% overlap almost at random.
+FAQ_MIN_SIGNIFICANT_WORDS = 4
+# A real paraphrase still shares most of its topic words with the surrounding
+# page; this is a low bar specifically so paraphrasing is never mistaken for
+# absence -- only near-total vocabulary mismatch is flagged.
+FAQ_LOW_OVERLAP_THRESHOLD = 0.25
+# Below this, the page itself effectively wasn't fetched/rendered -- flagging
+# every FAQ pair as "not found" would blame the schema for a fetch failure.
+FAQ_MIN_VISIBLE_WORDS = 20
+FAQ_MAX_PAIRS_CHECKED = 50  # bound the pathological case, not the typical one
+
+
+def _significant_words(text):
+    words = re.findall(r"[A-Za-z']+", (text or "").lower())
+    return {w for w in words if len(w) > 2 and w not in _STOPWORDS}
+
+
+def extract_visible_text_rough(html_content):
+    """A forgiving, regex-based visible-text extraction. Deliberately does
+    NOT exclude nav/header/footer the way the render-audit's precise sentence
+    parser does for content_parity -- over-including chrome text only makes
+    the haystack bigger, which can only reduce a false "not found" below,
+    never cause one. That is the opposite bias from what content_parity
+    needs, which is why this is a separate, simpler implementation."""
+    if not html_content:
+        return ""
+    text = re.sub(r'<(script|style|noscript)\b[^>]*>.*?</\1>', ' ', html_content,
+                 flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r'<!--.*?-->', ' ', text, flags=re.DOTALL)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    return html.unescape(text)
+
+
+def check_faq_visible_text_match(html_content, parsed_entities):
+    """For each FAQ question/answer pair already extracted from JSON-LD,
+    what fraction of the answer's meaningful vocabulary also appears
+    somewhere in the page's own visible text. Word-overlap rather than exact
+    substring match on purpose: a real answer is often reworded slightly
+    between the schema and the visible copy, which is legitimate and must
+    not be flagged. Only a near-total mismatch -- suggesting the answer has
+    no real counterpart on the page at all -- is reported."""
+    visible_words = _significant_words(extract_visible_text_rough(html_content))
+    html_provided = isinstance(html_content, str) and len(visible_words) >= FAQ_MIN_VISIBLE_WORDS
+
+    pairs = []
+    for ent in parsed_entities:
+        for p in (ent.get('faq_completeness') or {}).get('pairs') or []:
+            pairs.append(p)
+    pairs = pairs[:FAQ_MAX_PAIRS_CHECKED]
+
+    if not html_provided or not pairs:
+        return {
+            'checked': False,
+            'reason': ('page text unavailable or too short to compare against' if not html_provided
+                      else 'no complete FAQ question/answer pairs found'),
+            'low_overlap_pairs': [],
+        }
+
+    low_overlap = []
+    for p in pairs:
+        answer_words = _significant_words(p.get('answer'))
+        if len(answer_words) < FAQ_MIN_SIGNIFICANT_WORDS:
+            continue
+        overlap = len(answer_words & visible_words) / len(answer_words)
+        if overlap < FAQ_LOW_OVERLAP_THRESHOLD:
+            low_overlap.append({
+                'question': p.get('question'),
+                'answer_preview': (p.get('answer') or '')[:160],
+                'word_overlap_ratio': round(overlap, 3),
+            })
+
+    return {
+        'checked': True,
+        'pairs_checked': len(pairs),
+        'low_overlap_pairs': low_overlap,
+        'low_overlap_count': len(low_overlap),
+    }
+
+
+# --- Authorship (E-E-A-T) ----------------------------------------------------
+# Repeatedly the single most-cited concrete AI-trust signal in published GEO/
+# AEO guidance: a real named byline versus a missing or CMS-default one. This
+# is a narrow, high-confidence placeholder list ONLY -- genuinely generic CMS
+# defaults and system accounts, never a legitimate organizational byline like
+# "Staff Writer" or "Editorial Team", which real publications use deliberately
+# and are not a trust problem.
+GENERIC_AUTHOR_PLACEHOLDERS = {
+    "admin", "administrator", "webmaster", "support", "unknown", "anonymous",
+    "n/a", "na", "test", "testuser", "guest", "default", "user", "system",
+}
+
+
+def extract_author_names(author_field):
+    """Author can be a string, a Person/Organization dict, or a list of
+    either. Returns the flat list of name strings found."""
+    names = []
+
+    def add(v):
+        if isinstance(v, str) and v.strip():
+            names.append(v.strip())
+        elif isinstance(v, dict):
+            nm = v.get('name')
+            if isinstance(nm, str) and nm.strip():
+                names.append(nm.strip())
+
+    if isinstance(author_field, list):
+        for a in author_field:
+            add(a)
+    else:
+        add(author_field)
+    return names
+
+
+def flatten_address(address_field):
+    """PostalAddress is usually a dict (streetAddress, addressLocality,
+    addressRegion, postalCode, addressCountry) but a plain string is valid
+    schema too. Either way, flatten to one comparable text blob."""
+    if isinstance(address_field, str):
+        return address_field.strip() or None
+    if isinstance(address_field, dict):
+        parts = [address_field.get(k) for k in
+                ('streetAddress', 'addressLocality', 'addressRegion',
+                 'postalCode', 'addressCountry')]
+        text = ' '.join(str(p) for p in parts if isinstance(p, str) and p.strip())
+        return text or None
+    return None
+
+
+NAP_ADDRESS_MIN_SIGNIFICANT_WORDS = 3
+NAP_ADDRESS_LOW_OVERLAP_THRESHOLD = 0.30
+
+
+def _extract_phone_candidates(text):
+    """Plausible phone-number-shaped substrings, kept SEPARATE from each
+    other. Digit-stripping the whole page into one concatenated blob would
+    let an unrelated number elsewhere (a street number, a zip code) corrupt
+    or accidentally complete a match; extracting each number-shaped token on
+    its own avoids that entirely."""
+    return [re.sub(r'\D', '', m) for m in re.findall(r'[+(]?\d[\d\-.()\s]{6,}\d', text or '')]
+
+
+def _phone_matches_any(schema_digits, candidates):
+    if len(schema_digits) < 7:
+        return None  # too short to mean anything -- not checked, not a mismatch
+    for c in candidates:
+        if len(c) < 7:
+            continue
+        shorter, longer = sorted([schema_digits, c], key=len)
+        if shorter in longer:
+            return True
+    return False
+
+
+def check_nap_consistency(html_content, parsed_entities):
+    """Does the schema's Name/Address/Phone actually match what the page's
+    own visible text shows. Phone numbers are compared as individual digit
+    tokens, not the whole page glued into one blob (formatting -- dashes,
+    spacing, a country-code prefix -- varies too much for text matching to
+    be meaningful otherwise); addresses reuse the same word-overlap approach
+    as the FAQ check, tolerant of minor formatting differences, for the same
+    reason a real paraphrase must never be mistaken for a mismatch."""
+    visible_raw = extract_visible_text_rough(html_content)
+    phone_candidates = _extract_phone_candidates(visible_raw)
+    visible_words = _significant_words(visible_raw)
+    html_provided = isinstance(html_content, str) and len(visible_words) >= FAQ_MIN_VISIBLE_WORDS
+
+    if not html_provided:
+        return {'checked': False, 'reason': 'page text unavailable or too short to compare against'}
+
+    checked_any = False
+    mismatches = []
+    for ent in parsed_entities:
+        org = ent.get('organization_completeness')
+        if not org:
+            continue
+
+        phone = org.get('telephone')
+        if phone:
+            phone_digits = re.sub(r'\D', '', phone)
+            match = _phone_matches_any(phone_digits, phone_candidates)
+            if match is not None:
+                checked_any = True
+                if not match:
+                    mismatches.append({'field': 'telephone', 'schema_value': phone})
+
+        address = org.get('address_text')
+        if address:
+            addr_words = _significant_words(address)
+            if len(addr_words) >= NAP_ADDRESS_MIN_SIGNIFICANT_WORDS:
+                checked_any = True
+                overlap = len(addr_words & visible_words) / len(addr_words)
+                if overlap < NAP_ADDRESS_LOW_OVERLAP_THRESHOLD:
+                    mismatches.append({'field': 'address', 'schema_value': address,
+                                       'word_overlap_ratio': round(overlap, 3)})
+
+    if not checked_any:
+        return {'checked': False, 'reason': 'no LocalBusiness/Organization telephone or address to compare'}
+
+    return {'checked': True, 'mismatches': mismatches, 'mismatch_count': len(mismatches)}
+
+
 def check_structured_data(html_content, url):
     raw_blocks = extract_json_ld_blocks(html_content)
     total_blocks = len(raw_blocks)
@@ -513,6 +757,8 @@ def check_structured_data(html_content, url):
         'entities': parsed_entities,
         'entity_grounding': assess_entity_grounding(parsed_entities, url),
         'description_coverage': summarize_descriptions(parsed_entities),
+        'faq_visible_text_check': check_faq_visible_text_match(html_content, parsed_entities),
+        'nap_consistency': check_nap_consistency(html_content, parsed_entities),
         'parse_errors': errors
     }
 

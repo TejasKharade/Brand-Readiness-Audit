@@ -8,41 +8,46 @@ from datetime import datetime, timezone
 
 SEVERITY_DEDUCTION = {"critical": 20.0, "high": 10.0, "medium": 5.0, "low": 2.0}
 
-# Repeated findings of the SAME severity in one category are usually the same
-# underlying gap surfacing more than once (11 missing <img alt> is one root
-# cause -- a missing accessibility pass -- not 11 independent failures), so a
-# flat "-N per finding" let sheer quantity crush a category out of proportion
-# to severity: 6 "low" findings (-12) used to outscore a single "high" (-10),
-# inverting the intended ordering. Each additional finding of the SAME
-# severity in the SAME category now counts for less (geometric decay),
-# bounding how much repetition alone can do -- asymptote per severity tier is
-# SEVERITY_DEDUCTION[sev] / (1 - DEDUCTION_DECAY) -- while the single most
-# confident finding of that severity still costs its full, undiminished
-# weight, and different severities still stack additively (a critical AND a
-# high in the same category both still count in full). See
-# calculate_category_score.
-DEDUCTION_DECAY = 0.6
-
-# Prerequisite-weighted rollup. Discoverability is sequential: a page must be
-# crawlable before render matters, readable before facts can be extracted, and
-# so on (handout appendix A). Weights reflect that dependency order; they sum
-# to 1.0. Freshness/corroboration is lowest-weighted because it is the only
-# non-deterministic, web-search-dependent category.
-CATEGORY_WEIGHTS = {
-    "crawl_access":            0.30,
-    "crawl_render":            0.25,
-    "readability":             0.20,
-    "engagement":              0.15,
-    "freshness_corroboration": 0.10,
-}
-
-# A critical failure in a foundational category caps the overall score no
-# matter how clean the downstream categories look -- an uncrawlable or
-# unreadable site is not "80% AI-ready".
-FOUNDATIONAL_GATES = {
-    "crawl_access": 40.0,
-    "crawl_render": 55.0,
-}
+# check_structured_data.py scores attribute completeness across 9 Schema.org
+# types, but for a long time only `article_completeness` was ever read here --
+# a Product declaring an Offer with no price and no availability was detected
+# in full and then silently dropped, scoring a clean 100. This table turns
+# every one of those completeness objects into a finding.
+#
+# Severity reflects what an answer engine actually loses: price/availability
+# and event date/location are the facts an assistant quotes directly, so their
+# absence is `medium`; a missing logo or upload date degrades the entity but
+# doesn't make it unanswerable, so `low`. Fields no legitimate entity is
+# obliged to carry (an Organization's telephone, a Recipe's image) are
+# deliberately NOT listed -- flagging those would manufacture findings against
+# sites that are perfectly correct.
+SCHEMA_COMPLETENESS_RULES = (
+    ("product_completeness", "Product", "medium",
+     (("has_name", "name"), ("has_offers", "offers"),
+      ("has_price", "offers.price"), ("has_availability", "offers.availability")),
+     "price and availability are the two facts an assistant quotes most often about a product"),
+    ("event_completeness", "Event", "medium",
+     (("has_name", "name"), ("has_start_date", "startDate"), ("has_location", "location")),
+     "an event with no date or location cannot answer 'when' or 'where'"),
+    ("recipe_completeness", "Recipe", "medium",
+     (("has_name", "name"), ("has_ingredients", "recipeIngredient"),
+      ("has_instructions", "recipeInstructions")),
+     "ingredients and instructions are the recipe"),
+    ("article_completeness", "Article", "low",
+     (("has_headline", "headline"), ("has_author", "author"),
+      ("has_date_published", "datePublished")),
+     "author and publication date are the two E-E-A-T signals most consistently "
+     "cited as affecting whether AI systems trust and quote an article"),
+    ("software_completeness", "SoftwareApplication", "low",
+     (("has_name", "name"), ("has_operating_system", "operatingSystem")),
+     "operatingSystem is what makes a software listing answerable for 'does it run on X'"),
+    ("video_completeness", "VideoObject", "low",
+     (("has_name", "name"), ("has_thumbnail", "thumbnailUrl"), ("has_upload_date", "uploadDate")),
+     "thumbnail and upload date are required for video rich results"),
+    ("organization_completeness", "Organization", "low",
+     (("has_name", "name"), ("has_url", "url"), ("has_logo", "logo")),
+     "name, url and logo are the identity triple other brand facts attach to"),
+)
 
 
 def _finding_confidence(f):
@@ -60,99 +65,24 @@ def _finding_confidence(f):
         return 1.0
 
 
-def _category_deductions(findings, category_name):
-    """Returns (final_score, breakdown) where breakdown lists, per severity
-    present, the hit count, the confidence-weighted+decayed total deducted,
-    and the undiminished total a flat model would have charged (for
-    transparency: the gap between the two IS the diminishing-returns effect).
-    The single most-confident finding of a severity is always charged first
-    (least decayed), so which finding "goes first" reflects certainty, not
-    the arbitrary order findings happened to be generated in."""
-    by_severity = {}
-    for f in findings:
-        if f.get("category") == category_name:
-            sev = str(f.get("severity", "medium")).lower()
-            by_severity.setdefault(sev, []).append(_finding_confidence(f))
-
-    base_score = 100.0
-    breakdown = {}
-    for sev, confidences in by_severity.items():
-        per_hit = SEVERITY_DEDUCTION.get(sev, 5.0)
-        ordered = sorted(confidences, reverse=True)
-        decayed_total = sum(per_hit * (DEDUCTION_DECAY ** i) * c for i, c in enumerate(ordered))
-        base_score -= decayed_total
-        breakdown[sev] = {
-            "count": len(ordered),
-            "deducted": round(decayed_total, 2),
-            "flat_equivalent": round(per_hit * sum(ordered), 2),
-        }
-    return max(0.0, min(100.0, round(base_score, 1))), breakdown
-
-
 def calculate_category_score(findings, category_name):
-    score, _ = _category_deductions(findings, category_name)
-    return score
-
-
-def calculate_overall_readiness_score(category_scores, findings=None):
-    """Returns (overall_score, scoring_model dict). Weighted mean over the
-    categories actually present, then clamped down by any foundational gate a
-    critical finding trips."""
-    findings = findings or []
-    deduction_detail = {cat: _category_deductions(findings, cat)[1]
-                        for cat in category_scores}
-
-    if not category_scores:
-        return 100.0, {
-            "method": "weighted_with_foundational_gates",
-            "weights": CATEGORY_WEIGHTS,
-            "weighted_subtotal": 100.0,
-            "gates_applied": [],
-            "category_deduction_detail": {},
-        }
-
-    total_w = sum(CATEGORY_WEIGHTS.get(c, 0.0) for c in category_scores)
-    if total_w <= 0:
-        weighted = sum(category_scores.values()) / len(category_scores)
-    else:
-        weighted = sum(category_scores[c] * CATEGORY_WEIGHTS.get(c, 0.0)
-                       for c in category_scores) / total_w
-    weighted = max(0.0, min(100.0, round(weighted, 1)))
-
-    gates_applied = []
-    capped = weighted
+    """Each finding in this category deducts its severity's fixed point
+    value from a 100-point starting score, scaled by how confident the check
+    is that the finding is real (a confidence-0.5 critical finding costs half
+    of 20, not the full 20). That's the whole model: no cross-category
+    weighting, no diminishing returns, no caps -- every category's number is
+    self-contained and can be verified by hand straight from the findings
+    list, which is deliberately more important here than protecting against
+    a many-small-findings edge case that this marketplace's checks mostly
+    avoid anyway (they aggregate repeats into one finding with a count in the
+    evidence -- "5 low-overlap FAQ pairs" -- rather than emitting five)."""
+    score = 100.0
     for f in findings:
-        if str(f.get("severity", "")).lower() != "critical":
+        if f.get("category") != category_name:
             continue
-        cat = f.get("category")
-        if cat in FOUNDATIONAL_GATES and weighted > FOUNDATIONAL_GATES[cat]:
-            base_cap = FOUNDATIONAL_GATES[cat]
-            confidence = _finding_confidence(f)
-            # A critical finding this check is fully sure of (confidence 1.0,
-            # the default and the only value any pre-existing critical
-            # finding ever set) still slams to the harsh cap exactly as
-            # before. One it's NOT fully sure of softens the cap toward the
-            # uncapped weighted score instead of always applying the harshest
-            # possible penalty for a maybe.
-            cap = base_cap + (weighted - base_cap) * (1.0 - confidence)
-            capped = min(capped, cap)
-            gates_applied.append({
-                "category": cat, "cap": round(cap, 1),
-                "trigger_finding": f.get("id"),
-                "confidence": confidence,
-                "reason": (f"critical '{cat}' finding caps overall readiness at {round(cap, 1)}"
-                          + ("" if confidence >= 1.0 else
-                             f" (softened from {base_cap} at confidence {confidence})")),
-            })
-
-    overall = max(0.0, min(100.0, round(capped, 1)))
-    return overall, {
-        "method": "weighted_with_foundational_gates",
-        "weights": CATEGORY_WEIGHTS,
-        "weighted_subtotal": weighted,
-        "gates_applied": gates_applied,
-        "category_deduction_detail": deduction_detail,
-    }
+        sev = str(f.get("severity", "medium")).lower()
+        score -= SEVERITY_DEDUCTION.get(sev, 5.0) * _finding_confidence(f)
+    return max(0.0, min(100.0, round(score, 1)))
 
 # Names of CONTAINERS that hold pages/URLs an audit step substantively
 # looked at (matched by name, not by a fixed path -- crawl-access-audit's
@@ -481,6 +411,59 @@ def collect_robots_restrictions(skill_outputs, _depth=0):
     return [e for e in found if e.get("rule") or e["url"] not in detailed_urls]
 
 
+def _build_default_recommendations(skill_outputs, findings):
+    """Fallback `proactive_recommendations` used only when the caller doesn't
+    supply its own. Every item here is gated on the actual signal it talks
+    about -- this used to be a fixed 5-item list applied unconditionally
+    regardless of what the audit found, so a site that scored 100/100 on
+    crawl_render with zero CSR findings still got told to "Implement
+    Server-Side Rendering", and a site whose navigation already linked every
+    key page still got told to fix its navigation -- directly contradicting
+    the findings assembled a few lines above in the same function. Each
+    recommendation below survives only if its own underlying signal shows
+    it's a genuinely open opportunity, not one already fixed or already
+    covered by its own finding+suggested_action above (repeating a finding
+    here wouldn't be "proactive", just a duplicate)."""
+    skill_outputs = skill_outputs or {}
+    finding_titles = " ".join(f.get("title", "") for f in findings).lower()
+    recs = []
+
+    access = skill_outputs.get("crawl_access", {}) or {}
+    robots = access.get("robots", {}) or {}
+    if (robots.get("root_blocked_agents")
+            and "robots.txt" not in finding_titles and "blocked" not in finding_titles):
+        recs.append("Ensure robots.txt allows access to AI crawler user-agents (GPTBot, PerplexityBot, ClaudeBot).")
+
+    render = skill_outputs.get("crawl_render", {}) or {}
+    csr = (render.get("rendering_barriers", {}) or {}).get("client_side_rendering_signals", {}) or {}
+    if (csr.get("likely_client_side_rendering_barrier")
+            and "rendering" not in finding_titles and "client-side" not in finding_titles):
+        recs.append("Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.")
+
+    freshness = skill_outputs.get("freshness_corroboration", {}) or {}
+    entity = freshness.get("entity_disambiguation", {}) or {}
+    if entity:  # only comment on this when the check actually ran
+        has_wiki = entity.get("has_wikidata_or_wikipedia_sameas")
+        has_registry = (entity.get("authority_sameas", {}) or {}).get("has_registry_sameas")
+        if not has_wiki and not has_registry and "sameas" not in finding_titles:
+            recs.append("Add authoritative sameAs references (Wikidata, Wikipedia, LinkedIn) to Organization schema markup.")
+
+    engagement = skill_outputs.get("engagement", {}) or {}
+    nav = engagement.get("navigation_reachability", {}) or {}
+    unreachable_key_pages = [r for r in (nav.get("key_content_reachability") or [])
+                             if not r.get("directly_linked_from_homepage")]
+    if (unreachable_key_pages
+            and "unreachable" not in finding_titles and "navigation" not in finding_titles):
+        recs.append("Ensure key product/service landing pages are directly linked from homepage navigation.")
+
+    mobile = engagement.get("mobile_responsiveness", {}) or {}
+    if (mobile and mobile.get("viewport_meta_present") is False
+            and "viewport" not in finding_titles):
+        recs.append("Include <meta name='viewport' content='width=device-width, initial-scale=1'> on all page templates.")
+
+    return recs
+
+
 def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
     if skill_outputs is None:
         skill_outputs = {}
@@ -721,6 +704,32 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 f"Server returned HTTP 429 Too Many Requests during rapid audit fetches (Browser: {dual.get('browser_status')}, Bot: {dual.get('bot_status')}).",
                 "Review server load balancer rate-limiting thresholds to ensure legitimate automated crawlers are not throttled during burst visits.",
                 plain_english="Your website server returned a 'Too Many Requests' (HTTP 429) rate limit warning when auditor requests were sent in rapid succession. This is temporary traffic throttling by your load balancer, not a permanent bot block."
+            )
+        elif dual.get("bot_fetch_failed_browser_ok"):
+            # Never answered as a crawler, answered fine as a browser. Not the
+            # same claim as "blocked" (no 403 was served), and one timeout can
+            # be ordinary flakiness -- hence medium at reduced confidence -- but
+            # silently dropping it hid both a plausible crawler-throttling
+            # signature AND the fact that everything downstream in this report
+            # was derived from the browser view alone.
+            add_finding(
+                findings, "crawl_access",
+                "AI Bot Identity Fetch Never Completed While Browser Identity Succeeded",
+                "medium",
+                f"The same URL returned HTTP {dual.get('browser_status')} under a normal browser "
+                f"user-agent but never completed under an AI-crawler user-agent "
+                f"(bot result: {dual.get('bot_status')}"
+                + (f", {dual.get('bot_fetch_error')}" if dual.get("bot_fetch_error") else "")
+                + "). Some edge/WAF tiers throttle or blackhole a declared crawler instead of "
+                  "answering 403, which looks exactly like this. Note that the rest of this report "
+                  "was therefore derived from the browser view of the page only.",
+                "Check WAF / CDN / rate-limit rules for user-agent-based throttling of AI crawlers "
+                "(GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot), and re-run to confirm the failure "
+                "is reproducible rather than a one-off timeout.",
+                plain_english="Your site answered normally for a regular browser but never responded "
+                "when the request identified itself as an AI crawler. That can mean AI crawlers are "
+                "being quietly throttled rather than openly refused.",
+                confidence=0.6
             )
 
         # Redirects, from data fetch_dual_identity.py already records (no new
@@ -997,16 +1006,43 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         # A crawler traverses <a href> in the raw HTML. Navigation built from
         # click handlers or mounted menus is invisible to it, so the interior
         # pages behind that navigation are never discovered from this page.
-        # Threshold of 5: one or two dynamic widgets adding links is ordinary.
+        #
+        # A flat count alone under-flags small sites: 3 JS-only links out of a
+        # 4-link page is a severe navigation gap (most of the site is
+        # unreachable) but never reaches the absolute floor below. So the
+        # trigger is either condition:
+        #   - LINK_DISCOVERY_ABSOLUTE_THRESHOLD (5) JS-only links regardless of
+        #     page size -- one or two dynamic widgets adding links is
+        #     ordinary, but 5+ is a systemic pattern on any size site;
+        #   - a share of this page's discoverable links, above
+        #     LINK_DISCOVERY_PROPORTION_FLOOR (2, so a single JS-only link out
+        #     of a tiny page isn't read as "most of the page"), reaching
+        #     LINK_DISCOVERY_PROPORTION_THRESHOLD (25%) -- a quarter or more of
+        #     a page's links being JS-only is a real gap even on a small page
+        #     that will never accumulate 5 links total.
+        LINK_DISCOVERY_ABSOLUTE_THRESHOLD = 5
+        LINK_DISCOVERY_PROPORTION_FLOOR = 2
+        LINK_DISCOVERY_PROPORTION_THRESHOLD = 0.25
+
         link_disc = barriers.get("link_discovery") or {}
-        if (link_disc.get("links_only_after_js_count") or 0) >= 5:
+        js_only_count = link_disc.get("links_only_after_js_count") or 0
+        rendered_total = link_disc.get("rendered_internal_links") or 0
+        js_only_share = (js_only_count / rendered_total) if rendered_total > 0 else 0.0
+
+        triggered_by_count = js_only_count >= LINK_DISCOVERY_ABSOLUTE_THRESHOLD
+        triggered_by_share = (js_only_count >= LINK_DISCOVERY_PROPORTION_FLOOR
+                              and js_only_share >= LINK_DISCOVERY_PROPORTION_THRESHOLD)
+
+        if triggered_by_count or triggered_by_share:
+            share_note = (f" -- {js_only_share:.0%} of this page's {rendered_total} discoverable internal links"
+                         if triggered_by_share else "")
             add_finding(
                 findings, "crawl_render",
                 "Internal Links Discoverable Only After JavaScript Runs",
                 "medium",
-                f"{link_disc['links_only_after_js_count']} internal links exist in the rendered DOM but not in "
+                f"{js_only_count} internal links exist in the rendered DOM but not in "
                 f"the raw HTML ({link_disc.get('raw_internal_links')} raw vs "
-                f"{link_disc.get('rendered_internal_links')} rendered). Examples: "
+                f"{rendered_total} rendered{share_note}). Examples: "
                 f"{link_disc.get('links_only_after_js_samples')}.",
                 "Emit navigation as real <a href=\"...\"> anchors in the server-rendered HTML (they can still be "
                 "enhanced by JavaScript), so crawlers can reach these pages without executing scripts.",
@@ -1163,6 +1199,169 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     "leaving it out means the assistant has to invent its own wording."
                 )
 
+        # FAQ schema is only trustworthy when its answers correspond to something
+        # actually on the page. A near-total vocabulary mismatch between a
+        # schema answer and the page's own visible text means either the schema
+        # is stale (left over after a content edit) or was never meant to be
+        # read by a visitor at all -- both are worth surfacing. This is a
+        # word-overlap heuristic, not proof of intent: it is gated to only fire
+        # on a near-total mismatch, specifically so a legitimate paraphrase is
+        # never mistaken for absence.
+        faq_check = (struct_data or {}).get("faq_visible_text_check") or {}
+        if faq_check.get("checked") and faq_check.get("low_overlap_count"):
+            low_pairs = faq_check.get("low_overlap_pairs") or []
+            examples = "; ".join(
+                f"{p.get('question')!r} (answer shares {p.get('word_overlap_ratio', 0):.0%} of its "
+                f"vocabulary with the visible page)" for p in low_pairs[:3])
+            add_finding(
+                findings, "readability",
+                "FAQ Schema Answer Not Found in Visible Page Content",
+                "medium",
+                f"{faq_check['low_overlap_count']} of {faq_check.get('pairs_checked')} FAQPage question/answer "
+                f"pairs have an answer sharing almost no vocabulary with anything visible on the page: "
+                f"{examples}.",
+                "Confirm each FAQ answer in the JSON-LD still matches content a visitor can actually see. "
+                "Stale schema left over after an edit, or FAQ markup never shown on the page, both give an "
+                "AI system a fact that isn't really there.",
+                plain_english="Some of your FAQ structured data doesn't match anything visible on the page. "
+                "That could be an outdated answer, or FAQ data that was never actually shown to visitors -- "
+                "either way, an AI system reading only your visible page won't find that answer.",
+                confidence=0.6
+            )
+
+        # Schema.org attribute completeness across the 9 audited types. Each
+        # rule aggregates every entity of that type on the page into ONE
+        # finding, so a listing page with 20 incomplete Products reports one
+        # actionable gap rather than twenty copies of it.
+        for comp_key, type_label, severity, field_map, why in SCHEMA_COMPLETENESS_RULES:
+            incomplete = []
+            for ent in ((struct_data or {}).get("entities") or []):
+                comp = ent.get(comp_key)
+                if not isinstance(comp, dict):
+                    continue
+                missing = [prop for flag, prop in field_map if comp.get(flag) is False]
+                if missing:
+                    incomplete.append((ent.get("name") or "(unnamed)", missing))
+            if not incomplete:
+                continue
+            all_missing = sorted({p for _, props in incomplete for p in props})
+            examples = "; ".join(f"{nm!r} missing {', '.join(props)}"
+                                 for nm, props in incomplete[:3])
+            more = f" (and {len(incomplete) - 3} more)" if len(incomplete) > 3 else ""
+            add_finding(
+                findings, "readability",
+                f"Incomplete {type_label} Schema: Missing {', '.join(all_missing)}",
+                severity,
+                f"{len(incomplete)} {type_label} "
+                f"{'entity declares' if len(incomplete) == 1 else 'entities declare'} "
+                f"Schema.org markup but {'omits' if len(incomplete) == 1 else 'omit'} "
+                f"required properties -- {examples}{more}. "
+                f"The markup parses, but {why}.",
+                f"Populate {', '.join(all_missing)} on every {type_label} entity, and re-validate "
+                f"with a structured-data testing tool.",
+                plain_english=f"Your {type_label} structured data is present but incomplete, so an AI "
+                f"system reading it still can't answer the questions those missing fields would cover."
+            )
+
+        # FAQPage: questions declared but not answerable (a Question node with
+        # no acceptedAnswer text is an unanswered question in machine form).
+        faq_incomplete = []
+        for ent in ((struct_data or {}).get("entities") or []):
+            faq = ent.get("faq_completeness")
+            if isinstance(faq, dict) and faq.get("questions_detected", 0) > faq.get("questions_complete", 0):
+                faq_incomplete.append((faq.get("questions_detected", 0), faq.get("questions_complete", 0)))
+        if faq_incomplete:
+            detected = sum(d for d, _ in faq_incomplete)
+            complete = sum(c for _, c in faq_incomplete)
+            add_finding(
+                findings, "readability",
+                "FAQ Schema Contains Questions Without Usable Answers",
+                "medium",
+                f"{detected - complete} of {detected} Question entities in FAQPage markup lack a "
+                f"question name or an acceptedAnswer with text, so they carry a question an assistant "
+                f"cannot answer from the markup.",
+                "Give every Question a `name` and an `acceptedAnswer` containing real answer `text` -- "
+                "an incomplete pair is worse than no FAQ markup, since it advertises an answer that "
+                "isn't there.",
+                plain_english="Some entries in your FAQ data have a question but no usable answer "
+                "attached, so AI systems see the question and find nothing to quote."
+            )
+
+        # BreadcrumbList with zero items is broken markup, not navigation.
+        empty_breadcrumbs = sum(
+            1 for ent in ((struct_data or {}).get("entities") or [])
+            if isinstance(ent.get("breadcrumb_completeness"), dict)
+            and ent["breadcrumb_completeness"].get("item_count", 0) == 0)
+        if empty_breadcrumbs:
+            add_finding(
+                findings, "readability",
+                "BreadcrumbList Schema Declared With No Items",
+                "low",
+                f"{empty_breadcrumbs} BreadcrumbList entit{'y' if empty_breadcrumbs == 1 else 'ies'} "
+                f"contain an empty or missing itemListElement, so the breadcrumb trail conveys nothing.",
+                "Populate itemListElement with the ordered ListItem entries for this page's path, or "
+                "remove the empty BreadcrumbList entirely.",
+                plain_english="Your page declares breadcrumb navigation data but leaves it empty, which "
+                "tells AI systems nothing about where this page sits in your site."
+            )
+
+        # E-E-A-T authorship: repeatedly the single most-cited concrete AI-
+        # trust signal in published GEO/AEO guidance -- a real named byline
+        # versus a missing or CMS-default one. Only the narrow, unambiguous
+        # placeholder case is flagged (see GENERIC_AUTHOR_PLACEHOLDERS); a
+        # legitimate organizational byline ("Staff Writer") never is.
+        # Named readability_entities to avoid colliding with the unrelated
+        # "entities" local used later in the freshness_corroboration section.
+        readability_entities = (struct_data or {}).get("entities") or []
+        generic_author_articles = [e for e in readability_entities
+                                   if (e.get("article_completeness") or {}).get("generic_placeholder_author")]
+        if generic_author_articles:
+            names = sorted({n for e in generic_author_articles
+                           for n in (e.get("article_completeness") or {}).get("author_names", [])})
+            add_finding(
+                findings, "readability",
+                "Article Byline Uses a CMS Placeholder Name Instead of a Real Author",
+                "low",
+                f"{len(generic_author_articles)} article/blog entit(y/ies) credit only a generic "
+                f"placeholder byline ({', '.join(names)}), not a real named person or organization.",
+                "Credit a real author (or a clearly-named organizational byline like 'Acme Editorial "
+                "Team') instead of a CMS default account name.",
+                plain_english="This content's author field is a leftover system account name, not a "
+                "real byline. A named author is one of the most consistently cited trust signals for "
+                "AI systems deciding whether to cite a source.",
+                confidence=0.6
+            )
+
+        # NAP (Name/Address/Phone) consistency: the on-site instance of "does
+        # the web agree on this fact" -- schema and visible text disagreeing
+        # on contact details is a concrete, checkable trust problem, not a
+        # subjective one. Phone numbers compare as digit tokens; addresses
+        # via word-overlap, both tolerant of formatting/paraphrase variance
+        # so only a genuine mismatch is reported.
+        nap = (struct_data or {}).get("nap_consistency") or {}
+        if nap.get("checked") and nap.get("mismatch_count"):
+            details = []
+            for m in nap.get("mismatches") or []:
+                if m.get("field") == "telephone":
+                    details.append(f"schema lists phone {m.get('schema_value')!r}, not found anywhere visible")
+                else:
+                    details.append(f"schema lists address {m.get('schema_value')!r}, sharing only "
+                                   f"{m.get('word_overlap_ratio', 0):.0%} of its wording with the visible page")
+            add_finding(
+                findings, "readability",
+                "Business Contact Details Inconsistent Between Schema and Visible Page",
+                "medium",
+                f"{nap['mismatch_count']} contact detail(s) in Organization/LocalBusiness schema don't "
+                f"match the page's own visible text: {'; '.join(details)}.",
+                "Confirm the phone number and address in your JSON-LD match what's actually printed "
+                "on the page -- inconsistent contact details across sources undermine exactly the "
+                "kind of cross-source agreement AI systems use to trust a fact.",
+                plain_english="Your structured data lists contact details that don't match what's "
+                "visibly printed on the page. AI systems (and customers) checking your phone number "
+                "or address against the visible page won't find what the schema claims.",
+                confidence=0.6
+            )
+
         semantic = readability.get("semantic_structure", {}) or {}
         headings_blk = semantic.get("headings", {}) or {}
         h1_missing = semantic.get("h1_missing")
@@ -1178,14 +1377,29 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
             # the rendered DOM and is simply absent from the server response --
             # so the fix is to server-render it, not to author one.
             subs_present = semantic.get("h1_missing_but_subheadings_present")
-            render_gap = bool(
-                (skill_outputs.get("crawl_render", {}) or {})
-                .get("rendering_barriers", {})
-                .get("client_side_rendering_signals", {})
-                .get("likely_client_side_rendering_barrier")
-            )
+            csr_signals = ((skill_outputs.get("crawl_render", {}) or {})
+                           .get("rendering_barriers", {})
+                           .get("client_side_rendering_signals", {})) or {}
+            render_gap = bool(csr_signals.get("likely_client_side_rendering_barrier"))
+            # "The h1 is client-injected" is a claim ABOUT JAVASCRIPT, so it
+            # needs javascript evidence. `subs_present` alone (h2s but no h1)
+            # used to assert it outright -- which on a static, script-free page
+            # produced not just a wrong finding but actively wrong advice
+            # ("move its rendering to the server"), when the real fix is simply
+            # to author an <h1>. If the render skill ran and found no barrier
+            # AND no client-side machinery of any kind, that is positive
+            # evidence against client injection, and it wins over the
+            # structural hunch.
+            render_checked = bool(csr_signals)
+            render_rules_out_csr = render_checked and not render_gap and not any((
+                csr_signals.get("spa_mount_points"),
+                csr_signals.get("detected_frameworks"),
+                csr_signals.get("inline_framework_signals"),
+                csr_signals.get("data_islands_detected"),
+                csr_signals.get("custom_web_elements_count"),
+            ))
             levels = semantic.get("subheading_levels_present") or []
-            if subs_present or render_gap:
+            if render_gap or (subs_present and not render_rules_out_csr):
                 add_finding(
                     findings, "readability",
                     "Primary <h1> Absent from the Server-Rendered HTML (client-injected)",
@@ -1200,18 +1414,52 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     "to the server (SSR/SSG) or emit it in the static shell.",
                     plain_english="Your page does have a main heading, but it is drawn by JavaScript after "
                     "the page loads. AI crawlers read the raw server response, where the heading is missing, "
-                    "so they cannot see what the page's main topic is."
+                    "so they cannot see what the page's main topic is.",
+                    # Measured barrier = certain. Structural hunch with no render
+                    # pass to corroborate it = a guess, and priced as one.
+                    confidence=1.0 if render_gap else 0.6
                 )
             else:
+                # Either there were no sub-headings to hint at client injection,
+                # or the render pass positively ruled it out (no barrier, no
+                # framework, no mount point) -- on a script-free page the h1 was
+                # simply never authored, and "author one" is the correct fix.
+                why = ("the render pass found no client-side rendering barrier and no framework, "
+                       "mount point or data island on this page, so the heading is not being "
+                       "injected by JavaScript -- it was never written"
+                       if render_rules_out_csr and subs_present else
+                       "there are no sub-headings that would suggest one is being injected client-side")
                 add_finding(
                     findings, "readability",
                     "Missing primary <h1> header tag",
                     "medium",
-                    "Page HTML contains no <h1> tag for topic orientation, and no sub-headings that "
-                    "would suggest one is being injected client-side.",
+                    f"Page HTML contains no <h1> tag for topic orientation, and {why}.",
                     "Add a clear, topic-defining <h1> tag at the top of the page content.",
                     plain_english="The main heading tag (<h1>) is missing, making it harder for AI readers to instantly identify the primary topic of your page."
                 )
+        elif semantic.get("multiple_h1"):
+            # Emitted by check_semantic_structure.py since the beginning and
+            # never read until now: a page with several <h1>s has no single
+            # declared topic, so an extractor has to guess which one the page
+            # is actually about. Kept `low` because HTML5 sectioning technically
+            # permits multiple <h1>s -- it is an extraction-clarity problem,
+            # not invalid markup.
+            h1_count = headings_blk.get("h1_count")
+            h1_texts = [h.get("text") for h in (headings_blk.get("sequence") or [])
+                        if h.get("level") == 1][:4]
+            add_finding(
+                findings, "readability",
+                f"Multiple <h1> Headings Compete to Define the Page Topic ({h1_count} found)",
+                "low",
+                f"The page declares {h1_count} separate <h1> headings: "
+                + "; ".join(repr(t) for t in h1_texts if t)
+                + ". With no single top-level heading, an AI extractor has no unambiguous signal "
+                  "for what this page is primarily about.",
+                "Keep one <h1> that states the page's topic and demote the rest to <h2>/<h3> so the "
+                "outline has a single root.",
+                plain_english="Your page has several 'main' headings at the same top level, so there is "
+                "no single clear answer to 'what is this page about?' for an AI system reading it."
+            )
         elif hierarchy_issues:
             add_finding(
                 findings, "readability",
@@ -1220,6 +1468,55 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                 f"Heading structure contains level skips: {hierarchy_issues}.",
                 "Structure page headings sequentially (H1 -> H2 -> H3) without skipping levels.",
                 plain_english="Your page headings skip structural levels (like jumping from H1 directly to H4), making the logical content outline harder for AI models to parse."
+            )
+
+        # Question-phrased headings are the pattern AI answer engines extract
+        # most reliably (a heading ending "?" sets up a direct-answer
+        # expectation immediately below it). This checks PRESENCE only -- a
+        # one-word answer like "No." still counts as answered -- so it only
+        # flags a heading with genuinely nothing (or only another heading)
+        # underneath it, never a subjective "answer quality" judgment.
+        question_headings = semantic.get("question_headings") or {}
+        unanswered = [q for q in (question_headings.get("detected") or [])
+                     if not q.get("has_content_following")]
+        if unanswered:
+            examples = ", ".join(repr(q["heading_text"]) for q in unanswered[:3])
+            add_finding(
+                findings, "readability",
+                "Question-Style Heading With No Content Following It",
+                "medium",
+                f"{len(unanswered)} question-phrased heading(s) have no real text before the next "
+                f"heading (or the end of the page): {examples}.",
+                "Add at least a short, direct answer immediately after each question-style heading -- "
+                "even a single sentence gives an AI system something to extract for that question.",
+                plain_english="Some of your headings are phrased as questions but have nothing answering "
+                "them right underneath. AI systems that extract question-and-answer pairs from your page "
+                "find the question with no answer to pair it with."
+            )
+
+        # 44% of AI citations in published studies come from the first 30% of
+        # a document -- this checks whether real content is actually near the
+        # top, or buried under filler. It is a word-count-position heuristic,
+        # not a judgment of what counts as "informative": a page where no
+        # single block ever reaches the substantial-length floor, or one with
+        # too little main content to measure meaningfully, reports
+        # checked=False rather than a guessed verdict either way.
+        content_pos = semantic.get("content_positioning") or {}
+        if content_pos.get("checked") and content_pos.get("front_loaded") is False:
+            add_finding(
+                findings, "readability",
+                "Substantial Content Buried Deep in the Page",
+                "low",
+                f"The first substantial block of text doesn't appear until "
+                f"{content_pos.get('first_substantial_block_fraction', 0):.0%} of the way through the "
+                f"page's main content ({content_pos.get('first_substantial_block_word_offset')} of "
+                f"{content_pos.get('total_main_words')} words): "
+                f"{content_pos.get('first_substantial_block_preview', '')!r}...",
+                "Move the page's core informative content earlier, ahead of introductory or promotional "
+                "copy, so both readers and AI systems reach it sooner.",
+                plain_english="The real substance of this page doesn't show up until well into it. Readers "
+                "and AI systems that only look at the start of a page may miss it entirely.",
+                confidence=0.5
             )
 
         consistency = pick(readability, "content_consistency", "context_consistency", default={}) or {}
@@ -1692,20 +1989,41 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     plain_english=f"Your website displays copyright year {dates.get('copyright_year')}, signaling to AI search bots that content may not be actively maintained."
                 )
 
-            # dateModified age -- the single strongest freshness signal, and
-            # previously unused. ~18 months without a modification is stale.
+            # Content age -- the strongest freshness signal. The source matters:
+            # a declared dateModified/datePublished is this page's own claim
+            # about itself, while `latest_visible_date` is the newest date
+            # merely PRINTED on the page (it may belong to a listed child post,
+            # not the page). Both are worth reporting, but only the declared
+            # ones are stated as fact, and the visible-text fallback is priced
+            # lower because it can legitimately misattribute.
             age_days = dates.get("effective_content_age_days")
+            age_source = dates.get("effective_content_age_source")
             if isinstance(age_days, int) and age_days > 540:
                 yrs = round(age_days / 365, 1)
+                from_visible = age_source == "latest_visible_date"
+                if from_visible:
+                    evidence = (f"No datePublished/dateModified is declared anywhere on the page. The "
+                                f"newest date printed in its visible text is "
+                                f"{dates.get('latest_visible_date')} -- {age_days} days (~{yrs} years) ago "
+                                f"({dates.get('visible_dates_count')} dated item(s) found in total).")
+                    action = ("Add datePublished/dateModified to the page's JSON-LD so recency is a "
+                              "machine-readable fact rather than something a crawler has to infer from "
+                              "printed text, and refresh the content itself if it really is this old.")
+                    title = "No Declared Content Date; Newest Date Visible on the Page Is Years Old"
+                else:
+                    evidence = (f"JSON-LD reports the page was last modified {age_days} days (~{yrs} years) "
+                                f"ago (datePublished: {dates.get('date_published')}, dateModified: "
+                                f"{dates.get('date_modified')}).")
+                    action = "Review and refresh the page content, then update datePublished/dateModified in JSON-LD."
+                    title = "Structured Content Date (dateModified) Is Stale"
                 add_finding(
                     findings, "freshness_corroboration",
-                    "Structured Content Date (dateModified) Is Stale",
+                    title,
                     "medium",
-                    f"JSON-LD reports the page was last modified {age_days} days (~{yrs} years) "
-                    f"ago (datePublished: {dates.get('date_published')}, dateModified: "
-                    f"{dates.get('date_modified')}).",
-                    "Review and refresh the page content, then update datePublished/dateModified in JSON-LD.",
-                    plain_english="Your page's machine-readable 'last updated' date is years old, so AI assistants treat the content as outdated and are less likely to cite it for current questions."
+                    evidence,
+                    action,
+                    plain_english="Your page's 'last updated' signal is years old, so AI assistants treat the content as outdated and are less likely to cite it for current questions.",
+                    confidence=0.6 if from_visible else 1.0
                 )
 
             for issue in dates.get("content_date_issues", []):
@@ -1895,6 +2213,31 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     "menu, no button, no links -- so the visit ends here."
                 )
 
+            # Trust-page presence (Privacy Policy / Terms): a widely-cited AI-
+            # trust signal, but its absence means very different things on
+            # different site types -- a real gap for a data-collecting
+            # commerce/SaaS site, largely moot for a static docs or personal
+            # page. Deliberately kept low severity and worded as informational
+            # rather than a defect, and reported once per audit (not once per
+            # page) since it is a site-wide fact, not a per-page one.
+            if (nxt.get("privacy_policy_present") is False and nxt.get("terms_present") is False
+                    and not lr.get("is_utility_context") and "trustpages" not in seen_lr_titles):
+                seen_lr_titles.add("trustpages")
+                add_finding(
+                    findings, "engagement",
+                    "No Privacy Policy or Terms Page Found",
+                    "low",
+                    f"Page {lr_url} carries no link to a Privacy Policy or Terms/Conditions page "
+                    f"(direct link scan, not a semantic judgment).",
+                    "Add a linked Privacy Policy and Terms page, typically in the site footer -- "
+                    "a widely-cited baseline trust signal, most relevant for a site collecting "
+                    "user data or taking payments.",
+                    plain_english="No link to a Privacy Policy or Terms page was found. This is a "
+                    "common baseline trust signal, and matters most if this site collects user "
+                    "data or handles payments.",
+                    confidence=0.5
+                )
+
             if hyg.get("placeholder_text_found") and "placeholder" not in seen_lr_titles:
                 seen_lr_titles.add("placeholder")
                 add_finding(
@@ -1929,10 +2272,13 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
     for i, f in enumerate(findings, start=1):
         f["id"] = f"F-{i:03d}"
 
-    # Calculate Category Scores
+    # Calculate Category Scores -- five independent, self-contained numbers.
+    # No overall blended score: the handout's required schema never asks for
+    # one (site/audited_at/summary/findings is the floor), and a single
+    # weighted-and-gated number invites exactly the "why does this weight
+    # matter" scrutiny a plain per-category score doesn't.
     category_names = ["crawl_access", "crawl_render", "readability", "freshness_corroboration", "engagement"]
     category_scores = {cat: calculate_category_score(findings, cat) for cat in category_names}
-    overall_score, scoring_model = calculate_overall_readiness_score(category_scores, findings)
 
     # Severity Summary Counts
     severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
@@ -1947,20 +2293,12 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
     robots_restrictions = collect_robots_restrictions(skill_outputs)
     skills_invoked_cnt = max(1, len([k for k in skill_outputs if skill_outputs[k]]))
 
-    default_recs = [
-        "Ensure robots.txt allows access to AI crawler user-agents (GPTBot, PerplexityBot, ClaudeBot).",
-        "Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.",
-        "Add authoritative sameAs references (Wikidata, Wikipedia, LinkedIn) to Organization schema markup.",
-        "Ensure key product/service landing pages are directly linked from homepage navigation.",
-        "Include <meta name='viewport' content='width=device-width, initial-scale=1'> on all page templates."
-    ]
+    default_recs = _build_default_recommendations(skill_outputs, findings)
 
     report = {
         "site": site_url,
         "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "brand_ai_readiness_score": overall_score,
         "category_scores": category_scores,
-        "scoring_model": scoring_model,
         "summary": {
             "total_findings": len(findings),
             "critical": severity_counts["critical"],
@@ -2038,16 +2376,9 @@ if __name__ == "__main__":
         print(json.dumps({
             "site": None,
             "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "brand_ai_readiness_score": 0.0,
             "category_scores": {
                 "crawl_access": 0.0, "crawl_render": 0.0, "readability": 0.0,
                 "freshness_corroboration": 0.0, "engagement": 0.0
-            },
-            "scoring_model": {
-                "method": "weighted_with_foundational_gates",
-                "weights": CATEGORY_WEIGHTS,
-                "weighted_subtotal": 0.0,
-                "gates_applied": []
             },
             "summary": {"total_findings": 0, "critical": 0, "high": 0, "medium": 0, "low": 0},
             "findings": [],

@@ -6,7 +6,7 @@ import sys
 import json
 import re
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 def strip_non_visible(html):
@@ -150,6 +150,61 @@ def extract_json_ld_dates(html_content):
             
     return date_pub, date_mod
 
+# Dates printed as ordinary visible text, with no phrase anchor in front of
+# them ("September 11, 2026" under a headline, "11 March 2025" in a post list).
+# Before this, freshness saw ONLY JSON-LD/meta dates and phrase-anchored text
+# ("updated on X", "published X") -- so a blog index listing twenty dated posts
+# in plain text reported zero temporal signal and the whole freshness category
+# scored as if the page carried no date at all. Purely numeric formats
+# (11/09/2026) are deliberately NOT matched: day-first vs month-first is
+# genuinely ambiguous and guessing wrong would invent a date rather than miss one.
+_MONTHS = ("january", "february", "march", "april", "may", "june", "july",
+           "august", "september", "october", "november", "december")
+_MONTH_NUM = {m[:3]: i + 1 for i, m in enumerate(_MONTHS)}
+_MONTH_ALT = "|".join(m[:3] + r"[a-z]*" for m in _MONTHS)
+
+VISIBLE_DATE_PATTERNS = (
+    # September 11, 2026  /  Sep 11 2026
+    re.compile(r"\b(" + _MONTH_ALT + r")\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+((?:19|20)\d{2})\b", re.I),
+    # 11 September 2026  /  11th Sep 2026
+    re.compile(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+(" + _MONTH_ALT + r"),?\s+((?:19|20)\d{2})\b", re.I),
+    # 2026-09-11 (ISO, unambiguous)
+    re.compile(r"\b((?:19|20)\d{2})-(\d{2})-(\d{2})\b"),
+)
+
+MAX_VISIBLE_DATES_REPORTED = 12
+
+
+def extract_visible_dates(visible_text, now):
+    """Every unambiguous date printed in the page's visible text, newest first.
+
+    Returns ISO strings. Dates in the future beyond a small clock-skew grace
+    window are dropped -- on a real page they are far more often a template
+    placeholder or an event listing than a genuine publication date, and
+    treating one as "this page is fresh" would be worse than missing it.
+    """
+    found = set()
+    for rx in VISIBLE_DATE_PATTERNS:
+        for m in rx.finditer(visible_text or ""):
+            try:
+                g = m.groups()
+                if rx is VISIBLE_DATE_PATTERNS[0]:
+                    mon, day, year = _MONTH_NUM.get(g[0][:3].lower()), int(g[1]), int(g[2])
+                elif rx is VISIBLE_DATE_PATTERNS[1]:
+                    day, mon, year = int(g[0]), _MONTH_NUM.get(g[1][:3].lower()), int(g[2])
+                else:
+                    year, mon, day = int(g[0]), int(g[1]), int(g[2])
+                if not mon or not (1 <= mon <= 12) or not (1 <= day <= 31):
+                    continue
+                dt = datetime(year, mon, day, tzinfo=timezone.utc)
+            except (ValueError, TypeError):
+                continue
+            if dt > now + timedelta(days=2) or dt.year < 1990:
+                continue
+            found.add(dt)
+    return sorted(found, reverse=True)
+
+
 def check_content_dates(html_content, url):
     if not html_content:
         html_content = ""
@@ -209,10 +264,27 @@ def check_content_dates(html_content, url):
     if pub_dt and pub_dt > now:
         issues.append("datePublished is in the future")
 
-    # Effective "last touched" age, preferring dateModified.
+    # 4. Dates printed as plain visible text, with no phrase anchor and no
+    #    structured markup behind them -- the normal way a blog index, news
+    #    listing or docs page shows when something was written.
+    visible_dates = extract_visible_dates(visible, now)
+    latest_visible = visible_dates[0] if visible_dates else None
+    latest_visible_age_days = (now - latest_visible).days if latest_visible else None
+
+    # Effective "last touched" age, preferring dateModified, then datePublished.
     effective_age_days = date_modified_age_days
     if effective_age_days is None:
         effective_age_days = date_published_age_days
+    # Only as a LAST resort, and flagged as such: the newest date visible on
+    # the page is a weaker claim than a declared datePublished (it might be a
+    # listed child post's date rather than this page's own), so the source is
+    # reported alongside it and the orchestrator can weight it accordingly.
+    effective_age_source = ("dateModified" if date_modified_age_days is not None
+                            else "datePublished" if date_published_age_days is not None
+                            else "latest_visible_date" if latest_visible_age_days is not None
+                            else None)
+    if effective_age_days is None and latest_visible_age_days is not None:
+        effective_age_days = latest_visible_age_days
 
     return {
         "url": url,
@@ -221,8 +293,13 @@ def check_content_dates(html_content, url):
         "date_published_age_days": date_published_age_days,
         "date_modified_age_days": date_modified_age_days,
         "effective_content_age_days": effective_age_days,
+        "effective_content_age_source": effective_age_source,
         "content_date_issues": issues,
         "explicit_temporal_anchors_found": matched_anchors,
+        "visible_dates_found": [d.strftime("%Y-%m-%d") for d in visible_dates[:MAX_VISIBLE_DATES_REPORTED]],
+        "visible_dates_count": len(visible_dates),
+        "latest_visible_date": latest_visible.strftime("%Y-%m-%d") if latest_visible else None,
+        "latest_visible_date_age_days": latest_visible_age_days,
         "copyright_year": copyright_year,
         "copyright_years_all": copyright_years,
         "copyright_year_age_years": copyright_age_years,

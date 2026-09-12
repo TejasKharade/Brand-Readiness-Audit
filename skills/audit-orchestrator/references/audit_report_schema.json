@@ -5,7 +5,6 @@
   "required": [
     "site",
     "audited_at",
-    "brand_ai_readiness_score",
     "category_scores",
     "summary",
     "findings",
@@ -22,14 +21,9 @@
       "format": "date-time",
       "description": "ISO 8601 UTC timestamp of audit execution"
     },
-    "brand_ai_readiness_score": {
-      "type": "number",
-      "minimum": 0.0,
-      "maximum": 100.0,
-      "description": "Overall Brand AI Readiness Score (0-100)"
-    },
     "category_scores": {
       "type": "object",
+      "description": "Five independent, self-contained scores (0-100), one per audit category. Each starts at 100 and is reduced by a fixed amount per finding in that category (critical -20, high -10, medium -5, low -2), scaled by the finding's confidence -- no cross-category weighting, no overall blended score, no caps. A category's number can be verified by hand directly from the findings list.",
       "required": [
         "crawl_access",
         "crawl_render",
@@ -43,31 +37,6 @@
         "readability": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
         "freshness_corroboration": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
         "engagement": { "type": "number", "minimum": 0.0, "maximum": 100.0 }
-      }
-    },
-    "scoring_model": {
-      "type": "object",
-      "description": "How brand_ai_readiness_score was rolled up from category_scores: prerequisite-weighted mean plus foundational gates that cap the overall score when a critical finding lands in crawl_access or crawl_render.",
-      "properties": {
-        "method": { "type": "string" },
-        "weights": { "type": "object" },
-        "weighted_subtotal": { "type": "number", "minimum": 0.0, "maximum": 100.0 },
-        "gates_applied": { "type": "array", "items": { "type": "object" } },
-        "category_deduction_detail": {
-          "type": "object",
-          "description": "Per category, per severity present: hit count, the confidence-weighted+decayed total actually deducted, and what a flat (no diminishing-returns) model would have charged -- the gap between the two is the diminishing-returns effect.",
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "count": { "type": "integer", "minimum": 0 },
-                "deducted": { "type": "number" },
-                "flat_equivalent": { "type": "number" }
-              }
-            }
-          }
-        }
       }
     },
     "summary": {
@@ -104,7 +73,7 @@
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "How sure this finding is real, distinct from severity (how bad it'd be if true). Defaults to 1.0 (full weight); scales its scoring impact and, for a critical finding, softens the foundational-gate cap it would otherwise trigger."
+            "description": "How sure this finding is real, distinct from severity (how bad it'd be if true). Defaults to 1.0 (full weight); scales how much this finding deducts from its category's score."
           }
         }
       }

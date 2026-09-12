@@ -19,7 +19,11 @@ This skill:
 The ONLY permitted network activity is capped PDF-link text layer inspection performed by check_nontext_facts.py (maximum 3 PDFs per page).
 
 ## Inputs
-- html: Raw HTML content string of the target page (string).
+- html: Raw HTML content string of the target page (string) — **reuse
+  `crawl-access-audit`'s `fetch_dual_identity.py` output
+  (`browser_fetch.content`) for this same page; do not fetch it again.**
+  `WebFetch` is declared in `allowed-tools` only for the capped PDF
+  text-layer reads in `check_nontext_facts.py`, not for re-fetching the page.
 - url: Absolute URL of the target page (string).
 
 ## Procedure & Hybrid Execution Flow
@@ -46,10 +50,44 @@ The ONLY permitted network activity is capped PDF-link text layer inspection per
      `readability.additional_pages: [{url, structured_data}]`. It costs no extra request (that HTML was
      fetched by the render or engagement pass) and it is where the grounding gap usually lives: the homepage
      carries the `Organization` block while product and article pages ship nothing but a breadcrumb trail.
+   - **FAQ schema vs. visible text (`faq_visible_text_check`).** FAQPage schema is only trustworthy when its
+     answers correspond to something a visitor — and therefore a non-JS crawler — can actually see. Each
+     answer's meaningful vocabulary (stopwords and short words stripped) is checked for **word overlap**
+     against the page's own visible text, not exact substring matching, so a legitimately reworded answer is
+     never mistaken for absence — only a near-total vocabulary mismatch (`< 25%` overlap) is reported, and
+     only when the answer itself carries enough signal to judge (`>= 4` significant words) and the page
+     actually returned enough visible text to compare against (`>= 20` significant words; otherwise
+     `checked: false`, never a false "answer absent" claim caused by a blocked or empty fetch).
+   - **Authorship / E-E-A-T (`article_completeness.author_names`, `.generic_placeholder_author`).** A real
+     named byline is repeatedly the single most-cited concrete AI-trust signal in published GEO/AEO guidance.
+     Flags only a narrow, high-confidence CMS-default placeholder list (`admin`, `webmaster`, `unknown`,
+     `guest`, …) — a legitimate organizational byline like `"Staff Writer"` or `"Editorial Team"` is
+     deliberately never flagged, since real publications use those on purpose. Requires **every** listed
+     author to be a placeholder before flagging (one real name among co-authors clears it).
+   - **NAP consistency (`nap_consistency`).** Does the `LocalBusiness`/`Organization` schema's telephone and
+     address actually match the page's own visible text — the on-site instance of "agreement across the web
+     matters." Phone numbers are compared as individual digit-token candidates extracted from visible text
+     (never the whole page glued into one digit blob, which would let an unrelated number — a zip code, a
+     street number — corrupt the match), tolerant of formatting and a missing country-code prefix. Addresses
+     reuse the FAQ check's word-overlap approach. `checked: false` when there's too little visible text to
+     compare against, or no telephone/address to compare in the first place.
    - **LLM Semantic Fallback:** If `check_structured_data.py` returns `microdata_detected: true` or `rdfa_detected: true`, the LLM uses its HTML inspection tools to extract the inline structured data. If it reports `parse_errors`, the LLM inspects the malformed JSON-LD string to recover broken entities manually. If 0 schema blocks are found, the LLM checks `<meta property="og:...">` tags.
 
 2. **Semantic HTML Structure Check (check_semantic_structure.py + LLM Orientation Evaluation)**:
    - Run `scripts/check_semantic_structure.py` to measure <title>, <meta name="description">, heading sequences (h1-h6), and semantic tag counts (main, article, nav, section).
+   - **Question-phrased headings (`question_headings`).** A heading ending in `?` (or Arabic `؟`) or opening
+     with a common interrogative word (`How`, `What`, `Why`, …, matched as a whole word so `"Isaac Newton's
+     Legacy"` never matches `"Is"`) sets up a direct-answer expectation immediately below it — the single
+     most reliably-cited AEO pattern in published research. This checks **presence, not quality**: any real
+     text at all before the next heading counts as answered (a one-word FAQ answer like `"No."` is a
+     complete, valid answer), so only a question heading with genuinely nothing following it is reported.
+     Nav/header/footer/aside text never counts as an answer.
+   - **Content front-loading (`content_positioning`).** Where, as a fraction of the page's main-content word
+     count (chrome excluded), the first substantial (`>= 12`-word) block of text appears — informed by
+     published findings that a large share of AI citations come from early in a document. Reports
+     `checked: false` rather than a guessed verdict whenever there isn't enough signal: under 80 words of
+     main content total, or no single block ever reaching the substantial-length floor (a page built from
+     many short list items is a legitimate style, not a defect).
    - **LLM Semantic Fallback:** The LLM reviews skipped heading levels and <h1> counts to determine if the heading texts logically organize the page or if <div>-written facts could be hidden from naive parsers.
 
 3. **Content Consistency Check (check_content_consistency.py extracts; agent judges)**:

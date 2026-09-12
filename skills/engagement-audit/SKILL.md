@@ -1,6 +1,10 @@
 ---
 name: engagement-audit
-description: Audits static HTML human visitor engagement signals including homepage navigation reachability, content depth, mobile responsiveness, cross-page descriptor consistency, and page weight resource signals.
+description: Audits static HTML human visitor engagement signals including homepage
+  navigation reachability, content depth, mobile responsiveness, cross-page descriptor
+  consistency, page weight resource signals, cold AI-referral landing readiness
+  (orientation, next-step/dead-end risk, placeholder and default-title hygiene), and
+  trust-page presence.
 license: MIT
 compatibility: Requires Python 3 and outbound network access
 allowed-tools: Bash Read
@@ -139,6 +143,7 @@ echo '{
 AI assistants cite **deep** pages, not homepages, so a referred visitor lands mid-site with no journey context. This script treats each page as a cold entry point. It returns:
 
 - **Reliable, deterministic findings** — **Hygiene**: visible placeholder text (`lorem ipsum`, `coming soon`, `TODO:`), a default/empty `<title>` (`Untitled`, `Home`, framework defaults), `href="#"`/empty links, `http://` assets on an `https://` page. And **Content position** — where the first `<h1>` / first substantive `<p>` sits relative to the document, after `<nav>`/`<header>` are discounted.
+- **Trust-page presence** (`privacy_policy_present`, `terms_present`) — a direct link/anchor-text scan for a linked Privacy Policy or Terms page (English plus a few common non-English privacy-page slugs). Reported as a **low-severity, informational** signal, deliberately not escalated: its absence is a real gap on a data-collecting commerce/SaaS site and largely moot on a static personal or docs site, and this check has no way to tell those apart — so it states the fact without asserting a severity the site type doesn't support.
 - **A keyword-heuristic floor** for orientation and next-step — `orientation_ok_heuristic`, `has_next_step_heuristic`, `gaps_heuristic`. These use an English-leaning lexicon (action verbs, audience cues, interstitial phrases) and **do not generalise well** across languages, sectors, or naming conventions. Use them only when no agent verdict is supplied.
 - **`raw_for_agent_judgment`** — the actual page elements: brand-name candidate, description candidate, `<h1>`, `<title>`, the full link inventory (text + href), button texts, and the utility-context flag.
 - **`friction_signals`** — cookie-consent containers, age/region/app-install/newsletter interstitial text, a possible login gate. **Reported, never auto-flagged.**

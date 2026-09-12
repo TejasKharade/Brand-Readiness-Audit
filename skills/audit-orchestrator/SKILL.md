@@ -39,9 +39,14 @@ The orchestrator receives target audit parameters:
 > or the per-page dual-identity fetches for several sampled pages, as parallel
 > tool calls in the same turn rather than one after another; sequential
 > network-bound calls are the main way an audit overruns 5 minutes on a
-> slow-but-reachable site. Cap `sampled_pages` to the homepage plus at most 1-2
-> other key pages for a standard run — each additional page repeats the
-> dual-identity fetch and the engagement per-page checks. The network-bound
+> slow-but-reachable site. Cap `sampled_pages` to the homepage plus **at most
+> 1** other key page for a standard run (not 1-2) — each additional page
+> repeats the dual-identity fetch, the render pass, and the engagement
+> per-page checks, and this is the single biggest lever on total runtime: one
+> slow-but-reachable page can cost ~30s for `fetch_dual_identity.py` alone
+> (browser leg + bot leg + spacing delay), plus up to 20s for
+> `check_page_speed_signals.py` and up to 45s if rendered — a third sampled
+> page can add another 60-95s worst case on top of everything else. The network-bound
 > scripts (`check_robots.py`, `check_sitemap.py`, `check_page_speed_signals.py`)
 > each enforce their own internal wall-clock ceiling and return partial results
 > with `fetch_deadline_exceeded` / `time_budget_exceeded: true` on a
@@ -61,6 +66,22 @@ Run specialized access scripts to evaluate bot accessibility:
 > `skipped_by_robots`, **do not run the content skills on the empty result** —
 > report the reduced coverage instead. The report's
 > `audit_metadata.robots_restricted_fetches` lists every refused request.
+
+> [!IMPORTANT]
+> **Fetch each page's HTML exactly once, then reuse it for every skill.**
+> `fetch_dual_identity.py` (Step 1) already returns the page's raw HTML in
+> `browser_fetch.content` — that same string is the `html`/`raw_html` input
+> every other skill asks for (`readability-audit`, `engagement-audit`,
+> `crawl-render-audit`'s raw side, `freshness-corroboration`). **Never fetch
+> the same URL again to get it.** `readability-audit` and `crawl-render-audit`
+> both have `WebFetch` in their `allowed-tools` — that access exists for
+> reading *documentation/reference material while auditing*, not for
+> re-fetching a page this orchestrator already has the HTML for. Likewise,
+> only fetch a rendered DOM once per page (`fetch_rendered_dom.py`, Step 2)
+> and reuse that same `rendered_html` for both `check_rendering_barriers.py`
+> and `check_structured_data_hydration.py` — never render the same page
+> twice. A redundant re-fetch costs as much as the original ~30s
+> dual-identity fetch and is pure waste toward the 5-minute budget.
 
 - `scripts/check_robots.py`: Evaluate `robots.txt` for AI crawlers per RFC 9309 (longest match wins, wildcards honoured) against `/` and every audited page URL; reports the deciding rule per path and agent, and each agent's documented purpose (`agent_classes`: live-search/assistant **retrieval** vs. model **training**, from `references/ai_crawler_classes.json`). A block that removes the site from live AI search answers is critical/high; a training-only block is medium/low; a block on a user-initiated fetcher that robots.txt may not apply to is not scored.
 - `scripts/fetch_dual_identity.py`: Compare HTTP responses for User-Agent browser vs. AI bot identity.
@@ -122,7 +143,7 @@ echo '{
 }' | python skills/audit-orchestrator/scripts/synthesize_report.py
 ```
 
-The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), calculates per-category scores and the overall **Brand AI Readiness Score** (0.0 to 100.0), and outputs a structured JSON report.
+The script extracts findings across all 5 skills, formats IDs (`F-001`, `F-002`), assigns severities (`critical`, `high`, `medium`, `low`), calculates five independent per-category scores (0.0 to 100.0, see Guardrails below), and outputs a structured JSON report. There is deliberately no single blended overall score — the handout's required schema asks for `site`/`audited_at`/a severity-count `summary`/`findings` and nothing more; a report of well-evidenced, correctly-severed findings is the deliverable, not a formula on top of them.
 
 ---
 
@@ -134,25 +155,12 @@ Produces the master audit report conforming to `references/audit_report_schema.j
 {
   "site": "https://example.com",
   "audited_at": "2026-09-06T21:28:45Z",
-  "brand_ai_readiness_score": 40.0,
   "category_scores": {
     "crawl_access": 80.0,
     "crawl_render": 90.0,
     "readability": 85.0,
     "freshness_corroboration": 95.0,
     "engagement": 85.0
-  },
-  "scoring_model": {
-    "method": "weighted_with_foundational_gates",
-    "weights": { "crawl_access": 0.30, "crawl_render": 0.25, "readability": 0.20, "engagement": 0.15, "freshness_corroboration": 0.10 },
-    "weighted_subtotal": 85.8,
-    "gates_applied": [
-      { "category": "crawl_access", "cap": 40.0, "trigger_finding": "F-001", "confidence": 1.0, "reason": "critical 'crawl_access' finding caps overall readiness at 40.0" }
-    ],
-    "category_deduction_detail": {
-      "crawl_access": { "critical": { "count": 1, "deducted": 20.0, "flat_equivalent": 20.0 } },
-      "freshness_corroboration": { "low": { "count": 1, "deducted": 0.7, "flat_equivalent": 2.0 } }
-    }
   },
   "summary": {
     "total_findings": 3,
@@ -210,7 +218,8 @@ Produces the master audit report conforming to `references/audit_report_schema.j
 
 > [!IMPORTANT]
 > **Deterministic Synthesis**:
-> `synthesize_report.py` calculates per-category severity deductions deterministically from base weights (`critical`: -20.0, `high`: -10.0, `medium`: -5.0, `low`: -2.0), capped to 0.0-100.0. Two refinements on top of the flat model:
-> - **Diminishing returns per severity, per category.** Repeated findings of the SAME severity in one category are usually one underlying gap surfacing more than once (11 missing `<img alt>` is one root cause, not 11 independent failures) — under a flat model, quantity alone could crush a category out of proportion to severity (6 "low" findings used to outscore a single "high"). Now each additional same-severity finding counts for less (`DEDUCTION_DECAY = 0.6` geometric decay; the single MOST CONFIDENT finding of a severity is always charged first, so which one "goes first" reflects certainty, not generation order); different severities still stack fully additively, and damage from repetition alone is bounded (asymptote = base weight / (1 - decay)).
-> - **Confidence-weighted deductions.** A finding may carry `confidence` in [0, 1] — how sure the check is the finding is real, distinct from severity (how bad it'd be if true). Missing/invalid confidence defaults to 1.0 (full weight, matching every finding that predates this field). A handful of already-uncertain finding types set it explicitly: a temporal-decay signal with `detection_confidence: "low"` (often a stray year mention, not a real post date), a structured-data-vs-visible-text mismatch not confirmed by agent judgment (only the raw string-match heuristic), and a name-ambiguity flag not confirmed by agent judgment. A critical finding's confidence also **softens (not just triggers) its foundational gate** — a fully-confident critical (the default) still slams to the hard cap exactly as before, but one the check itself isn't fully sure of pulls the cap back toward the uncapped weighted score instead of always applying the harshest penalty for a maybe.
-> - The overall **Brand AI Readiness Score** is still a *prerequisite-weighted* mean of the category scores — `crawl_access` 0.30, `crawl_render` 0.25, `readability` 0.20, `engagement` 0.15, `freshness_corroboration` 0.10 (freshness lowest because it is the only non-deterministic, web-search category) — **plus foundational gates**: a single `critical` finding in `crawl_access` caps the overall score at 40, and in `crawl_render` at 55 (subject to the confidence-softening above), because an uncrawlable or unreadable site is not "80% AI-ready" no matter how clean the other categories look. The exact weights, any gates that fired, and a per-category `category_deduction_detail` breakdown (count / decayed total / what a flat model would have charged, per severity) are emitted in the report's `scoring_model` object. All findings are renumbered sequentially (`F-001`, `F-002`, ...) after assembly, so caller-supplied explicit findings that carry their own ids cannot leave gaps in the sequence; every id matches `^F-[0-9]{3,}$`.
+> `synthesize_report.py` calculates each of the five `category_scores` independently and deterministically. Each category starts at 100.0; every finding in that category deducts a fixed amount by severity (`critical`: -20.0, `high`: -10.0, `medium`: -5.0, `low`: -2.0), scaled by the finding's `confidence` in [0, 1] (a confidence-0.5 critical finding costs 10, not 20 — missing/invalid confidence defaults to 1.0, full weight); the result is clamped to 0.0-100.0. That's the entire model: no cross-category weighting, no diminishing-returns decay on repeated same-severity findings, no foundational-score gates, no blended overall number. Every category's score can be verified by hand directly from the findings list — deliberately favoring "a judge can check this in one pass" over the more elaborate weighted-and-gated model this project used earlier, which required tracing a weighted mean through per-category decay curves and a confidence-softened cap to see why a headline number landed where it did.
+>
+> This is a considered simplification, not an oversight — an earlier iteration of this scoring layer did have per-category diminishing returns and foundational gates capping the overall score when a critical `crawl_access`/`crawl_render` finding hit. Both pieces addressed real concerns (many small findings shouldn't crush a category out of proportion to severity; a site that fails at the foundational crawl-access/render level shouldn't average out to "decent" just because other categories look clean), but neither is required by the handout's schema, and in practice this marketplace's checks already aggregate repeat instances into one finding with a count in the evidence ("5 low-overlap FAQ pairs", not five findings) rather than emitting duplicates — so the decay protection was hardening against a scenario the check design mostly prevents anyway. **The foundational-severity reasoning itself is still real and still visible** — a `crawl_access` or `crawl_render` critical finding still deducts a full -20 from its own category, same as any other critical, and a reader comparing `category_scores` sees immediately that access/render is the weak point; it just no longer reaches through to suppress an overall number that no longer exists.
+>
+> All findings are renumbered sequentially (`F-001`, `F-002`, ...) after assembly, so caller-supplied explicit findings that carry their own ids cannot leave gaps in the sequence; every id matches `^F-[0-9]{3,}$`.

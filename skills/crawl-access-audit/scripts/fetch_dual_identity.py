@@ -16,9 +16,10 @@ for _d in (_os.path.dirname(_os.path.abspath(__file__)),
     if _d not in sys.path:
         sys.path.insert(0, _d)
 try:
-    from robots_gate import RobotsGate, skipped_payload, polite_delay
+    from robots_gate import RobotsGate, skipped_payload, polite_delay, MAX_HONOURED_CRAWL_DELAY_S
 except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
     RobotsGate = None
+    MAX_HONOURED_CRAWL_DELAY_S = 10.0
 
     def skipped_payload(url, decision, extra=None):
         out = {"url": url, "skipped_by_robots": True, "fetched": False,
@@ -39,6 +40,55 @@ import urllib.request
 import urllib.error
 import socket
 import ssl
+import zlib
+
+
+def decode_response_body(raw_bytes, headers_dict):
+    """Turn a raw HTTP body into text, decompressing first if the server
+    compressed it.
+
+    Without this, a `Content-Encoding: gzip` response was decoded straight to
+    UTF-8 with errors='replace' -- i.e. compressed binary treated as the page's
+    HTML. Every downstream content check then failed on the same page at once
+    (no <h1>, no JSON-LD, no visible text), so a perfectly healthy site
+    collected a cascade of false findings: "Missing Schema.org JSON-LD",
+    "Missing primary <h1>", "Thin Content", "Dead-End Page", "Default or Empty
+    Page <title>". check_sitemap.py already handled gzip this way; the
+    dual-identity fetch simply never did.
+
+    A truncated body (the MAX_BYTES cap can cut a stream mid-block) is decoded
+    as far as it goes via decompressobj rather than discarded.
+    """
+    enc = str(headers_dict.get("Content-Encoding") or
+              headers_dict.get("content-encoding") or "").lower()
+    data = raw_bytes
+    note = None
+    try:
+        if "gzip" in enc or raw_bytes[:2] == b"\x1f\x8b":
+            data = zlib.decompressobj(16 + zlib.MAX_WBITS).decompress(raw_bytes)
+        elif "deflate" in enc:
+            try:
+                data = zlib.decompressobj().decompress(raw_bytes)
+            except zlib.error:
+                data = zlib.decompressobj(-zlib.MAX_WBITS).decompress(raw_bytes)
+        elif "br" in enc.split(","):
+            try:
+                import brotli  # optional; not in the stdlib
+                data = brotli.decompress(raw_bytes)
+            except Exception:
+                note = ("response is brotli-encoded and no brotli decoder is available; "
+                        "content not analysed")
+                data = b""
+    except Exception as e:
+        # Partial/corrupt stream: keep whatever decompressed, never crash the
+        # fetch and never silently pass compressed bytes off as HTML.
+        note = f"could not fully decompress {enc or 'gzip'} response: {e}"
+        data = b""
+
+    try:
+        return data.decode("utf-8", errors="replace"), note
+    except Exception:
+        return data.decode("latin-1", errors="replace"), note
 
 # "Thin content" is no longer a single character cutoff. It is decided from the
 # ratio of real main-body text to page chrome (nav/header/footer/aside), with a
@@ -247,8 +297,22 @@ class RedirectTracker(urllib.request.HTTPRedirectHandler):
             raise urllib.error.HTTPError(newurl, code, "Too many redirects", headers, fp)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
-def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
+def fetch_url(url, user_agent, timeout=10, retries_on_429=1, total_budget=None):
+    """`timeout` bounds a single connection attempt; `total_budget` (defaults
+    to `timeout`) bounds THIS CALL AS A WHOLE, the 429 retry's sleep included.
+    Without a combined ceiling, a persistently-429ing host could cost
+    `wait_time + timeout` per call regardless of how tight `timeout` itself
+    was set -- `dual_fetch` needs a call it can actually bound to plan its own
+    total per-page budget around."""
     start_time = time.time()
+    budget = timeout if total_budget is None else total_budget
+
+    def attempt_timeout():
+        return max(1.0, min(timeout, budget - (time.time() - start_time)))
+
+    def budget_spent():
+        return (time.time() - start_time) >= budget
+
     default_fingerprints = {
         "cloudflare_challenge": False, "cloudflare_signals": [], "captcha": False, "captcha_signals": [],
         "generic_block": False, "generic_block_signals": [],
@@ -263,7 +327,7 @@ def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
     
     for attempt in range(retries_on_429 + 1):
         try:
-            with opener.open(req, timeout=timeout) as resp:
+            with opener.open(req, timeout=attempt_timeout()) as resp:
                 response_time = time.time() - start_time
                 status_code = resp.getcode()
                 final_url = resp.geturl()
@@ -282,14 +346,14 @@ def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
                         break
                 
                 raw_bytes = b"".join(chunks)
-                try:
-                    content = raw_bytes.decode("utf-8", errors="replace")
-                except Exception:
-                    content = raw_bytes.decode("latin-1", errors="replace")
-                    
+                content, decode_note = decode_response_body(raw_bytes, headers_dict)
+
                 fingerprints = analyze_fingerprints(content)
-                
-                if bytes_read >= MAX_BYTES:
+
+                # Truncate on the DECODED text: the MAX_BYTES cap applies to
+                # bytes read off the wire, and compressed bytes expand, so
+                # slicing before decompression would cut real content.
+                if len(content) >= MAX_BYTES:
                     content = content[:MAX_BYTES] + "\n...[TRUNCATED]"
                     
                 return {
@@ -300,15 +364,19 @@ def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
                     "response_headers": headers_dict,
                     "content": content,
                     "content_fingerprints": fingerprints,
+                    # Non-null when the body could not be decoded (e.g. brotli
+                    # with no decoder). Content checks downstream must treat
+                    # this as "not analysed", never as "the page is empty".
+                    "content_decode_error": decode_note,
                     "error": None
                 }
         except urllib.error.HTTPError as e:
-            if e.code == 429 and attempt < retries_on_429:
+            if e.code == 429 and attempt < retries_on_429 and not budget_spent():
                 retry_after = e.headers.get("Retry-After") if e.headers else None
                 wait_time = 1.5
                 if retry_after and str(retry_after).isdigit():
                     wait_time = min(float(retry_after), 3.0)
-                time.sleep(wait_time)
+                time.sleep(min(wait_time, max(0.0, budget - (time.time() - start_time))))
                 continue
 
             response_time = time.time() - start_time
@@ -344,7 +412,11 @@ def fetch_url(url, user_agent, timeout=10, retries_on_429=1):
                 "content_fingerprints": default_fingerprints, "error": f"Unexpected error: {str(e)}"
             }
 
-def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None):
+DUAL_FETCH_TOTAL_BUDGET_S = 20.0
+
+
+def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None,
+               total_budget=DUAL_FETCH_TOTAL_BUDGET_S):
     """Fetch `url` twice -- once as a browser, once as an AI crawler.
 
     Each leg is gated on robots.txt for the identity it presents. The bot leg
@@ -353,7 +425,21 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None):
     forbidden path *while identifying as the forbidden crawler*. A skipped leg
     is reported as skipped -- never as an empty result, which the checks
     downstream would read as "this page has no content".
+
+    `total_budget` bounds the WHOLE call -- both legs, the crawl-delay spacing,
+    and any 429 retries combined -- so one sampled page has a single provable
+    ceiling regardless of how a slow or misbehaving host stacks up costs
+    across those pieces (a persistently-429ing host, or a large declared
+    Crawl-delay, used to each independently add their own worst case on top
+    of `timeout`, with nothing capping the sum). This is what the orchestrator
+    SKILL.md's runtime-budget guidance assumes when it says one sampled page
+    costs "~30s worst case for fetch_dual_identity.py alone".
     """
+    deadline_start = time.time()
+
+    def time_left():
+        return total_budget - (time.time() - deadline_start)
+
     gate = RobotsGate.for_url(url, robots=robots) if RobotsGate else None
     browser_decision = gate.allows(url, browser_ua) if gate else None
     bot_decision = gate.allows(url, bot_ua) if gate else None
@@ -364,16 +450,34 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None):
     if browser_decision is not None and not browser_decision.allowed:
         browser_result = skipped_payload(url, browser_decision)
     else:
-        browser_result = fetch_url(url, browser_ua, timeout=timeout)
+        leg_budget = max(1.0, min(timeout, time_left()))
+        browser_result = fetch_url(url, browser_ua, timeout=timeout, total_budget=leg_budget)
 
     # Honour Crawl-delay when robots.txt declares one longer than our own
     # spacing; `delay` stays the floor, so we are never faster than before.
-    polite_delay(gate, bot_ua, minimum=delay)
+    # NOT via the shared polite_delay() helper: its `minimum` is a floor, not
+    # a ceiling (`max(minimum, min(declared, 10.0))`), so a declared
+    # Crawl-delay of 10 sleeps the full 10s regardless of what `minimum` is
+    # passed as -- exactly the unbounded-by-time_left() case this function
+    # exists to close. Computed directly here and clamped to what's actually
+    # left of the shared per-page budget.
+    try:
+        declared_delay = gate.crawl_delay_s(bot_ua) if gate else None
+    except Exception:
+        declared_delay = None
+    spacing = max(delay, min(declared_delay or 0.0, MAX_HONOURED_CRAWL_DELAY_S))
+    spacing = max(0.0, min(spacing, time_left()))
+    if spacing > 0:
+        try:
+            time.sleep(spacing)
+        except Exception:
+            pass
 
     if bot_decision is not None and not bot_decision.allowed:
         bot_result = skipped_payload(url, bot_decision)
     else:
-        bot_result = fetch_url(url, bot_ua, timeout=timeout)
+        leg_budget = max(1.0, min(timeout, time_left()))
+        bot_result = fetch_url(url, bot_ua, timeout=timeout, total_budget=leg_budget)
     
     comparison = {}
     bot_status = bot_result.get("status")
@@ -403,8 +507,24 @@ def dual_fetch(url, browser_ua, bot_ua, delay=2.0, timeout=7, robots=None):
     )
     rate_limited = (bot_status == 429) or (browser_status == 429)
 
+    # A bot-identity fetch that never completes (timeout / connection reset)
+    # while the SAME request under a browser identity succeeds is the exact
+    # asymmetry this dual fetch exists to detect -- some edge tiers throttle or
+    # blackhole a declared crawler rather than answering 403. `bot_blocked`
+    # only covers explicit 401/403/block-page responses, so without this the
+    # case vanished silently: the report showed no bot finding at all AND did
+    # not disclose that the bot's view of the page was never obtained.
+    browser_ok = isinstance(browser_status, int) and 200 <= browser_status < 400
+    bot_completed = isinstance(bot_status, int)
+    bot_skipped = bool(bot_decision is not None and not bot_decision.allowed)
+    bot_fetch_failed_browser_ok = bool(browser_ok and not bot_completed and not bot_skipped)
+
     return {
         "url": url,
+        # Explicit so the orchestrator can tell "the bot was refused a view"
+        # apart from "the bot saw an empty page".
+        "bot_fetch_failed_browser_ok": bot_fetch_failed_browser_ok,
+        "bot_fetch_error": (bot_result.get("error") if bot_fetch_failed_browser_ok else None),
         # Explicit, so nothing downstream can mistake "we were not allowed to
         # look" for "we looked and the page was empty".
         "robots_skipped_browser_fetch": bool(browser_decision is not None and not browser_decision.allowed),

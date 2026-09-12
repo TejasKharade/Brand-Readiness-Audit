@@ -19,10 +19,19 @@ Use during an AI discoverability audit to identify JavaScript rendering barriers
 ## Adaptive Tool Execution Guidance for the Orchestrator
 To execute the `crawl-render-audit` skill, the orchestrating LLM must supply page HTML:
 
+> [!IMPORTANT]
+> **`raw_html` is never fetched by this skill — it is `crawl-access-audit`'s
+> `fetch_dual_identity.py` output, reused.** That script already fetched this
+> page's raw HTTP response (`browser_fetch.content`) in Step 1 of the overall
+> audit; pass that exact string as `raw_html` here. Re-fetching the same URL
+> to get `raw_html` costs another ~10s round trip for nothing — the content is
+> already in hand. Only `rendered_html` is genuinely new work (below), since
+> rendering, not fetching, is what this skill actually needs from the agent.
+
 1. **Check Available Environment Tools**:
    - **If you possess a Headless Browser tool** (e.g. capable of executing JavaScript and waiting for DOM hydration):
-     - Fetch the page via your browser tool and pass the hydrated DOM as `rendered_html`.
-     - Fetch the initial HTTP payload via a basic HTTP GET tool (no JS execution) and pass it as `raw_html`.
+     - Point it at the page's URL and pass the hydrated DOM as `rendered_html`.
+     - Pass the already-fetched `browser_fetch.content` from Step 1 as `raw_html` — do not fetch it again with a plain GET.
    - **If you do NOT possess a Headless Browser tool**, first try the bundled renderer:
      ```bash
      echo '{"url": "https://example.com/"}' | python skills/crawl-render-audit/scripts/fetch_rendered_dom.py
@@ -31,7 +40,7 @@ To execute the `crawl-render-audit` skill, the orchestrating LLM must supply pag
      ```
      It uses a Chrome, Edge or Chromium browser **already installed** on the machine (nothing is downloaded or bundled) and returns `{available, rendered_html, browser, elapsed_ms, timed_out, error}`. If `available: true`, pass `rendered_html` alongside `raw_html` — the render checks then *measure* the raw-vs-rendered gap instead of inferring it. Safety and budget: the browser sandbox stays on (`--no-sandbox` only with an explicit `allow_no_sandbox: true`), each run uses a throwaway profile (no cookies or logins from the user's browser), images are not loaded, only `http(s)` URLs are accepted, and a hard timeout (default 25 s, max 45 s) kills the whole browser process tree. `settle_ms` (default 5000) is virtual time for scripts and timers to finish after load. A typical page renders in 1–8 s — render the homepage and at most one other key page, not every sampled page.
    - **If there is no browser tool AND `fetch_rendered_dom.py` returns `available: false`** (no browser installed, or running as root on Linux):
-     - Fetch the page using your standard HTTP GET tool, pass the payload as `raw_html`, and leave `rendered_html` completely blank/omitted.
+     - Pass the already-fetched `browser_fetch.content` from Step 1 as `raw_html` (still no re-fetch needed) and leave `rendered_html` completely blank/omitted.
      - The Python scripts will dynamically adapt by inspecting `raw_html` for client-side SPA mount points (`div#root`, `div#app`), JS framework signatures, and `<script>` bundles.
 
 ## Procedure & Hybrid Execution Flow

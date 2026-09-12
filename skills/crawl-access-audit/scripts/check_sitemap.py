@@ -59,25 +59,46 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; AIAccessibilityAuditor/1.0)"}
 XML_SUFFIX_INDEX_THRESHOLD = 0.8
 
 
-def fetch_resource(url, timeout=12, retries_on_429=1):
-    """Fetches a URL, auto-decompressing gzip (.xml.gz) if detected."""
+def fetch_resource(url, timeout=12, retries_on_429=1, total_budget=None):
+    """Fetches a URL, auto-decompressing gzip (.xml.gz) if detected.
+
+    `timeout` bounds a single connection attempt; `total_budget` (defaulting to
+    `timeout`) bounds THIS CALL AS A WHOLE, retries included. Without that
+    second bound the per-attempt timeout was the only limit, so one call could
+    legitimately take timeout x2 (the SSL-fallback retry) plus 1.5s x
+    retries_on_429 -- which is how a 30s sitemap deadline was observed
+    overrunning to 40s on a slow host.
+    """
     req = urllib.request.Request(url, headers=HEADERS)
     ssl_bypassed = False
+    started = time.time()
+    budget = timeout if total_budget is None else total_budget
+
+    def attempt_timeout():
+        # Never below 1s: a sub-second timeout fails everything on a live host
+        # and would turn "slow" into a false "unreachable".
+        return max(1.0, min(timeout, budget - (time.time() - started)))
+
+    def budget_spent():
+        return (time.time() - started) >= budget
 
     for attempt in range(retries_on_429 + 1):
         try:
-            resp = urllib.request.urlopen(req, timeout=timeout)
+            resp = urllib.request.urlopen(req, timeout=attempt_timeout())
         except HTTPError as e:
-            if e.code == 429 and attempt < retries_on_429:
+            if e.code == 429 and attempt < retries_on_429 and not budget_spent():
                 time.sleep(1.5)
                 continue
             raise
         except (ssl.SSLCertVerificationError, ssl.SSLError):
             ssl_bypassed = True
+            if budget_spent():
+                raise
             try:
-                resp = urllib.request.urlopen(req, timeout=timeout, context=RELAXED_SSL_CTX)
+                resp = urllib.request.urlopen(req, timeout=attempt_timeout(),
+                                              context=RELAXED_SSL_CTX)
             except HTTPError as e:
-                if e.code == 429 and attempt < retries_on_429:
+                if e.code == 429 and attempt < retries_on_429 and not budget_spent():
                     time.sleep(1.5)
                     continue
                 raise
@@ -191,7 +212,10 @@ def probe_conventional_path(conventional_url):
            "responds_2xx": False, "parses_as_sitemap": None,
            "soft_200": False, "error": None}
     try:
-        status, content, _ = fetch_resource(conventional_url, timeout=8)
+        # Bounded by what's left of the shared deadline, not a fixed 8s.
+        status, content, _ = fetch_resource(
+            conventional_url, timeout=max(2, min(8, time_left())),
+            total_budget=max(2, min(8, time_left())))
         out["http_status"] = status
         out["responds_2xx"] = 200 <= int(status) < 300
         if not out["responds_2xx"]:
@@ -352,7 +376,9 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
     }
 
     try:
-        status, content, ssl_bypassed = fetch_resource(sitemap_url)
+        status, content, ssl_bypassed = fetch_resource(
+            sitemap_url, timeout=max(2, min(12, time_left())),
+            total_budget=max(2, min(12, time_left())))
         result["ssl_verification_bypassed"] = ssl_bypassed
         if status != 200:
             result["error"] = f"HTTP {status}"
@@ -402,7 +428,8 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
                     continue
                 try:
                     child_status, child_content, child_ssl_bypassed = fetch_resource(
-                        child_url, timeout=max(2, min(12, time_left())))
+                        child_url, timeout=max(2, min(12, time_left())),
+                        total_budget=max(2, min(12, time_left())))
                     if child_ssl_bypassed:
                         result["ssl_verification_bypassed"] = True
 

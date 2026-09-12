@@ -44,6 +44,17 @@ CONTACT_HINT_RX = re.compile(
     r"(^|/)(contact|contact-us|support|help|get-in-touch|sales)(/|$|\.)|"
     r"^(mailto:|tel:)", re.I)
 
+# Trust-page presence (privacy/terms): a widely-cited, low-cost trust signal --
+# but its absence means very different things on different site types (a
+# real problem for a site collecting user data or selling something; largely
+# irrelevant for a static personal or docs site with no forms at all). Rather
+# than guess site type here, this stays a low-severity, informational signal
+# in the orchestrator -- reported as a fact, not asserted as a defect.
+PRIVACY_HINT_RX = re.compile(
+    r"(^|/)(privacy|privacy-policy|datenschutz|privacidad)(/|$|\.)", re.I)
+TERMS_HINT_RX = re.compile(
+    r"(^|/)(terms|terms-of-service|terms-and-conditions|tos|legal)(/|$|\.)", re.I)
+
 AUDIENCE_CUE_RX = re.compile(
     r"\b(built|designed|made|created)\s+for\b|"
     r"\bfor\s+(teams|developers|engineers|designers|marketers|founders|"
@@ -402,6 +413,16 @@ def check_landing_readiness(html, url, page_type_hint="unknown"):
         re.search(r"\bcontact\b|\bget in touch\b|\bsupport\b", lnk["text"], re.I)
         for lnk in p.links
     )
+    privacy_policy_present = any(
+        (lnk["href"] and PRIVACY_HINT_RX.search(str(lnk["href"]))) or
+        re.search(r"\bprivacy\s*(policy)?\b", lnk["text"], re.I)
+        for lnk in p.links
+    )
+    terms_present = any(
+        (lnk["href"] and TERMS_HINT_RX.search(str(lnk["href"]))) or
+        re.search(r"\bterms\b|\bconditions\b", lnk["text"], re.I)
+        for lnk in p.links
+    )
     internal_links = 0
     host = ""
     try:
@@ -527,6 +548,12 @@ def check_landing_readiness(html, url, page_type_hint="unknown"):
             "primary_cta_present": bool(ctas),
             "persistent_nav_present": persistent_nav,
             "contact_path_present": contact_present,
+            # Informational trust-page signals -- not folded into
+            # has_next_step/dead_end_risk, since their absence is a very
+            # different-severity problem on a data-collecting commerce/SaaS
+            # site than on a static personal or docs site with no forms.
+            "privacy_policy_present": privacy_policy_present,
+            "terms_present": terms_present,
             "internal_link_count": internal_links,
             "dead_end_risk": dead_end_risk,
             "has_next_step": has_next_step,

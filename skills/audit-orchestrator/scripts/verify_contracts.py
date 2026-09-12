@@ -78,13 +78,15 @@ def shape_probes(root):
     probes pipe real script output into synthesize_report and assert the finding
     that must fire does fire (and the one that must not, does not). No network."""
     for sub in ("audit-orchestrator", "crawl-access-audit", "freshness-corroboration",
-                "readability-audit", "crawl-render-audit"):
+                "readability-audit", "crawl-render-audit", "engagement-audit"):
         sys.path.insert(0, os.path.join(root, "skills", sub, "scripts"))
     from synthesize_report import synthesize_report
     from check_robots import check_robots
     from check_entity_disambiguation import check_entity_disambiguation, classify_authority_sameas
     from check_structured_data import check_structured_data
     from check_rendering_barriers import check_rendering_barriers
+    from check_semantic_structure import check_semantic_structure
+    from check_landing_readiness import check_landing_readiness
     from robots_gate import RobotsGate, robots_token
     import fetch_dual_identity
 
@@ -239,6 +241,197 @@ def shape_probes(root):
     probe("parity: no rendered DOM -> parity/link facts are null, not invented",
           rb_raw_only["content_parity"] is None and rb_raw_only["link_discovery"] is None)
 
+    # Question-phrased headings, content positioning, and FAQ-schema-vs-text:
+    # all three are pure presence/absence heuristics (see check_semantic_
+    # structure.py and check_structured_data.py docstrings for why), so each
+    # gets both a positive and a negative case -- a probe that can only pass
+    # is worthless.
+    unanswered_html = ("<html><body><main><h2>Do you ship internationally?</h2>"
+                       "<h2>Returns</h2><p>30 day returns policy applies here.</p>"
+                       "</main></body></html>")
+    answered_html = ("<html><body><main><h2>Do you ship internationally?</h2>"
+                     "<p>Yes.</p></main></body></html>")
+    probe("question headings: no content before the next heading -> unanswered",
+          check_semantic_structure(unanswered_html, "https://probe.example/"
+                                   )["question_headings"]["unanswered_count"] == 1)
+    probe("question headings: a one-word real answer counts as answered",
+          check_semantic_structure(answered_html, "https://probe.example/"
+                                   )["question_headings"]["unanswered_count"] == 0)
+
+    real_para = ("Acme builds dependable industrial safety equipment for factory buyers across "
+                "the manufacturing sector, shipping tracked orders worldwide with responsive "
+                "customer support and a comprehensive multi-year warranty covering every product "
+                "line we currently sell today across every region we operate in worldwide now. "
+                "Every unit passes independent third-party certification before it leaves our "
+                "factory floor, and our engineering team publishes detailed maintenance schedules "
+                "so customers can plan service visits well in advance without unplanned downtime. "
+                "A dedicated account manager coordinates delivery timing and answers questions "
+                "about specifications, compliance documentation, and long-term parts availability.")
+    front_loaded_html = f"<html><body><main><h1>Probe</h1><p>{real_para}</p></main></body></html>"
+    buried_html = ("<html><body><main>" + "".join(f"<p>{' '.join(['tiny']*3)}</p>" for _ in range(40))
+                  + f"<p>{' '.join(['content']*30)}</p></main></body></html>")
+    probe("content positioning: real content right after H1 -> front_loaded True",
+          check_semantic_structure(front_loaded_html, "https://probe.example/"
+                                   )["content_positioning"].get("front_loaded") is True)
+    probe("content positioning: substance buried after 120 words of filler -> front_loaded False",
+          check_semantic_structure(buried_html, "https://probe.example/"
+                                   )["content_positioning"].get("front_loaded") is False)
+
+    faq_schema_html = ('<script type="application/ld+json">'
+                       '{"@type":"FAQPage","mainEntity":[{"@type":"Question",'
+                       '"name":"Do you offer international shipping?",'
+                       '"acceptedAnswer":{"@type":"Answer","text":'
+                       '"Yes, we ship to over fifty countries with tracked courier delivery."}}]}'
+                       '</script>')
+    faq_absent_page = (faq_schema_html +
+                       "<p>Acme was founded in 2010 and focuses on premium industrial widgets "
+                       "manufacturing for enterprise clients across many regions with a strong "
+                       "emphasis on quality control and long-term reliability engineering.</p>"
+                       "<p>Our leadership team publishes quarterly sustainability reports covering "
+                       "energy usage, recycling programs, and community outreach at every site.</p>")
+    faq_present_page = (faq_schema_html +
+                        "<p>We deliver internationally to more than fifty countries using tracked "
+                        "courier services every week, with reliable delivery times across all "
+                        "regions we serve and dedicated customs support teams on standby always.</p>"
+                        "<p>Our logistics partners coordinate customs clearance and provide "
+                        "tracking updates throughout transit for every international shipment.</p>")
+    probe("FAQ schema: fabricated/absent answer -> flagged as low overlap",
+          check_structured_data(faq_absent_page, "https://probe.example/"
+                                )["faq_visible_text_check"]["low_overlap_count"] == 1)
+    probe("FAQ schema: paraphrased-but-present answer -> not flagged",
+          check_structured_data(faq_present_page, "https://probe.example/"
+                                )["faq_visible_text_check"]["low_overlap_count"] == 0)
+
+    probe("orchestrator: unanswered question heading -> a real finding, quoting it",
+          any("Question-Style Heading" in f["title"] and "ship internationally" in f["evidence"]
+              for f in synthesize_report(
+                  "https://probe.example/",
+                  {"readability": {"semantic_structure": check_semantic_structure(
+                      unanswered_html, "https://probe.example/")}})["findings"]))
+    probe("orchestrator: FAQ mismatch -> a real finding",
+          any("FAQ Schema" in f["title"] for f in synthesize_report(
+              "https://probe.example/",
+              {"readability": {"structured_data": check_structured_data(
+                  faq_absent_page, "https://probe.example/")}})["findings"]))
+
+    # E-E-A-T authorship, NAP consistency, and trust-page presence: three
+    # pure presence/absence checks -- positive and negative case each.
+    admin_author_html = ('<script type="application/ld+json">'
+                         '{"@type":"Article","headline":"News",'
+                         '"author":{"@type":"Person","name":"admin"}}</script>')
+    real_author_html = ('<script type="application/ld+json">'
+                        '{"@type":"Article","headline":"News",'
+                        '"author":{"@type":"Person","name":"Jane Smith"}}</script>')
+    probe("authorship: literal CMS placeholder ('admin') flagged as generic",
+          check_structured_data(admin_author_html, "https://probe.example/"
+                                )["entities"][0]["article_completeness"]["generic_placeholder_author"] is True)
+    probe("authorship: a real named author is not flagged",
+          check_structured_data(real_author_html, "https://probe.example/"
+                                )["entities"][0]["article_completeness"]["generic_placeholder_author"] is False)
+    probe("authorship: a legitimate organizational byline ('Staff Writer') is NOT flagged",
+          check_structured_data(
+              '<script type="application/ld+json">{"@type":"Article","headline":"News",'
+              '"author":{"@type":"Person","name":"Staff Writer"}}</script>',
+              "https://probe.example/")["entities"][0]["article_completeness"]
+          ["generic_placeholder_author"] is False)
+
+    local_biz_html = ('<script type="application/ld+json">{"@type":"LocalBusiness","name":"Probe Diner",'
+                      '"telephone":"555-123-4567","address":{"streetAddress":"123 Main Street",'
+                      '"addressLocality":"Springfield"}}</script>')
+    nap_filler = ("Our restaurant has served the community for many years with fresh local "
+                 "ingredients and a warm welcoming atmosphere for every visitor daily. Our chefs "
+                 "prepare seasonal menus using produce sourced from nearby farms and trusted suppliers.")
+    nap_match_page = local_biz_html + f"<p>Call (555) 123-4567. 123 Main Street, Springfield.</p><p>{nap_filler}</p>"
+    nap_mismatch_page = local_biz_html + f"<p>Call (999) 000-0000. 999 Oak Avenue, Portland.</p><p>{nap_filler}</p>"
+    probe("NAP: matching phone (reformatted) and address -> no mismatch",
+          check_structured_data(nap_match_page, "https://probe.example/"
+                                )["nap_consistency"]["mismatch_count"] == 0)
+    probe("NAP: a genuinely different phone and address -> both flagged",
+          check_structured_data(nap_mismatch_page, "https://probe.example/"
+                                )["nap_consistency"]["mismatch_count"] == 2)
+
+    trust_pages_html = ("<html><body><h1>Probe</h1><p>Probe builds dependable industrial widgets for "
+                        "factory buyers across the manufacturing sector worldwide today.</p>"
+                        "<footer><a href='/privacy-policy'>Privacy</a><a href='/terms'>Terms</a>"
+                        "</footer></body></html>")
+    no_trust_pages_html = ("<html><body><h1>Probe</h1><p>Probe builds dependable industrial widgets "
+                           "for factory buyers across the manufacturing sector worldwide today.</p>"
+                           "</body></html>")
+    probe("trust pages: privacy+terms links detected",
+          check_landing_readiness(trust_pages_html, "https://probe.example/"
+                                  )["next_step"]["privacy_policy_present"] is True)
+    probe("trust pages: absence reported as LOW severity only, never higher",
+          not any(f["severity"] in ("medium", "high", "critical") and "Privacy Policy" in f["title"]
+                  for f in synthesize_report(
+                      "https://probe.example/",
+                      {"engagement": {"landing_readiness": check_landing_readiness(
+                          no_trust_pages_html, "https://probe.example/")}})["findings"])
+          and any(f["severity"] == "low" and "Privacy Policy" in f["title"]
+                  for f in synthesize_report(
+                      "https://probe.example/",
+                      {"engagement": {"landing_readiness": check_landing_readiness(
+                          no_trust_pages_html, "https://probe.example/")}})["findings"]))
+
+    # Compressed responses. A Content-Encoding: gzip body decoded as if it
+    # were text turned a healthy page into a pile of false "page is empty"
+    # findings, so the decoder is probed directly, both encodings and the
+    # no-decoder disclosure path.
+    import gzip as _gzip
+    from fetch_dual_identity import decode_response_body as _decode
+    _real = "<html><head><title>T</title></head><body><h1>H</h1><p>text</p></body></html>"
+    probe("compression: gzip body is decompressed (via Content-Encoding header)",
+          _decode(_gzip.compress(_real.encode()), {"Content-Encoding": "gzip"})[0] == _real)
+    probe("compression: gzip body is decompressed from magic bytes with no header",
+          _decode(_gzip.compress(_real.encode()), {})[0] == _real)
+    probe("compression: an uncompressed body is passed through untouched",
+          _decode(_real.encode(), {})[0] == _real)
+    probe("compression: an undecodable body reports the reason instead of emitting garbage",
+          _decode(bytes([0x1b, 0x3f, 0x00]) + b"garbage", {"Content-Encoding": "br"})
+          == ("", "response is brotli-encoded and no brotli decoder is available; content not analysed"))
+
+    # Schema completeness must reach the report (8 of the 9 types were computed
+    # and silently dropped before).
+    _prod = ('<script type="application/ld+json">{"@type":"Product","name":"G",'
+             '"description":"A durable glove for factory use.","offers":{"@type":"Offer"}}</script>')
+    probe("schema completeness: a Product with no price/availability is reported",
+          any("Incomplete Product Schema" in t for t in titles(
+              {"readability": {"structured_data": check_structured_data(_prod, "https://probe.example/p")}})))
+    _prod_ok = ('<script type="application/ld+json">{"@type":"Product","name":"G",'
+                '"description":"A durable glove for factory use.","offers":{"@type":"Offer",'
+                '"price":"9.99","availability":"https://schema.org/InStock"}}</script>')
+    probe("schema completeness: a COMPLETE Product is not flagged",
+          not any("Incomplete Product Schema" in t for t in titles(
+              {"readability": {"structured_data": check_structured_data(_prod_ok, "https://probe.example/p")}})))
+
+    # A static, script-free page must never be told its <h1> is client-injected.
+    _static_sem = check_semantic_structure(
+        "<html><body><h2>A</h2><p>x</p><h3>B</h3><p>y</p></body></html>", "https://probe.example/")
+    _no_csr = {"rendering_barriers": {"client_side_rendering_signals": {
+        "likely_client_side_rendering_barrier": False, "spa_mount_points": [],
+        "detected_frameworks": [], "inline_framework_signals": [],
+        "data_islands_detected": [], "custom_web_elements_count": 0}}}
+    probe("h1: render pass ruling out CSR -> 'Missing h1', never 'client-injected'",
+          any("Missing primary <h1>" in t for t in titles(
+              {"readability": {"semantic_structure": _static_sem}, "crawl_render": _no_csr}))
+          and not any("client-injected" in t for t in titles(
+              {"readability": {"semantic_structure": _static_sem}, "crawl_render": _no_csr})))
+
+    # A "you need JavaScript" fallback notice is chrome, not the page's first
+    # substantial content -- while <html class="no-js"> (Modernizr) must NOT
+    # cause the whole document to be excluded.
+    _nojs = ('<html class="no-js"><body><div id="nojs"><p>Notice: This page displays a fallback '
+             'because interactive scripts did not run.</p></div><main><p>'
+             + " ".join(["realcontent"] * 100) + '</p></main></body></html>')
+    _cp = check_semantic_structure(_nojs, "https://probe.example/")["content_positioning"]
+    probe("content position: a no-JS fallback notice is not the first substantial block",
+          "fallback" not in (_cp.get("first_substantial_block_preview") or "")
+          and _cp.get("total_main_words", 0) >= 100)
+
+    probe("headings: multiple <h1> is reported (was computed but never read)",
+          any("Multiple <h1>" in t for t in titles({"readability": {"semantic_structure":
+              check_semantic_structure("<html><body><h1>A</h1><p>x</p><h1>B</h1><p>y</p></body></html>",
+                                       "https://probe.example/")}})))
+
     # robots.txt compliance. The audit must never request a path the site
     # disallows for the identity it is presenting -- the dual-identity fetch
     # sends a GPTBot user-agent, so this is the one place where ignoring
@@ -305,8 +498,9 @@ def shape_probes(root):
     training_only = check_robots("probe.example", ["GPTBot", "CCBot", "OAI-SearchBot", "*"], ["/"],
                                  robots_txt="User-agent: GPTBot\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n")
     rep = synthesize_report("https://probe.example/", {"crawl_access": {"robots": training_only}})
-    probe("robots: training-only root block -> no critical finding, no gate",
-          not any(f["severity"] == "critical" for f in rep["findings"]) and rep["brand_ai_readiness_score"] > 40)
+    probe("robots: training-only root block -> no critical finding, crawl_access barely dented",
+          not any(f["severity"] == "critical" for f in rep["findings"])
+          and rep["category_scores"]["crawl_access"] > 90)
     search_block = check_robots("probe.example", ["GPTBot", "OAI-SearchBot", "*"], ["/"],
                                 robots_txt="User-agent: OAI-SearchBot\nDisallow: /\n")
     probe("robots: live-search crawler root block -> critical",
