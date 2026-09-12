@@ -55,6 +55,45 @@ The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Des
 
 ---
 
+## How the Entrypoint Composes the Skills
+
+The five sub-skills are **data-gathering only** — they emit raw structured facts and never assign a
+severity, name a root cause, or suggest a fix. All interpretation happens in one place:
+`audit-orchestrator`. That split is the point of the decomposition — a check can be added, corrected or
+re-tuned in its own skill without touching the judgement layer, and every severity decision in the report
+is traceable to one file (`scripts/synthesize_report.py`).
+
+The ordering is a **dependency chain, not a ceremony** — each stage consumes what the previous one already
+fetched:
+
+1. **`crawl-access-audit` runs first** and is the only stage that fetches the page. `check_robots.py` runs
+   before everything else, and its parsed `robots.txt` is passed into every other script in the
+   marketplace, which gate their requests through `crawl-access-audit/scripts/robots_gate.py` — so
+   compliance costs **zero extra HTTP requests**. `fetch_dual_identity.py` then fetches each sampled page
+   twice, once as a browser and once as an AI crawler.
+2. **Every later stage reuses that HTML.** `crawl-render-audit`, `readability-audit`, `engagement-audit`
+   and `freshness-corroboration` all take the already-fetched `browser_fetch.content` as input rather than
+   re-fetching — the page is fetched once and analysed five ways. This is what keeps a full audit inside
+   the handout's <5 minute runtime budget.
+3. **A failed gate short-circuits the gates below it.** If the bot-identity fetch is blocked, soft-blocked
+   or challenged by a WAF/CDN, the orchestrator sets `audit_metadata.coverage_blocked` and **stops** —
+   it does not run the content, rendering or engagement checks, because a headless browser can solve a
+   challenge that stops a real crawler, and grading content a crawler never reaches would report a false
+   "high quality" site. Those categories are listed in `categories_not_audited`: zero findings there means
+   *not evaluated*, not *clean*. The off-site checks (`citation_consistency`, `entity_disambiguation`)
+   still run, since they corroborate via web search rather than via the blocked site.
+4. **`synthesize_report.py` composes the final report**: it normalises each sub-skill's output shape,
+   converts raw facts into findings with an evidence string and a severity, adds proactive recommendations
+   that are each gated on the signal they talk about, sorts findings by impact (`critical` first) and
+   assigns `F-001…` ids in that order. It always emits a schema-valid report — a sub-skill that crashed,
+   timed out or was skipped degrades that category to "not measured" rather than taking the report down.
+
+`scripts/verify_contracts.py` guards the seams: it cross-checks every output key the orchestrator reads
+against the keys the sub-skill scripts actually emit and fails loudly on drift, so a renamed field in a
+sub-skill can never silently disable a finding and make a broken site look clean.
+
+---
+
 ## Output Report Schema
 
 The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON audit report conforming to Adobe's Round 3 problem statement specification:

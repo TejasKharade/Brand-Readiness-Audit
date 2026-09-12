@@ -2424,11 +2424,28 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     "previews for this page carry no brand or topic text."
                 )
 
+    # Order the report by impact before numbering it. Findings are assembled in
+    # pipeline order (access -> render -> readability -> freshness ->
+    # engagement), which tells a coherent story but does NOT put the most
+    # damaging problem first: a report could open with three `high` findings and
+    # a `medium` before reaching its two `critical` ones, so a non-expert
+    # reading top-down acts on the wrong thing first. Sorting by severity is
+    # what "prioritized by impact" means in a list a human reads in order.
+    #
+    # The sort is STABLE, so within one severity band the original pipeline
+    # order survives -- findings stay grouped by the stage that produced them,
+    # and the ordering remains fully deterministic (same input, same report).
+    # Every finding still carries its own `category`, so nothing about the
+    # grouping is lost by reordering.
+    SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    findings.sort(key=lambda f: SEVERITY_ORDER.get(str(f.get("severity", "medium")).lower(), 2))
+
     # Renumber every finding sequentially. `add_finding` derives an id from the
     # running list length, so any caller-supplied explicit finding that already
     # carries its own id leaves a gap (F-000 pre-seeded => first generated id is
     # F-002 and F-001 never exists). Assigning ids once, at the end, keeps the
-    # sequence contiguous regardless of how many explicit findings were injected.
+    # sequence contiguous regardless of how many explicit findings were injected
+    # and makes F-001 the highest-impact finding in the report.
     for i, f in enumerate(findings, start=1):
         f["id"] = f"F-{i:03d}"
 

@@ -39,6 +39,11 @@ AGENT_INJECTED_KEYS = {
     # check_structured_data.py results it already has for interior pages; no
     # script emits the key itself, so it is a channel, not contract drift.
     "additional_pages",
+    # `severity` is written BY synthesize_report onto its own findings (in
+    # add_finding), and read back when sorting them by impact -- it is never a
+    # sub-skill output key, so "no script emits it" is correct, not drift.
+    # A caller-injected explicit finding may also carry it.
+    "severity",
 }
 
 
@@ -690,6 +695,27 @@ def shape_probes(root):
     from check_nontext_facts import PDF_INSPECTION_DEADLINE_S
     probe("runtime: linked-PDF inspection declares a wall-clock ceiling",
           isinstance(PDF_INSPECTION_DEADLINE_S, (int, float)) and 0 < PDF_INSPECTION_DEADLINE_S <= 45)
+
+    # The report is read top-down by a non-expert, so it must open with the
+    # most damaging finding. Findings are BUILT in pipeline order (access ->
+    # render -> readability -> ...), which interleaves severities.
+    mixed_sev = synthesize_report("https://probe.example/", {
+        "crawl_access": {"robots": search_block},                       # critical
+        "readability": {"structured_data": broken_sd},                  # high
+        "engagement": {"mobile_responsiveness": {"viewport_meta_present": False}},
+    }, explicit_findings=[
+        {"category": "engagement", "title": "Injected low", "severity": "low",
+         "evidence": "e", "suggested_action": {"summary": "s", "priority": "low"}},
+        {"category": "readability", "title": "Injected medium", "severity": "medium",
+         "evidence": "e", "suggested_action": {"summary": "s", "priority": "medium"}},
+    ])["findings"]
+    rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    sevs = [rank[f["severity"]] for f in mixed_sev]
+    probe("output design: findings are ordered by impact (critical first)",
+          len(sevs) >= 3 and sevs == sorted(sevs))
+    probe("output design: F-001 is the highest-severity finding",
+          bool(mixed_sev) and mixed_sev[0]["id"] == "F-001"
+          and mixed_sev[0]["severity"] == min((f["severity"] for f in mixed_sev), key=lambda s: rank[s]))
     return failures
 
 
