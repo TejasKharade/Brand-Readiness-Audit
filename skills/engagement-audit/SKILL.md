@@ -27,7 +27,17 @@ The invoking agent prepares JSON parameters for the execution scripts:
 
 - `homepage_html` *(string)*: Raw HTML of the homepage.
 - `homepage_url` *(string)*: Canonical URL of the homepage.
-- `key_content_urls` *(list of strings)*: List of high-priority content URLs to verify reachability from the homepage.
+- `key_content_urls` *(list of strings)*: List of high-priority content URLs to verify reachability from the
+  homepage. **These should be top-level, evergreen pages a homepage would plausibly link directly** —
+  `/pricing`, `/about`, `/contact`, a handful of primary product/service category pages. **Do NOT reuse
+  `check_sitemap.py`'s `representative_sample` picks for this list** — that field answers "what page
+  represents this URL-structure group for content sampling," a different question from "what belongs in
+  homepage navigation." On any site with combinatorial long-tail content (a specific flight route, product
+  SKU/variant, real-estate listing, job posting), the representative pick from that group is near-certain to
+  be exactly the kind of page no homepage would ever link directly — one of hundreds or thousands,
+  discovered via internal search or an XML sitemap instead. `synthesize_report.py` hedges (lower severity,
+  reduced confidence) when a URL structurally looks long-tail, but a correctly-chosen list avoids generating
+  the noise in the first place.
 - `html` *(string)*: Page HTML content for single-page depth, mobile responsive, or page speed resource audits.
 - `url` *(string)*: Canonical URL of the audited page.
 - `page_type_hint` *(string, optional)*: `"product"`, `"service"`, `"article"`, or `"unknown"`. Defaults to `"unknown"`.

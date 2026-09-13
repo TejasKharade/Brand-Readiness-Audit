@@ -272,6 +272,12 @@ Run temporal and corroboration scripts:
 > fetch and stay separate calls.
 Run visitor orientation and engagement scripts:
 - `scripts/check_navigation_reachability.py`: Audit 1-level homepage navigation reachability for key URLs.
+  **Choose `key_content_urls` deliberately — do not reuse `check_sitemap.py`'s `representative_sample`
+  picks.** That field picks one URL per URL-structure group to represent it for content sampling; on a site
+  with combinatorial long-tail content (a specific flight route, product variant, listing), that pick is
+  exactly the kind of page no homepage would ever link directly. Pass evergreen, top-level pages instead —
+  `/pricing`, `/about`, primary category pages. `synthesize_report.py` hedges when a URL structurally looks
+  long-tail (a long, hyphen-dense slug, or 3+ path segments), but choosing well up front avoids the noise.
 - `scripts/check_content_depth.py`: Detect page intent, then assess content depth against advisory bands for content-bearing intents only; extract heading/paragraph text pairs.
 - `scripts/check_mobile_responsive_signals.py`: Check `<meta viewport>` and inline media queries.
 - `scripts/check_descriptor_consistency.py`: Audit cross-page brand phrase consistency in titles/H1s.

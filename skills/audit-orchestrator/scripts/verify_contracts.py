@@ -891,6 +891,48 @@ def shape_probes(root):
     standalone_titles = nontext_findings('<main><p>Text</p><img src="spacer.png" alt=""><p>More</p></main>')
     probe("standalone decorative empty-alt image outside any link -> NOT flagged",
           not any("No Accessible Name" in t for t in standalone_titles))
+
+    # ---- Long-tail "key content" URLs: a real false positive found testing
+    # easemytrip.com -- a specific flight-route search page (one of thousands
+    # of combinatorial URLs) was asserted with full confidence to belong on
+    # the homepage. check_navigation_reachability.py has no judgment about
+    # which URLs are worth testing; the hedge lives in synthesize_report.py.
+    def nav_titles(url):
+        rep = synthesize_report("https://probe.example/", {"engagement": {"navigation_reachability": {
+            "key_content_reachability": [{"key_content_url": url, "directly_linked_from_homepage": False}]}}})
+        return rep["findings"]
+
+    long_tail_findings = nav_titles(
+        "https://www.easemytrip.com/flights/aer-lingus-tickets-austin-aus-to-chicago-ord/")
+    probe("long-tail combinatorial URL (real reported case) -> hedged 'Possibly Long-Tail' finding",
+          bool(long_tail_findings) and "Possibly Long-Tail" in long_tail_findings[0]["title"]
+          and long_tail_findings[0]["severity"] == "low" and long_tail_findings[0]["confidence"] == 0.4)
+    shallow_findings = nav_titles("https://probe.example/pricing")
+    probe("shallow evergreen URL (/pricing) unreachable -> STILL the original confident finding",
+          bool(shallow_findings)
+          and shallow_findings[0]["title"] == "Key Content URL Unreachable from Homepage 1-Level Navigation"
+          and shallow_findings[0]["severity"] == "medium")
+
+    # ---- "Manual check" advice must point at raw HTML (View Page Source),
+    # never DevTools/Console (the live, post-JavaScript DOM). A DevTools
+    # check can disagree with a finding built from raw HTML, and specifically
+    # will NEVER find a <noscript>-wrapped image (e.g. a Facebook Pixel
+    # tracking fallback) at all, since browsers with JS enabled never parse
+    # noscript content into the live DOM -- making the "verification" unable
+    # to find the exact thing the finding reported.
+    _src = open(_sr, encoding="utf-8").read()
+    probe("no 'DevTools Console' manual-check advice remains anywhere in synthesize_report.py",
+          "DevTools Console" not in _src)
+    probe("no document.querySelectorAll manual-check advice remains anywhere in synthesize_report.py",
+          "querySelectorAll" not in _src)
+    _noscript_html = ('<html><body>' + '<img src="/p.jpg" alt="A real photo">'
+                      + '<noscript><img src="https://facebook.com/tr?id=1&ev=PageView"/></noscript>'
+                      + '</body></html>')
+    _nt = check_nontext_facts(_noscript_html, "https://probe.example/")
+    _rep = synthesize_report("https://probe.example/", {"readability": {"nontext_facts": _nt}})
+    _missing = next((f for f in _rep["findings"] if "Missing Alt Attribute" in f["title"]), None)
+    probe("noscript tracking-pixel missing-alt finding's evidence points at View Page Source",
+          bool(_missing) and "View Page Source" in _missing["evidence"])
     return failures
 
 

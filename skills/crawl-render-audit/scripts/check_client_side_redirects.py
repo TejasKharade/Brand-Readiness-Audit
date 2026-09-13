@@ -42,6 +42,60 @@ class RedirectParser(HTMLParser):
             self.in_script = False
             self.current_script_text = []
 
+# A `location = "..."` inside a user-event callback (a click handler, a contact
+# form's "after send" hook) only runs when a visitor acts -- it is navigation,
+# not a redirect a crawler hits on load. Load-type events stay redirects.
+_JS_LOAD_EVENTS = {"load", "domcontentloaded", "readystatechange", "pageshow"}
+_FN_HEAD = r'(?:async\s+)?(?:function\s*[\w$]*\s*\([^()]*\)|\([^()]*\)\s*=>|[\w$]+\s*=>)\s*$'
+_EVENT_CALLBACK_RES = [
+    re.compile(r'addEventListener\s*\(\s*[\'"]([\w:.\-]+)[\'"]\s*,\s*' + _FN_HEAD),
+    re.compile(r'\.\s*(?:on|one)\s*\(\s*[\'"]([^\'"]*)[\'"]\s*,\s*(?:[\'"][^\'"]*[\'"]\s*,\s*)?' + _FN_HEAD),
+    re.compile(r'\.\s*(click|submit|change|keyup|keydown|keypress|dblclick|mouseenter|mouseleave|hover|focus|blur)\s*\(\s*' + _FN_HEAD),
+    re.compile(r'\.\s*on(click|submit|change|input|keyup|keydown|mousedown|touchstart)\s*=\s*' + _FN_HEAD, re.I),
+]
+_NAMED_FUNCTION_RE = re.compile(r'function\s+[\w$]+\s*\([^()]*\)\s*$')
+
+
+def _is_deferred_context(prefix):
+    """True when `prefix` ends by opening a user-event callback or a named function body."""
+    for rx in _EVENT_CALLBACK_RES:
+        m = rx.search(prefix)
+        if m:
+            events = {e.lower() for e in re.split(r'[\s,]+', m.group(1)) if e}
+            return not (events & _JS_LOAD_EVENTS)
+    return bool(_NAMED_FUNCTION_RE.search(prefix))
+
+
+def _open_braces_at(script, positions):
+    """For each position, the indexes of `{` still open there (strings/comments skipped)."""
+    result, stack, i, n = {}, [], 0, len(script)
+    pending = sorted(set(positions))
+    k = 0
+    while k < len(pending):
+        if i >= pending[k] or i >= n:
+            result[pending[k]] = list(stack)
+            k += 1
+            continue
+        c = script[i]
+        if c in '"\'`':
+            j = i + 1
+            while j < n and script[j] != c:
+                j += 2 if script[j] == '\\' else 1
+            i = j + 1
+            continue
+        if c == '/' and i + 1 < n and script[i + 1] in '/*':
+            line = script[i + 1] == '/'
+            end = script.find('\n' if line else '*/', i + 2)
+            i = n if end == -1 else end + (1 if line else 2)
+            continue
+        if c == '{':
+            stack.append(i)
+        elif c == '}' and stack:
+            stack.pop()
+        i += 1
+    return result
+
+
 def check_client_side_redirects(raw_html, url):
     parser = RedirectParser()
     try:
@@ -72,10 +126,20 @@ def check_client_side_redirects(raw_html, url):
         rf'{_loc}\s*\.\s*(?:replace|assign)\s*\(\s*["\']([^"\']+)["\']\s*\)',
     ]
     detected_js_redirects = []
-    for pat in js_redirect_patterns:
-        for m in re.findall(pat, combined_scripts, re.IGNORECASE):
-            if m not in detected_js_redirects:
-                detected_js_redirects.append(m)
+    handler_js_redirects = []
+    for block in parser.script_blocks:
+        hits = sorted((m.start(), m.group(1))
+                      for pat in js_redirect_patterns
+                      for m in re.finditer(pat, block, re.IGNORECASE))
+        if not hits:
+            continue
+        open_at = _open_braces_at(block, [p for p, _ in hits])
+        for p, target in hits:
+            deferred = _is_deferred_context(block[max(0, p - 300):p]) or any(
+                _is_deferred_context(block[max(0, b - 300):b]) for b in open_at[p])
+            bucket = handler_js_redirects if deferred else detected_js_redirects
+            if target not in bucket:
+                bucket.append(target)
 
     has_redirect = bool(meta_refresh_redirects or detected_js_redirects)
 
@@ -101,6 +165,7 @@ def check_client_side_redirects(raw_html, url):
         'meta_http_equiv_refreshes': meta_refresh_redirects,
         'meta_refresh_noop_no_url': meta_refresh_noop,
         'js_location_redirects': detected_js_redirects,
+        'js_location_redirects_in_event_handlers': handler_js_redirects,
         'spa_client_routing_detected': bool(spa_routing_signals),
         'spa_client_routing_signals': spa_routing_signals[:5],
     }
@@ -139,7 +204,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

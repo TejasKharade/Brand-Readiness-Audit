@@ -462,6 +462,7 @@ def check_entity_disambiguation(params):
         return x if isinstance(x, list) else []
 
     pooled = as_list(bare_name_results) + as_list(wikipedia_results) + as_list(wikidata_results)
+    searched = bool(pooled)
     wiki_match, wiki_cands = best_entity_match(pooled, "wikipedia.org", brand_name, domain)
     data_match, data_cands = best_entity_match(pooled, "wikidata.org", brand_name, domain)
 
@@ -471,6 +472,9 @@ def check_entity_disambiguation(params):
             return True, ("bare_name_results" if free else "dedicated_query")
         if cands:
             return None, "results_found_but_none_match_brand"
+        if not searched:
+            # No result sets at all means no search was run: absence is unknown.
+            return None, "not_searched"
         return False, "not_found"
 
     wikipedia_page_found, wikipedia_presence_source = presence(wiki_match, wiki_cands)
@@ -513,6 +517,7 @@ def check_entity_disambiguation(params):
         "wikidata_entry_found": wikidata_entry_found,
         "wikipedia_presence_source": wikipedia_presence_source,
         "wikidata_presence_source": wikidata_presence_source,
+        "search_results_provided": searched,
         # Raw indicators: any result on the host at all, matching or not.
         "wikipedia_any_result": bool(wiki_cands),
         "wikidata_any_result": bool(data_cands),
@@ -566,7 +571,7 @@ if __name__ == "__main__":
             else:
                 params = {"domain": raw_arg}
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

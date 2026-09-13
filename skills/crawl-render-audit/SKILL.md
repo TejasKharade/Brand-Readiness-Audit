@@ -122,7 +122,7 @@ reads):
   "client_side_redirects": {
     "client_side_redirect_detected": false,
     "meta_http_equiv_refreshes": [], "meta_refresh_noop_no_url": [],
-    "js_location_redirects": [],
+    "js_location_redirects": [], "js_location_redirects_in_event_handlers": [],
     "spa_client_routing_detected": false, "spa_client_routing_signals": []
   },
   "llm_semantic_fallbacks": {

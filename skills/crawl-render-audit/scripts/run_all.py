@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 except json.JSONDecodeError:
                     pass
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

@@ -290,6 +290,11 @@ def check_crawl_depth(start_url, target_url, robots_parser=None, site_url_count=
                     
                     for link in set(parser.links):
                         try:
+                            # BFS visits pages in depth order, so the first fetched page that
+                            # links the target already gives its minimum depth -- no need to
+                            # fetch every sibling queued ahead of the target first.
+                            if normalize_for_match(link) == target_normalized:
+                                return build_result(depth + 1, path + [link], None)
                             link_domain = urllib.parse.urlparse(link).netloc
                             if link_domain == target_domain and link not in visited:
                                 visited.add(link)
@@ -338,7 +343,7 @@ if __name__ == "__main__":
         if len(sys.argv) > 2:
             target_url = sys.argv[2].strip()
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

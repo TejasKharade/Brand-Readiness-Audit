@@ -149,6 +149,25 @@ def fetch_resource(url, timeout=12, retries_on_429=1, total_budget=None):
             return resp.status, content, ssl_bypassed
 
 
+def parse_sitemap_xml(content):
+    """ET.fromstring, tolerating only a BOM/whitespace before the XML declaration
+    (a common CMS-plugin quirk that otherwise discards a real sitemap).
+    Returns (root, had_leading_junk); re-raises the original ParseError otherwise."""
+    try:
+        return ET.fromstring(content), False
+    except ET.ParseError:
+        if isinstance(content, bytes):
+            stripped = content.lstrip(b"\xef\xbb\xbf \t\r\n")
+        else:
+            stripped = content.lstrip("﻿ \t\r\n")
+        if stripped and stripped != content:
+            try:
+                return ET.fromstring(stripped), True
+            except ET.ParseError:
+                pass
+        raise
+
+
 def parse_xml_elements(root):
     """
     Safely extracts page URLs and nested sitemap index URLs by stripping
@@ -256,7 +275,7 @@ def probe_conventional_path(conventional_url):
         if not out["responds_2xx"]:
             return out                      # 404/410 here is fine, not a defect
         try:
-            ET.fromstring(content)
+            parse_sitemap_xml(content)
             out["parses_as_sitemap"] = True
         except ET.ParseError as e:
             out["parses_as_sitemap"] = False
@@ -395,6 +414,7 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
         "sitemap_found": False,
         "conventional_path_check": None,
         "valid_xml": False,
+        "leading_whitespace_before_xml": False,
         "is_sitemap_index": False,
         "reclassified_as_index": False,
         "child_sitemaps_total": 0,
@@ -447,8 +467,9 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
 
         # Parse XML tree
         try:
-            root = ET.fromstring(content)
+            root, leading_junk = parse_sitemap_xml(content)
             result["valid_xml"] = True
+            result["leading_whitespace_before_xml"] = leading_junk
         except ET.ParseError as e:
             result["error"] = f"XML Parse Error: {str(e)}"
             result["http_status"] = 200
@@ -501,7 +522,7 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
                         result["ssl_verification_bypassed"] = True
 
                     if child_status == 200:
-                        child_root = ET.fromstring(child_content)
+                        child_root, _ = parse_sitemap_xml(child_content)
                         child_pages, _ = parse_xml_elements(child_root)
                         page_urls.extend(child_pages)
                         result["child_sitemaps_checked"] += 1
@@ -613,7 +634,7 @@ if __name__ == "__main__":
             else:
                 sitemap_url = raw_arg
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

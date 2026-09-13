@@ -6,6 +6,7 @@ import sys
 import io
 import os
 import json
+import urllib.parse
 from datetime import datetime, timezone
 
 # check_structured_data.py scores attribute completeness across 9 Schema.org
@@ -127,6 +128,41 @@ def pick(d, *names, default=None):
         if n in d and d[n] is not None:
             return d[n]
     return default
+
+
+def _looks_long_tail_url(url):
+    """Heuristic, not a certainty: does this URL structurally look like one of
+    many template/combinatorially-generated pages (a specific flight route, a
+    product SKU/variant, a real-estate listing, a job posting) rather than a
+    hand-curated page a homepage's top-level navigation would reasonably link
+    directly? Those pages commonly number in the hundreds or thousands and
+    are discovered via internal search or an XML sitemap, not a static nav
+    menu -- asserting full confidence that ONE of them specifically belongs
+    on the homepage is exactly the false-positive this project's own
+    check_sitemap.py representative_sample can otherwise feed straight into
+    `key_content_urls` (that field answers "what page represents this
+    URL-structure group for content sampling", a different question from
+    "what belongs in primary navigation").
+
+    Two independent signals, either sufficient: an unusually long or
+    hyphen-dense last path segment (a slug assembled from multiple parameters
+    reads very differently from a short, hand-written title), or a path more
+    than two segments deep. Returns (bool, reason_or_None)."""
+    try:
+        path = urllib.parse.urlparse(url).path
+    except Exception:
+        return False, None
+    segments = [s for s in path.split("/") if s]
+    if not segments:
+        return False, None
+    last = segments[-1]
+    hyphens = last.count("-")
+    if hyphens >= 5 or len(last) >= 40:
+        return True, (f"the last path segment ('{last}') has {hyphens} hyphens across {len(last)} "
+                      f"characters -- a strong signal of a template/combinatorially-generated page")
+    if len(segments) >= 3:
+        return True, f"the URL is {len(segments)} path segments deep -- unusually deep for primary navigation"
+    return False, None
 
 
 def robot_blocks(robots):
@@ -965,6 +1001,20 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                 "nothing useful, and the same routing behaviour usually means broken URLs also answer 'OK'."
             )
 
+        if sitemap.get("leading_whitespace_before_xml"):
+            add_finding(
+                findings, "crawl_access",
+                "Sitemap Has Whitespace Before the XML Declaration",
+                "low",
+                "The sitemap was read, but its body starts with whitespace (or a byte-order mark) before "
+                "`<?xml ...?>`. The XML specification requires the declaration to come first, so strict "
+                "parsers reject the file outright -- this audit's own first parse attempt did.",
+                "Remove the leading blank line/whitespace from the sitemap output (usually a stray newline "
+                "emitted by a theme or plugin file before the sitemap generator runs).",
+                plain_english="Your sitemap works, but it starts with an invisible blank line. Some crawlers "
+                "treat that as a broken file and ignore the sitemap completely."
+            )
+
         sitemap_found = pick(sitemap, "sitemap_found", "exists")
         # "The sitemap is missing" and "this auditor's fetch of it was refused"
         # are different claims with different fixes. A 403/429/5xx or a network
@@ -1789,14 +1839,20 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
             summ = consistency.get("overall_summary", {}) or {}
             unver = consistency.get("unverified_facts_for_agent", []) or []
             detail = ", ".join(f"{u.get('field')}={u.get('structured_value')!r}" for u in unver[:5])
+            evaluated = summ.get("total_facts_evaluated") or 0
+            verified = summ.get("total_facts_verified") or 0
+            agent_confirmed = isinstance(cons_verdict, dict)
             add_finding(
                 findings, "readability",
-                "Structured Data Contradicts the Page's Visible Text",
-                "high",
-                f"{summ.get('total_facts_verified')} of {summ.get('total_facts_evaluated')} "
+                "Structured Data Contradicts the Page's Visible Text" if agent_confirmed
+                else "Structured Data Values Not Found in the Page's Visible Text",
+                # Unconfirmed string matching can't tell a real mismatch from a
+                # differently-formatted value, so it doesn't claim a high "contradiction".
+                "high" if agent_confirmed else "medium",
+                f"{max(evaluated - verified, 0)} of {evaluated} "
                 f"facts declared in Schema.org markup could not be found in the page's visible text"
                 f"{' (' + detail + ')' if detail else ''}. "
-                f"Basis: {'agent judgment' if isinstance(cons_verdict, dict) else 'string-match heuristic -- agent confirmation recommended'}.",
+                f"Basis: {'agent judgment' if agent_confirmed else 'string-match heuristic -- agent confirmation recommended'}.",
                 "Make the visible page text state the same values as the structured data (price, availability, dates, names), or correct the JSON-LD to match the page.",
                 # An agent that actually reviewed the facts and confirmed a
                 # real mismatch is fully trustworthy; the raw string-match
@@ -1840,7 +1896,14 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "AI text crawlers like GPTBot and ClaudeBot cannot see images — they read "
                         "raw HTML text. When an <img> tag has no alt attribute, the image is completely "
                         "invisible and unidentifiable to AI models. "
-                        f"Manual check: In DevTools Console → document.querySelectorAll('img:not([alt])').length"
+                        "Manual check: use View Page Source (Ctrl+U / Cmd+Option+U) — NOT the DevTools "
+                        "Elements panel or Console — and search (Ctrl+F) for '<img'. DevTools/Console "
+                        "reflects the page AFTER JavaScript has run and can add, remove, or relabel "
+                        "images, and never shows <noscript> content at all (a common home for a tracking "
+                        "pixel's fallback <img>, which IS present in the raw HTML crawlers read) — so a "
+                        "DevTools count can miss or disagree with what this finding measured. For an "
+                        "exact, scriptable count instead of manual scanning: "
+                        "curl -s \"<page-url>\" | grep -oE '<img[^>]*>' | grep -vc ' alt='"
                     )
                 )
 
@@ -1862,8 +1925,10 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "Alt text like 'image', 'logo', or 'banner' is technically present but tells "
                         "AI search models nothing useful. It wastes the opportunity to explain what the "
                         "image shows, reducing AI's ability to understand your page's visual content. "
-                        f"Manual check: In DevTools Console → "
-                        f"document.querySelectorAll('img[alt]') then inspect alt values."
+                        "Manual check: use View Page Source (Ctrl+U), not DevTools/Console (which "
+                        "reflects the post-JavaScript DOM, not the raw HTML crawlers read), and search "
+                        "for 'alt=\"' to inspect the values. For a full list instead of manual scanning: "
+                        "curl -s \"<page-url>\" | grep -oE 'alt=\"[^\"]*\"'"
                     )
                 )
 
@@ -1940,8 +2005,10 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "AI text crawlers cannot render or interpret SVG visuals — without a <title> or "
                         "aria-label, these graphics are completely opaque to AI search models. "
                         "This is especially impactful for logos, diagrams, icons, and charts embedded as SVG. "
-                        f"Manual check: In DevTools Console → "
-                        f"document.querySelectorAll('svg:not([aria-hidden]):not([aria-label])').length"
+                        "Manual check: use View Page Source (Ctrl+U), not DevTools/Console — DevTools "
+                        "reflects the post-JavaScript DOM (which can add labels or inject SVGs that "
+                        "were never in the raw HTML), not what a non-JS crawler reads. Search for '<svg' "
+                        "and check each match for aria-hidden, aria-label, or a <title> child."
                     )
                 )
 
@@ -2004,7 +2071,10 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "Embedded YouTube/Vimeo iframes without a title attribute are unidentifiable "
                         "to AI crawlers. The crawlers see an anonymous box with no idea what video content "
                         "it contains. A good title helps AI models understand and surface that content. "
-                        f"Manual check: In DevTools → document.querySelectorAll('iframe[src*=\"youtube\"]:not([title])').length"
+                        "Manual check: use View Page Source (Ctrl+U), not DevTools/Console (an iframe's "
+                        "title can be set by JavaScript after load, which the raw HTML a crawler reads "
+                        "never had). Search for 'youtube' or 'vimeo' and check each <iframe> for a title "
+                        "attribute."
                     )
                 )
 
@@ -2070,7 +2140,10 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "the browser but appear as invisible characters in raw HTML. AI crawlers cannot "
                         "interpret icon meaning. Decorative icons should be hidden with aria-hidden=\"true\"; "
                         "functional icons should have aria-label text explaining their action. "
-                        f"Manual check: document.querySelectorAll('[class*=\"fa-\"],[class*=\"icon-\"]').length in DevTools."
+                        "Manual check: use View Page Source (Ctrl+U), not DevTools/Console (a framework "
+                        "can add aria-label or aria-hidden to icons after load, which the raw HTML a "
+                        "crawler reads never had). Search for 'fa-' or 'icon-' and check each match for "
+                        "aria-hidden, aria-label, or a title attribute."
                     )
                 )
 
@@ -2229,8 +2302,10 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
                         "low",
                         "Organization schema contains sameAs links (e.g. social profiles), but none point to "
                         "Wikipedia, Wikidata, or a public identity registry (company register, package or code "
-                        "registry). Off-site search also found no Wikipedia or Wikidata entry for this brand. "
-                        "Note: encyclopedic coverage is an optional external authority signal for eligible "
+                        "registry). "
+                        + ("Off-site search also found no Wikipedia or Wikidata entry for this brand. "
+                           if wiki_found is False and data_found is False else "")
+                        + "Note: encyclopedic coverage is an optional external authority signal for eligible "
                         "entities, not a mandatory requirement.",
                         "If your organization meets Wikipedia or Wikidata notability guidelines, consider adding an official entity link in your Organization sameAs. Otherwise, the existing social profile sameAs links are sufficient.",
                         plain_english=f"Your Organization schema has sameAs identity links (e.g. LinkedIn, X/Twitter), but none link to a Wikipedia article or Wikidata entry for '{brand_name_str}'. This is an optional enhancement — only pursue it if your business genuinely meets Wikipedia or Wikidata notability guidelines."
@@ -2396,14 +2471,51 @@ def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None
         reach = engagement.get("navigation_reachability", {})
         for item in reach.get("key_content_reachability", []):
             if item.get("directly_linked_from_homepage") is False:
-                add_finding(
-                    findings, "engagement",
-                    "Key Content URL Unreachable from Homepage 1-Level Navigation",
-                    "medium",
-                    f"URL {item.get('key_content_url')} is not directly linked from the homepage.",
-                    "Add direct navigation or footer links to key content pages from the homepage.",
-                    plain_english="Important content pages are not directly linked in your main homepage navigation menu, making them harder for AI crawlers to discover from the homepage."
-                )
+                key_url = item.get("key_content_url") or ""
+                long_tail, long_tail_reason = _looks_long_tail_url(key_url)
+                if long_tail:
+                    # check_navigation_reachability.py has no judgment about
+                    # WHICH URLs are worth testing -- it tests whatever list
+                    # it's handed. That list is commonly the same
+                    # representative-sample picks used for content sampling,
+                    # which answers "what page represents this URL-structure
+                    # group" -- a different question from "what would a
+                    # homepage reasonably link directly." On a site with
+                    # thousands of combinatorial pages (a specific flight
+                    # route, product SKU, listing), the representative pick
+                    # is near-guaranteed to be exactly this kind of URL, and
+                    # asserting full confidence that IT specifically belongs
+                    # on the homepage would be a false positive against
+                    # completely normal large-site architecture.
+                    add_finding(
+                        findings, "engagement",
+                        "Key Content URL Unreachable from Homepage Navigation (Possibly Long-Tail)",
+                        "low",
+                        f"URL {key_url} is not directly linked from the homepage. This URL's structure "
+                        f"suggests it may be one of many long-tail, template-generated pages ({long_tail_reason}) "
+                        f"rather than a page a homepage would reasonably link directly -- large sites commonly "
+                        f"make this kind of page discoverable via internal search or an XML sitemap instead of "
+                        f"a static nav link. Verify this was genuinely meant as a primary navigation entry "
+                        f"before treating this as a defect.",
+                        "If this specific page is meant to be a primary entry point, link it directly or from "
+                        "a prominent hub/category page. If it is one of many auto-generated pages (a specific "
+                        "product variant, route, or listing), this is likely expected -- instead ensure a hub "
+                        "page or sitemap makes the whole group of pages discoverable.",
+                        plain_english="This specific page isn't linked from your homepage, but its web "
+                        "address looks like it's one of many machine-generated pages (like a specific flight "
+                        "route or product variant) rather than a page meant for direct homepage navigation -- "
+                        "which is often normal and expected for large sites.",
+                        confidence=0.4
+                    )
+                else:
+                    add_finding(
+                        findings, "engagement",
+                        "Key Content URL Unreachable from Homepage 1-Level Navigation",
+                        "medium",
+                        f"URL {key_url} is not directly linked from the homepage.",
+                        "Add direct navigation or footer links to key content pages from the homepage.",
+                        plain_english="Important content pages are not directly linked in your main homepage navigation menu, making them harder for AI crawlers to discover from the homepage."
+                    )
 
         depth = engagement.get("content_depth", {})
         if depth.get("below_reference_range"):
@@ -2913,7 +3025,10 @@ def _collect_params(argv):
         else:
             params.setdefault("site", raw_arg)
 
-    merge(read_stdin_safe(timeout=15.0), "stdin")
+    # With the payload already given as arguments, stdin is only an optional
+    # extra layer -- don't stall 15s when a harness leaves stdin open forever.
+    supplied = bool(set_specs or positional) or any(a in ("--input", "-i", "--payload") for a in args)
+    merge(read_stdin_safe(timeout=1.0 if supplied else 15.0), "stdin")
     return params, errors, out_path
 
 

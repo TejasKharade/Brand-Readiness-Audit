@@ -146,6 +146,11 @@ def fuzzy_fact_match(fact_value, visible_text, mapping=None):
     overlap = tokens.intersection(text_tokens)
     return len(overlap) / len(tokens) >= 0.7
 
+# A page almost never prints its own URL as prose, so a `url` value can never
+# "verify" -- counting it swamped the ratio on ordinary CMS markup (every
+# WebSite/WPHeader/ImageObject node carries one) and fired on healthy pages.
+NON_PROSE_FACT_FIELDS = {'url'}
+
 def extract_entity_facts(entity):
     """
     Extracts key scalar facts from any schema entity (Product, Article, Organization, Event, Recipe, etc.)
@@ -153,6 +158,8 @@ def extract_entity_facts(entity):
     facts = []
     ef = entity.get('extracted_facts', {})
     for k, v in ef.items():
+        if k in NON_PROSE_FACT_FIELDS:
+            continue
         if isinstance(v, str) and v.strip():
             facts.append({'field': k, 'value': v.strip()})
         elif isinstance(v, list):
@@ -309,7 +316,7 @@ if __name__ == '__main__':
             else:
                 url = raw_arg
 
-        input_data = read_stdin_safe(timeout=5.0)
+        input_data = read_stdin_safe(timeout=1.0 if len(sys.argv) > 1 else 5.0)
         if input_data.strip():
             try:
                 stdin_params = json.loads(input_data)

@@ -6,7 +6,7 @@ This repository contains an **Agent Skill Marketplace** built according to the *
 
 ## Marketplace Manifest (`marketplace.json`)
 
-The top-level [`marketplace.json`](file:///c:/Users/Tejas%20Kharade/OneDrive/Desktop/brand%20ai%20readiness/marketplace.json) defines the skill entrypoint and module composition:
+The top-level [`marketplace.json`](marketplace.json) defines the skill entrypoint and module composition:
 
 ```json
 {
