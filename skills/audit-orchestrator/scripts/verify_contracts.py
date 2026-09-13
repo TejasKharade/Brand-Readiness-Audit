@@ -32,6 +32,11 @@ NESTING_KEYS = {
     "content_dates", "temporal_decay", "navigation_reachability", "content_depth",
     "mobile_responsiveness", "descriptor_consistency", "page_speed_signals",
     "landing_readiness",
+    # A slice of fetch_rendered_dom.py's own {available, unavailable_reason,
+    # browser} fields, forwarded under this orchestrator-invented container
+    # name -- not a literal key any script writes, same as dual_identity/
+    # page_signals above.
+    "dom_render_availability", "render_availability", "dom_render",
 }
 AGENT_INJECTED_KEYS = {
     "agent_verdict", "ambiguous", "orientation_ok", "has_next_step", "inconsistent", "notes",
@@ -87,6 +92,7 @@ def shape_probes(root):
         sys.path.insert(0, os.path.join(root, "skills", sub, "scripts"))
     from synthesize_report import synthesize_report
     from check_robots import check_robots
+    from check_sitemap import check_sitemap, classify_sitemap_failure
     from check_entity_disambiguation import check_entity_disambiguation, classify_authority_sameas
     from check_structured_data import check_structured_data
     from check_rendering_barriers import check_rendering_barriers
@@ -749,6 +755,80 @@ def shape_probes(root):
     probe("synthesize_report.py accepts --input <file> and --out <file>",
           "--input" in open(_sr, encoding="utf-8").read()
           and "--out" in open(_sr, encoding="utf-8").read())
+
+    # ---- Sitemap: "blocked" vs "missing" are different claims. A 403/429/5xx
+    # or a network failure means THIS request failed -- it says nothing about
+    # whether the sitemap exists -- and a WAF commonly blocks this script's own
+    # non-browser identity while a real browser sails through, which is exactly
+    # the "it works when I check it myself" symptom this must not misreport.
+    probe("sitemap classifier: 403 -> 'blocked', not 'not_found'",
+          classify_sitemap_failure(status_code=403) == "blocked")
+    probe("sitemap classifier: 404 -> 'not_found'",
+          classify_sitemap_failure(status_code=404) == "not_found")
+    probe("sitemap classifier: 429 -> 'rate_limited'",
+          classify_sitemap_failure(status_code=429) == "rate_limited")
+    probe("sitemap classifier: 503 -> 'server_error'",
+          classify_sitemap_failure(status_code=503) == "server_error")
+    probe("sitemap classifier: network exception -> 'network_unreachable'",
+          classify_sitemap_failure(exc_kind="network") == "network_unreachable")
+
+    def sitemap_titles(sitemap_dict):
+        rep = synthesize_report("https://probe.example/", {"crawl_access": {
+            "robots": {"reachable": True, "root_blocked_agents": [], "disallowed": {}},
+            "sitemap": sitemap_dict}})
+        return [f["title"] for f in rep["findings"]]
+
+    blocked_titles = sitemap_titles({"sitemap_found": False, "exists": False,
+                                     "failure_kind": "blocked", "http_status": 403, "error": "HTTP 403"})
+    probe("sitemap blocked (403): NOT reported as 'Missing or Unreachable'",
+          not any("Missing or Unreachable" in t for t in blocked_titles))
+    probe("sitemap blocked (403): reported as a refused fetch citing the status",
+          any("Blocked for This Auditor's Identity" in t and "403" in t for t in blocked_titles))
+
+    missing_titles = sitemap_titles({"sitemap_found": False, "exists": False,
+                                     "failure_kind": "not_found", "http_status": 404, "error": "HTTP 404"})
+    probe("sitemap genuinely missing (404): still reported as 'Missing or Unreachable' (no regression)",
+          any("Missing or Unreachable" in t for t in missing_titles))
+
+    gated_titles = sitemap_titles({"sitemap_found": False, "exists": False,
+                                   "skipped_by_robots": True, "failure_kind": "skipped_by_robots",
+                                   "error": "Not fetched: disallowed by robots.txt"})
+    probe("sitemap skipped by robots.txt: NOT reported as any kind of defect",
+          not any("Missing or Unreachable" in t or "Blocked for This Auditor" in t for t in gated_titles))
+
+    # ---- No-headless-browser disclosure: a grading sandbox with no Chrome/
+    # Edge/Chromium must not silently fall back to raw-HTML-only and look
+    # identical to a genuinely clean, fully-measured site.
+    def render_titles(dom_avail):
+        rep = synthesize_report("https://probe.example/", {"crawl_render": {
+            "dom_render_availability": dom_avail,
+            "rendering_barriers": {"client_side_rendering_signals": {
+                "likely_client_side_rendering_barrier": False}}}})
+        return [f["title"] for f in rep["findings"]]
+
+    t1 = render_titles({"available": False, "unavailable_reason": "no_browser_installed"})
+    probe("no headless browser at all -> explicit environment-capability disclosure fires",
+          any("No Headless Browser Available" in t for t in t1))
+    t2 = render_titles({"available": False, "unavailable_reason": "root_no_sandbox"})
+    probe("root-without-sandbox -> same disclosure fires (also an environment capability gap)",
+          any("No Headless Browser Available" in t for t in t2))
+    t3 = render_titles({"available": False, "unavailable_reason": "timed_out"})
+    probe("a single page's render timing out -> page-specific finding, NOT the environment-wide one",
+          any("Rendered DOM Could Not Be Captured" in t for t in t3)
+          and not any("No Headless Browser Available" in t for t in t3))
+    t4 = render_titles({"available": True, "unavailable_reason": None, "browser": "chrome"})
+    probe("a real rendered-DOM comparison obtained -> NO disclosure finding fabricated",
+          not any("Headless Browser" in t or "Could Not Be Captured" in t for t in t4))
+    t5 = [f["title"] for f in synthesize_report("https://probe.example/", {"crawl_render": {
+        "rendering_barriers": {"client_side_rendering_signals": {
+            "likely_client_side_rendering_barrier": False}}}})["findings"]]
+    probe("dom_render_availability field simply absent -> NO disclosure finding fabricated",
+          not any("Headless Browser" in t or "Could Not Be Captured" in t for t in t5))
+    from fetch_rendered_dom import fetch_rendered_dom
+    fr = fetch_rendered_dom("https://probe.example/", browser_path="/not/a/real/browser",
+                            robots={"robots_txt": "", "status": 404})
+    probe("fetch_rendered_dom.py itself sets unavailable_reason='no_browser_installed' when none is found",
+          fr.get("available") is False and fr.get("unavailable_reason") == "no_browser_installed")
     return failures
 
 

@@ -50,7 +50,12 @@ import urllib.parse
 #   * Only http(s) URLs are rendered.
 # ---------------------------------------------------------------------------
 
-DEFAULT_TIMEOUT_S = 25.0
+# 18s (down from 25s): SKILL.md's own guidance says "a typical page renders in
+# 1-8s" -- 25s was headroom for a slow-but-live host, not the typical cost.
+# General worst-case-ceiling trim (see check_sitemap.py's SITEMAP_FETCH_DEADLINE_S
+# comment for the full reasoning); the caller may still pass a higher
+# timeout_s explicitly (clamped up to 45) for a page it knows is heavy.
+DEFAULT_TIMEOUT_S = 18.0
 DEFAULT_SETTLE_MS = 5000          # virtual time for scripts/timers to finish after load
 MAX_RENDERED_BYTES = 2 * 1024 * 1024
 
@@ -117,11 +122,20 @@ def fetch_rendered_dom(url, timeout_s=DEFAULT_TIMEOUT_S, settle_ms=DEFAULT_SETTL
         "elapsed_ms": None,
         "timed_out": False,
         "error": None,
+        # WHY `available` is false, distinct from the free-text `error` string
+        # -- "no_browser_installed" is the specific case the orchestrator must
+        # disclose to the reader as an audit-environment limitation ("this run
+        # could not measure client-side rendering at all"), not silently
+        # absorb into a generic raw-HTML-only fallback. The other reasons are
+        # either already reported elsewhere (skipped_by_robots) or genuinely
+        # site/host-specific rather than an environment capability gap.
+        "unavailable_reason": None,
     }
 
     scheme = urllib.parse.urlparse(str(url or "")).scheme.lower()
     if scheme not in ("http", "https"):
         result["error"] = "Only http(s) URLs are rendered"
+        result["unavailable_reason"] = "unsupported_scheme"
         return result
 
     # Rendering pulls the page plus every script, stylesheet and image it
@@ -134,18 +148,21 @@ def fetch_rendered_dom(url, timeout_s=DEFAULT_TIMEOUT_S, settle_ms=DEFAULT_SETTL
             result["skipped_by_robots"] = True
             result["robots_decision"] = decision.as_dict()
             result["error"] = "Not rendered: %s" % decision.reason
+            result["unavailable_reason"] = "skipped_by_robots"
             return result
 
     browser = find_browser(browser_path)
     if not browser:
         result["error"] = ("No Chrome/Edge/Chromium browser found on this machine; continue with raw-HTML-only "
                            "render checks (rendered_html omitted)")
+        result["unavailable_reason"] = "no_browser_installed"
         return result
     result["browser"] = os.path.basename(browser)
 
     if sys.platform.startswith("linux") and hasattr(os, "geteuid") and os.geteuid() == 0 and not allow_no_sandbox:
         result["error"] = ("Running as root: Chromium will not start with its sandbox enabled. Re-run as a "
                            "non-root user, or pass allow_no_sandbox: true if you accept disabling the sandbox")
+        result["unavailable_reason"] = "root_no_sandbox"
         return result
 
     profile_dir = tempfile.mkdtemp(prefix="render_profile_")
@@ -191,10 +208,12 @@ def fetch_rendered_dom(url, timeout_s=DEFAULT_TIMEOUT_S, settle_ms=DEFAULT_SETTL
                 pass
             result["timed_out"] = True
             result["error"] = f"Browser did not finish rendering within {timeout_s:.0f}s"
+            result["unavailable_reason"] = "timed_out"
             return result
         result["elapsed_ms"] = round((time.time() - t0) * 1000, 1)
         if proc.returncode != 0 or not out:
             result["error"] = f"Browser exited with code {proc.returncode} and no DOM output"
+            result["unavailable_reason"] = "render_failed"
             return result
         if len(out) > MAX_RENDERED_BYTES:
             out = out[:MAX_RENDERED_BYTES]
@@ -208,6 +227,7 @@ def fetch_rendered_dom(url, timeout_s=DEFAULT_TIMEOUT_S, settle_ms=DEFAULT_SETTL
         if proc and proc.poll() is None:
             _kill_tree(proc)
         result["error"] = f"Browser launch failed: {e}"
+        result["unavailable_reason"] = "launch_failed"
         return result
     finally:
         if result["elapsed_ms"] is None:

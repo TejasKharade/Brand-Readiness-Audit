@@ -133,7 +133,9 @@ def check_page_speed_signals(params):
     # resources x a per-request timeout can otherwise run unbounded on a
     # slow-but-live host -- this is one of several network-bound steps in a
     # <5min total audit budget, so it must return within a bounded time.
-    RESOURCE_FETCH_DEADLINE_S = 20.0
+    # 15s (down from 20s): general worst-case-ceiling trim -- see
+    # check_sitemap.py's SITEMAP_FETCH_DEADLINE_S comment for the full reasoning.
+    RESOURCE_FETCH_DEADLINE_S = 15.0
     deadline_start = time.time()
     gate = RobotsGate.for_url(url, robots=params.get("robots")) if RobotsGate else None
 

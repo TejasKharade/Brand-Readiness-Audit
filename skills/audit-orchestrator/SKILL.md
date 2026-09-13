@@ -14,15 +14,26 @@ Serves as the entrypoint master orchestrator for conducting complete end-to-end 
 > **Execute this now — do not produce an implementation plan.** This document
 > is a runbook, not a spec to design against: everything needed already
 > exists (every script below is written, tested, and ready to invoke). If you
-> were asked to audit a website, follow Steps 1–6 below literally, in this
-> turn, without asking for approval to start — the scripts are all read-only.
-> The task is not done until `synthesize_report.py` (Step 6) has actually
-> written a JSON report file to disk; a plan, a summary, or partial findings
-> in chat do not satisfy the request.
+> were asked to audit a website, run the steps below now, without asking for
+> approval to start — the scripts are all read-only. The task is not done
+> until `synthesize_report.py` (Step 6) has actually written a JSON report
+> file to disk; a plan, a summary, or partial findings in chat do not satisfy
+> the request.
+>
+> **"Sequential" below means dependency order between the 5 stages (access
+> before render, render before readability, ...) — it does NOT mean issue
+> every script call one at a time.** Within a stage, scripts hit independent
+> endpoints: call `check_robots.py`, `check_sitemap.py`, and
+> `check_crawl_depth.py` (Step 1), or the dual-identity fetches for several
+> sampled pages, as **parallel tool calls in the same turn**. Calling all
+> ~26 scripts one at a time across separate turns is the single most common
+> way this audit blows past the 5-minute budget — see the runtime-budget
+> callout further below for the full breakdown and the worst-case ceiling
+> table.
 
 > [!NOTE]
 > **Orchestrator Role**:
-> The `audit-orchestrator` skill coordinates the sequential execution of all 5 specialized sub-skills (`crawl-access-audit`, `crawl-render-audit`, `readability-audit`, `freshness-corroboration`, `engagement-audit`) and synthesizes their raw JSON findings into a unified, authoritative Brand AI Readiness Audit Report.
+> The `audit-orchestrator` skill coordinates the execution of all 5 specialized sub-skills (`crawl-access-audit`, `crawl-render-audit`, `readability-audit`, `freshness-corroboration`, `engagement-audit`) — in dependency order, but with independent calls WITHIN a stage parallelized — and synthesizes their raw JSON findings into a unified, authoritative Brand AI Readiness Audit Report.
 
 ---
 
@@ -53,16 +64,50 @@ The orchestrator receives target audit parameters:
 > 1** other key page for a standard run (not 1-2) — each additional page
 > repeats the dual-identity fetch, the render pass, and the engagement
 > per-page checks, and this is the single biggest lever on total runtime: one
-> slow-but-reachable page can cost ~30s for `fetch_dual_identity.py` alone
-> (browser leg + bot leg + spacing delay), plus up to 20s for
-> `check_page_speed_signals.py` and up to 45s if rendered — a third sampled
-> page can add another 60-95s worst case on top of everything else. The network-bound
+> slow-but-reachable page can cost ~20s for `fetch_dual_identity.py` alone
+> (browser leg + bot leg + spacing delay), plus up to 15s for
+> `check_page_speed_signals.py` and up to 18s if rendered — a third sampled
+> page can add another 50-75s worst case on top of everything else. The network-bound
 > scripts (`check_robots.py`, `check_sitemap.py`, `check_page_speed_signals.py`)
 > each enforce their own internal wall-clock ceiling and return partial results
 > with `fetch_deadline_exceeded` / `time_budget_exceeded: true` on a
 > pathologically slow target rather than hanging — treat that as a finding
-> ("this page/resource is too slow to reliably serve a crawler"), not as a
-> signal to retry the same call.
+> ("this page/resource is too slow to reliably serve a crawler"), **not as a
+> signal to retry the same call. A script that returns ANY JSON — including a
+> `time_budget_exceeded: true` or a 429-throttled result — has already given
+> you its final answer for this run; re-invoking it does not get a better
+> answer, it only spends another full ceiling's worth of wall-clock time (and,
+> observed directly on a rate-limited real host, another round of
+> subprocess-spawn and inter-turn notification overhead) for nothing.**
+
+**Cut invocation count, not just per-call time.** Every subprocess call costs
+more than its own network wait: process startup plus the calling agent's own
+per-call turn/notification overhead (measured directly: this stacked across
+roughly two dozen separate invocations on a real audit and was a comparable
+contributor to a runtime overrun as the network waits themselves). Several
+scripts in Steps 2-5 do no network I/O of their own — they only parse HTML
+already fetched in Step 1 — so bundle them into ONE process instead of several:
+- `readability-audit/scripts/run_all.py` replaces `check_structured_data.py` +
+  `check_semantic_structure.py` + `check_content_consistency.py` +
+  `check_nontext_facts.py` (4 calls → 1). Same `{html, url, robots}` input,
+  identical output fields, nested under the same keys.
+- `crawl-render-audit/scripts/run_all.py` replaces `check_rendering_barriers.py`
+  + `check_structured_data_hydration.py` + `check_client_side_redirects.py`
+  (3 calls → 1). Same `{raw_html, rendered_html, url}` input.
+- `freshness-corroboration/scripts/run_content_dates_and_decay.py` replaces
+  `check_content_dates.py` + `check_temporal_decay.py` (2 calls → 1) — pass
+  `status` through exactly as before. `check_citation_consistency.py` /
+  `check_entity_disambiguation.py` stay separate: they need this turn's own
+  `WebSearch` results, which don't exist until after you've searched.
+  `engagement-audit/scripts/run_single_page_checks.py` replaces
+  `check_content_depth.py` + `check_landing_readiness.py` +
+  `check_mobile_responsive_signals.py` (3 calls → 1); `check_navigation_reachability.py`
+  and `check_descriptor_consistency.py` need data gathered ACROSS pages and
+  `check_page_speed_signals.py` does its own network fetch, so all three stay
+  separate. Every aggregator only imports and calls the same functions the
+  individual scripts already call — nothing about detection logic or output
+  shape changes, and each per-check script still works standalone if you need
+  to isolate one.
 
 **Worst-case wall-clock ceilings** (every network-bound script enforces one; a
 healthy site uses a small fraction of each):
@@ -72,19 +117,23 @@ healthy site uses a small fraction of each):
 | `check_robots.py` | 18 s (4 candidates) | 1 |
 | `check_tls.py` | 6 s (one handshake) | 1 |
 | `fetch_dual_identity.py` | 20 s (`DUAL_FETCH_TOTAL_BUDGET_S`) | 2 |
-| `check_sitemap.py` | 30 s (`SITEMAP_FETCH_DEADLINE_S`) | 1 |
+| `check_sitemap.py` | 20 s (`SITEMAP_FETCH_DEADLINE_S`) | 1 |
 | `check_crawl_depth.py` | 20–45 s (`derive_budget`) | 1 |
-| `fetch_rendered_dom.py` | 25 s default (45 max) | ≤2 |
-| `check_page_speed_signals.py` | 20 s (`RESOURCE_FETCH_DEADLINE_S`) | ≤2 |
+| `fetch_rendered_dom.py` | 18 s default (45 max) | ≤2 |
+| `check_page_speed_signals.py` | 15 s (`RESOURCE_FETCH_DEADLINE_S`) | ≤2 |
 | `check_nontext_facts.py` | 25 s (`PDF_INSPECTION_DEADLINE_S`) | ≤2 |
 
 Summed sequentially against a uniformly pathological host that maxes out every
-one of them, that is ~5 minutes **before** any agent overhead — which is why
-the parallelism and the 2-page cap above are requirements, not suggestions: run
-independent calls in one turn and the wall clock collapses to the slowest
-single script, leaving the budget dominated by your own tool-call latency. If a
-run is nonetheless trending long, **shed work in this order** (each step keeps
-the report valid, just less complete — say so in the report rather than
+one of them, that is ~4 minutes (245s) **before** any agent overhead — down
+from ~4.65 minutes (279s), a 34s reduction trimmed uniformly across every
+network-bound script, not tuned to any one target, precisely so there is real
+headroom left for orchestration/agent-side cost on top, which the ceilings
+themselves cannot bound. This is why the parallelism, the 2-page cap, and the run_all
+aggregators above are requirements, not suggestions: run independent calls in
+one turn and the wall clock collapses to the slowest single script, leaving
+the budget dominated by your own tool-call latency rather than the target's.
+If a run is nonetheless trending long, **shed work in this order** (each step
+keeps the report valid, just less complete — say so in the report rather than
 silently dropping it): the rendered DOM on the second page → the second sampled
 page entirely → `check_crawl_depth.py` → `check_page_speed_signals.py`. Never
 shed Step 1: without `crawl_access` there is no report worth emitting.
@@ -155,25 +204,56 @@ Run specialized access scripts to evaluate bot accessibility:
 > saves the runtime budget.
 
 ### Step 2: Crawl Render Audit (`crawl-render-audit`)
+> **Call `scripts/run_all.py` once instead of the three scripts below separately** —
+> same `{raw_html, rendered_html, url}` input, same three output keys nested
+> in one JSON object. Cuts this step from 3 subprocess calls to 1.
 Run rendering barrier scripts:
 - `scripts/check_rendering_barriers.py`: Compare initial raw HTML vs. rendered DOM text word counts.
 - `scripts/check_structured_data_hydration.py`: Detect JSON-LD schema trapped behind client-side JS execution.
 - `scripts/check_client_side_redirects.py`: Detect client-side JS and meta refresh redirects.
 - `scripts/fetch_rendered_dom.py` *(optional)*: When the agent has no browser tool, render a page with an already-installed Chrome/Edge/Chromium (sandboxed, throwaway profile, hard timeout) to supply `rendered_html`, so the checks above measure the raw-vs-rendered gap instead of inferring it. Returns `available: false` when no browser exists; then run raw-only. Budget 1–8 s per page — render the homepage and at most one other page.
 
+> [!IMPORTANT]
+> **Disclose it plainly when this environment cannot render at all — do not
+> just quietly fall back to raw-HTML-only and move on.** If neither your own
+> native browser tool NOR `fetch_rendered_dom.py` can produce a rendered DOM
+> for this run (`fetch_rendered_dom.py` returns `available: false` with
+> `unavailable_reason: "no_browser_installed"` or `"root_no_sandbox"` — this
+> is exactly the shape of a locked-down grading sandbox with no Chrome/Edge/
+> Chromium installed), pass those two fields through as
+> `crawl_render.dom_render_availability` in the Step 6 payload. The
+> orchestrator turns this into an explicit, low-severity disclosure finding —
+> *"No Headless Browser Available for This Audit Environment"* — telling the
+> reader plainly that client-side-rendering detection ran on raw HTML only,
+> could not directly observe JavaScript-assembled content, and that any
+> `crawl_render` findings in this report are inferred, not measured. This is
+> a fact about THIS RUN's tooling, not a defect in the audited site, and
+> matters most exactly when it's least visible: a report with zero CSR
+> findings could mean "genuinely clean site" or "we had no way to check" —
+> the reader must be told which. Omit `dom_render_availability` entirely
+> (don't fabricate `available: true`) whenever a real rendered-DOM comparison
+> WAS obtained, by either tool.
+
 ### Step 3: Readability Audit (`readability-audit`)
+> **Call `scripts/run_all.py` once instead of the four scripts below separately** —
+> same `{html, url, robots}` input, same four output keys nested in one JSON
+> object. Cuts this step from 4 subprocess calls to 1.
 Run structural and semantic audit scripts:
 - `scripts/check_structured_data.py`: Validate Schema.org JSON-LD completeness across 9 schema types.
 - `scripts/check_semantic_structure.py`: Validate heading hierarchy (`<h1>`, `<h2>`) and outline structure.
 - `scripts/check_nontext_facts.py`: Verify machine-readable alternatives for non-text facts.
 - `scripts/check_content_consistency.py`: Detect contradiction between tabular markup and prose.
-- If you ran `check_structured_data.py` on any page besides the homepage, pass those results through as
+- If you ran `check_structured_data.py` (or `run_all.py`) on any page besides the homepage, pass those results through as
   `readability.additional_pages: [{"url": ..., "structured_data": {...}}]`. No extra request is involved —
   that page's HTML was already fetched — and it is where the entity-grounding gap normally shows up: a
   homepage carrying the `Organization` block while product and article pages ship only a breadcrumb trail.
   Entries that are not objects, or whose page has no recognised entities, are ignored.
 
 ### Step 4: Freshness & Corroboration Audit (`freshness-corroboration`)
+> **Call `scripts/run_content_dates_and_decay.py` once instead of the first two
+> scripts below separately** — same `{html, url, status}` input, both output
+> keys nested in one JSON object. The other two scripts need this turn's own
+> `WebSearch` results and stay separate calls, run after searching.
 Run temporal and corroboration scripts:
 - `scripts/check_content_dates.py`: Extract publication, modification, and copyright dates. **Pass `status`**
   (the HTTP status of the fetch that produced this page's `html`, e.g. `browser_fetch.status` from Step 1) —
@@ -184,6 +264,12 @@ Run temporal and corroboration scripts:
 - `scripts/check_entity_disambiguation.py`: Evaluate `sameAs` entity links (Wikidata, Wikipedia).
 
 ### Step 5: On-Site Engagement Audit (`engagement-audit`)
+> **Call `scripts/run_single_page_checks.py` once instead of `check_content_depth.py`
+> + `check_landing_readiness.py` + `check_mobile_responsive_signals.py` separately** —
+> same `{html, url, page_type_hint}` input, all three output keys nested in
+> one JSON object. `check_navigation_reachability.py`, `check_descriptor_consistency.py`,
+> and `check_page_speed_signals.py` need cross-page data or their own network
+> fetch and stay separate calls.
 Run visitor orientation and engagement scripts:
 - `scripts/check_navigation_reachability.py`: Audit 1-level homepage navigation reachability for key URLs.
 - `scripts/check_content_depth.py`: Detect page intent, then assess content depth against advisory bands for content-bearing intents only; extract heading/paragraph text pairs.

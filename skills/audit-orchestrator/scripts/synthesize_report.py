@@ -966,16 +966,102 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
             )
 
         sitemap_found = pick(sitemap, "sitemap_found", "exists")
-        if sitemap_found is False:
-            add_finding(
-                findings, "crawl_access",
-                "Missing or Unreachable XML Sitemap",
-                "high",
-                f"No valid sitemap found at /sitemap.xml or declared in robots.txt"
-                f"{' (' + str(sitemap.get('error')) + ')' if sitemap.get('error') else ''}.",
-                "Generate and submit a clean XML sitemap at /sitemap.xml and declare it in robots.txt.",
-                plain_english="AI search crawlers do not have a master site directory to easily discover and map all important public pages on your website."
-            )
+        # "The sitemap is missing" and "this auditor's fetch of it was refused"
+        # are different claims with different fixes. A 403/429/5xx or a network
+        # timeout means THIS request failed -- it says nothing about whether the
+        # sitemap exists, and telling a site owner to "generate a sitemap" they
+        # already have (and that opens fine in a browser) is wrong, confusing
+        # advice. `failure_kind` (from check_sitemap.py) distinguishes them;
+        # `skipped_by_robots` is coverage information already reported via
+        # `collect_robots_restrictions()` below, never a defect in its own right.
+        if sitemap_found is False and not sitemap.get("skipped_by_robots"):
+            kind = sitemap.get("failure_kind")
+            status = sitemap.get("http_status") or sitemap.get("error")
+            if kind == "blocked":
+                add_finding(
+                    findings, "crawl_access",
+                    f"Sitemap Fetch Blocked for This Auditor's Identity (HTTP {status})",
+                    "high",
+                    f"Requesting the sitemap returned HTTP {status} (Forbidden) rather than its content. "
+                    f"This does NOT mean the sitemap is missing -- it means a WAF or bot-management layer "
+                    f"refused this specific request. If the sitemap loads normally in a browser, the block "
+                    f"is identity-specific (User-Agent, IP reputation, or missing browser fingerprint), and "
+                    f"AI crawlers using a similar non-browser identity likely hit the same block.",
+                    "Check WAF/CDN rules (Cloudflare, Akamai, etc.) for a block on non-browser requests to "
+                    "/sitemap.xml specifically, and confirm declared AI crawlers (GPTBot, ClaudeBot, "
+                    "PerplexityBot, Googlebot) are allow-listed there -- do not regenerate a sitemap that "
+                    "already exists.",
+                    plain_english="Your sitemap file itself may be fine, but your security system is "
+                    "blocking automated requests to it -- including from AI crawlers -- while still letting "
+                    "regular browsers through, which is why it looks fine when you check it yourself."
+                )
+            elif kind == "rate_limited":
+                add_finding(
+                    findings, "crawl_access",
+                    "Sitemap Fetch Rate-Limited (HTTP 429)",
+                    "low",
+                    "The sitemap request was rate-limited (HTTP 429) rather than answered. This is very "
+                    "likely transient load-balancer throttling, not evidence the sitemap is missing.",
+                    "Review rate-limiting thresholds so a single crawler request isn't throttled; re-run "
+                    "the audit to confirm this wasn't a one-off.",
+                    plain_english="Your server briefly refused this request for being too frequent. This "
+                    "is usually temporary and not a sign anything is actually broken.",
+                    confidence=0.6
+                )
+            elif kind == "server_error":
+                add_finding(
+                    findings, "crawl_access",
+                    f"Sitemap Endpoint Returned a Server Error (HTTP {status})",
+                    "high",
+                    f"Requesting the sitemap returned HTTP {status}, a server-side failure -- distinct from "
+                    f"the sitemap simply not existing (that would be a 404).",
+                    "Check server/application logs for the error generating this response; this is a "
+                    "server bug to fix, not a sitemap to create.",
+                    plain_english="Your server is erroring out when asked for the sitemap, rather than "
+                    "serving it or cleanly saying it doesn't exist."
+                )
+            elif kind == "network_unreachable":
+                add_finding(
+                    findings, "crawl_access",
+                    "Sitemap Could Not Be Reached (Network Error)",
+                    "medium",
+                    f"The sitemap request failed at the network level ({sitemap.get('error')}) -- a timeout, "
+                    f"DNS failure, or connection refusal, not a 404. This may be transient.",
+                    "Verify the sitemap URL resolves and responds from outside your own network; re-run "
+                    "the audit to rule out a one-off network blip before assuming the sitemap is broken.",
+                    plain_english="This audit's connection to your sitemap failed outright (not a clean "
+                    "'not found') -- that could be a real hosting/DNS issue or just a temporary blip.",
+                    confidence=0.6
+                )
+            elif kind == "invalid_xml_200":
+                add_finding(
+                    findings, "crawl_access",
+                    "Sitemap URL Responds but Content Is Not Valid XML",
+                    "high",
+                    f"The sitemap URL answered HTTP 200 but the body does not parse as XML "
+                    f"({sitemap.get('error')}). A 200 status with a non-XML body is often the signature of "
+                    f"a bot-management challenge/interstitial page intercepting the request before it "
+                    f"reaches the real sitemap -- though it can also be a genuinely malformed sitemap file.",
+                    "Fetch this URL with a plain non-browser client (curl/wget) and inspect the body: if "
+                    "it's an HTML challenge/verification page, fix the WAF rule for this path rather than "
+                    "the sitemap; if it's genuinely malformed XML, fix the sitemap generator.",
+                    plain_english="Something answers at your sitemap's address, but it isn't a real "
+                    "sitemap -- this is frequently a security checkpoint intercepting non-browser visitors, "
+                    "not necessarily a broken file.",
+                    confidence=0.6
+                )
+            else:
+                # kind in ("not_found", "other", None): no signal that a request
+                # was actively refused, so "missing" remains the best-supported claim.
+                add_finding(
+                    findings, "crawl_access",
+                    "Missing or Unreachable XML Sitemap",
+                    "high",
+                    f"No valid sitemap found at /sitemap.xml or declared in robots.txt"
+                    f"{' (' + str(sitemap.get('error')) + ')' if sitemap.get('error') else ''}.",
+                    "Generate and submit a clean XML sitemap at /sitemap.xml and declare it in robots.txt.",
+                    plain_english="AI search crawlers do not have a master site directory to easily discover and map all important public pages on your website."
+                )
 
         depth = access.get("crawl_depth", {})
         if depth.get("is_deep_url"):
@@ -1000,6 +1086,51 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
         waf_info        = barriers.get("waf_interstitial", {})
         hydration_gaps  = barriers.get("hydration_gaps", {})
         word_counts     = barriers.get("word_counts", {})
+
+        # Disclosure, not a site defect: THIS RUN had no way to obtain a
+        # rendered DOM at all (no browser installed / cannot start one in this
+        # sandbox), so every check below fell back to raw-HTML-only heuristics
+        # for every page, not just this one. A report with zero client-side-
+        # rendering findings could mean "genuinely clean site" or "we had no
+        # way to check" -- the reader must be told which, rather than a silent
+        # fallback that looks identical to a real measured pass.
+        dom_avail = pick(render, "dom_render_availability", "render_availability", "dom_render") or {}
+        if dom_avail.get("available") is False:
+            reason = dom_avail.get("unavailable_reason")
+            if reason in ("no_browser_installed", "root_no_sandbox"):
+                add_finding(
+                    findings, "crawl_render",
+                    "No Headless Browser Available for This Audit Environment",
+                    "low",
+                    "This run had no usable Chrome, Edge, or Chromium browser available ("
+                    + ("no browser found on this machine" if reason == "no_browser_installed"
+                       else "the browser refused to start without root sandbox privileges")
+                    + "), so every client-side-rendering check in this report ran on raw HTML only, "
+                      "with no measured comparison against the actual rendered DOM for any page.",
+                    "Re-run this audit in an environment with Chrome, Edge, or Chromium installed (or "
+                    "with a native headless-browser tool available to the orchestrating agent) to "
+                    "directly measure the raw-vs-rendered gap instead of inferring it from static HTML.",
+                    plain_english="This specific audit run could not use a browser to see what your "
+                    "pages look like after JavaScript runs -- it could only read the raw HTML. Any "
+                    "client-side-rendering findings above (or the absence of any) are inferred, not "
+                    "directly measured, so genuinely JavaScript-only content may be under-reported.",
+                    confidence=1.0
+                )
+            elif reason in ("timed_out", "render_failed", "launch_failed"):
+                add_finding(
+                    findings, "crawl_render",
+                    "Rendered DOM Could Not Be Captured for This Page",
+                    "low",
+                    f"Attempting to render this specific page failed ({reason.replace('_', ' ')}), so "
+                    f"this page's client-side-rendering checks ran on raw HTML only, without a measured "
+                    f"comparison. (A browser was available and other pages may have rendered fine.)",
+                    "Re-run the render step for this page; a page that fails consistently may be too "
+                    "slow or resource-heavy to render within the audit's time budget.",
+                    plain_english="This audit tried to see what this page looks like after JavaScript "
+                    "runs, but the attempt failed here specifically, so findings about it are inferred, "
+                    "not measured.",
+                    confidence=0.8
+                )
 
         # Sentence-level evidence, present only when a rendered DOM was supplied.
         # Counts say how much is missing; this says WHICH text is missing, which

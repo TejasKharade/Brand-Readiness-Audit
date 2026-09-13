@@ -45,6 +45,15 @@ To execute the `crawl-render-audit` skill, the orchestrating LLM must supply pag
 
 ## Procedure & Hybrid Execution Flow
 
+> [!IMPORTANT]
+> **Prefer `scripts/run_all.py` over calling the three scripts below separately.**
+> All three are pure in-memory comparisons of already-fetched `raw_html`/
+> `rendered_html` — no network I/O (that's `fetch_rendered_dom.py`'s job,
+> which stays a separate call). `run_all.py` takes the same
+> `{raw_html, rendered_html, url}` input and returns the same three output
+> keys in one JSON object, by importing and calling these exact same
+> functions — detection logic and output shape are unchanged.
+
 1. **Rendering Barriers & Hydration Gap Check (`check_rendering_barriers.py`)**:
    - Run `scripts/check_rendering_barriers.py`. When a rendered DOM is supplied it compares raw vs. rendered across **multiple structural dimensions** — main-area word count, heading count, `<p>`/`<li>` counts, and JSON-LD block count — and flags `thin_initial_content_detected` only when **two or more** of those deltas agree (or the single unambiguous "near-empty raw shell + populated rendered DOM" signal fires). `hydration_ratio` is still reported, but purely as supporting evidence, not as the decision. Raw-only (no rendered DOM) uses **independent shell signals**, any one of which is sufficient, all listed in `barrier_reasons`: a `<noscript>` block declaring JavaScript is required; **0 headings and 0 `<p>` in ≥50 KB of HTML**; ≥20 content blocks averaging <3 words (a hydration shell whose word count squeaks over the floor); a bootstrap signal (mount point / framework bundle / data-island) plus a near-empty content area; an empty custom-element shell; or a self-declared skeleton (`skeleton`/`shimmer`/`ghost-card`/`loading-placeholder` in an id or class) on a page whose raw content is below the 120-word floor — a bare `placeholder` class (input and lazy-image wrappers) never counts, and lazy-section loaders on a content-rich page are not a shell. Mount points are matched **by shape** (`trello-root`, `acme-app`, `react-root-card-back`), not against a fixed id list, and block counts exclude `<nav>`/`<header>`/`<footer>`/`<aside>` so chrome cannot fake the density ratio. This generalises to custom SPA frameworks and to shells with no recognisable framework fingerprint at all.
    - **LLM Semantic Fallback:** If `thin_initial_content_detected: true`, or `structural_delta_signals` is non-empty, or `likely_client_side_rendering_barrier: true`, the LLM inspects the rendered DOM to identify high-value brand facts (pricing, specs, brand claims) trapped behind client-side JavaScript.
@@ -119,6 +128,11 @@ reads):
   "llm_semantic_fallbacks": {
     "trapped_fact_observations": "...",
     "indexing_risk_assessment": "..."
+  },
+  "dom_render_availability": {
+    "available": false,
+    "unavailable_reason": "no_browser_installed",
+    "browser": null
   }
 }
 ```
@@ -126,6 +140,21 @@ reads):
 Fields that are `null` mean **not determinable in this run** (no rendered DOM
 supplied, or `raw_html` missing) — the orchestrator must treat them as
 "not audited", never as a pass.
+
+**`dom_render_availability`** is `fetch_rendered_dom.py`'s own `{available,
+unavailable_reason, browser}` fields, passed through verbatim — not its full
+result (`rendered_html` itself is consumed as input by the checks above, not
+re-reported here). When `unavailable_reason` is `"no_browser_installed"` or
+`"root_no_sandbox"`, the orchestrator raises a disclosure finding: **this
+audit environment has no usable headless browser at all**, so every check in
+this skill ran raw-HTML-only for every page, not just this one. That is
+different from `"skipped_by_robots"` (a site policy, already reported via
+`audit_metadata.robots_restricted_fetches`) or `"timed_out"` /
+`"render_failed"` / `"launch_failed"` (this specific page's render attempt
+failed, not a missing capability) — see `audit-orchestrator/SKILL.md`'s Step 2
+for the exact finding text. Omit this field (rather than fabricate it) if the
+orchestrating agent used its own native browser tool instead of
+`fetch_rendered_dom.py` and a comparison was obtained successfully.
 
 ## Known limitations (raw-only mode)
 

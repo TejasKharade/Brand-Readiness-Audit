@@ -28,6 +28,17 @@ The ONLY permitted network activity is capped PDF-link text layer inspection per
 
 ## Procedure & Hybrid Execution Flow
 
+> [!IMPORTANT]
+> **Prefer `scripts/run_all.py` over calling the four scripts below separately.**
+> None of them do any network I/O of their own (`check_nontext_facts.py`'s
+> linked-PDF reads are internally wall-clock-bounded either way), so there is
+> no parallelism benefit to four separate subprocess calls — only four times
+> the process-spawn and orchestrator-turn overhead. `run_all.py` takes the
+> same `{html, url, robots}` input and returns the same four output keys
+> (`structured_data`, `semantic_structure`, `content_consistency`,
+> `nontext_facts`) in one JSON object, by importing and calling these exact
+> same functions — detection logic and output shape are unchanged.
+
 1. **Structured Data Extraction (check_structured_data.py + LLM Semantic Fallback)**:
    - Run `scripts/check_structured_data.py` to extract JSON-LD, @graph arrays, and check attribute completeness across 9 major Schema types.
    - **Unparseable JSON-LD is reported, not dropped.** A block is retried with the recoveries a lenient consumer applies (HTML-unescaping, and raw control characters such as a literal newline inside a string); only a block that still fails lands in `parse_errors` (`block_index`, `error`, `snippet`). The orchestrator reports a page whose only JSON-LD is broken as **"Present but Unparseable"** (high) — the fix is to correct the syntax, not to add schema — and a broken block beside valid ones as a medium finding, instead of the previous behavior of calling the first case "Missing" and ignoring the second.

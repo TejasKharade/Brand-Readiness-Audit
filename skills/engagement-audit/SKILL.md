@@ -37,6 +37,18 @@ The invoking agent prepares JSON parameters for the execution scripts:
 
 ## Procedure
 
+> [!IMPORTANT]
+> **Prefer `scripts/run_single_page_checks.py` over calling
+> `check_content_depth.py` + `check_landing_readiness.py` +
+> `check_mobile_responsive_signals.py` separately.** All three take just this
+> one page's already-fetched `html` with no network I/O and no cross-page
+> input. `run_single_page_checks.py` takes the same `{html, url, page_type_hint}`
+> input and returns all three output keys (`content_depth`,
+> `landing_readiness`, `mobile_responsiveness`) in one JSON object, by
+> importing and calling these exact same functions. Navigation reachability
+> and descriptor consistency need data gathered ACROSS pages, and page-speed
+> does its own network fetch — all three stay separate calls.
+
 ### Step 1: Check Homepage Navigation Reachability
 
 Run `scripts/check_navigation_reachability.py` to evaluate homepage link reachability:

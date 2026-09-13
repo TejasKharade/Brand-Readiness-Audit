@@ -37,6 +37,14 @@ Use as the data-gathering stage for content recency, off-site fact corroboration
 
 ## Procedure & Script Execution Flow
 
+> [!IMPORTANT]
+> **Prefer `scripts/run_content_dates_and_decay.py` over calling steps 1 and 2
+> below separately.** Both are pure in-memory HTML parsing with no network
+> I/O. It takes the same `{html, url, status}` input and returns both output
+> keys (`content_dates`, `temporal_decay`) in one JSON object, by importing
+> and calling these exact same functions. Steps 3-4 need this turn's own
+> `WebSearch` results and stay separate calls, run after searching.
+
 1. **On-Site Content Dates Analysis (`scripts/check_content_dates.py`)** — *No Search*
    ```bash
    echo '{"html": "...", "url": "https://example.com", "status": 200}' | python skills/freshness-corroboration/scripts/check_content_dates.py

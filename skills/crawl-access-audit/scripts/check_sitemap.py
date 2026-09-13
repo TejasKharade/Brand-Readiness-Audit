@@ -16,9 +16,15 @@ for _d in (_os.path.dirname(_os.path.abspath(__file__)),
     if _d not in sys.path:
         sys.path.insert(0, _d)
 try:
-    from robots_gate import RobotsGate
+    from robots_gate import RobotsGate, skipped_payload
 except Exception:  # gate unavailable -> refuse to fetch, never fetch blind
     RobotsGate = None
+
+    def skipped_payload(url, decision, extra=None):
+        out = {"url": url, "skipped_by_robots": True, "error": "Not fetched: robots gate unavailable"}
+        if extra:
+            out.update(extra)
+        return out
 
 import gzip
 import ssl
@@ -57,6 +63,35 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; AIAccessibilityAuditor/1.0)"}
 
 
 XML_SUFFIX_INDEX_THRESHOLD = 0.8
+
+
+def classify_sitemap_failure(status_code=None, exc_kind=None):
+    """Turn a raw fetch outcome into a failure_kind the orchestrator can word
+    correctly. "The sitemap is missing" and "this auditor's fetch was refused"
+    are different claims with different fixes -- a 403/429/5xx or a network
+    timeout does NOT mean the sitemap doesn't exist, only that THIS request
+    for it didn't succeed, and a WAF/bot-management layer commonly treats a
+    non-browser, non-recognized-crawler User-Agent (this script's own
+    `AIAccessibilityAuditor/1.0`) very differently from a real browser -- which
+    is exactly the "it works when I open it in a browser" symptom this exists
+    to stop misreporting as "missing"."""
+    if exc_kind == "network":
+        return "network_unreachable"
+    if exc_kind == "invalid_xml_200":
+        return "invalid_xml_200"
+    if exc_kind == "other":
+        return "other"
+    if not isinstance(status_code, int):
+        return "other"
+    if status_code in (404, 410):
+        return "not_found"
+    if status_code in (401, 403):
+        return "blocked"
+    if status_code == 429:
+        return "rate_limited"
+    if 500 <= status_code < 600:
+        return "server_error"
+    return "other"
 
 
 def fetch_resource(url, timeout=12, retries_on_429=1, total_budget=None):
@@ -235,7 +270,16 @@ def probe_conventional_path(conventional_url):
     return out
 
 
-SITEMAP_FETCH_DEADLINE_S = 30.0
+# 20s (down from 30s): a real sitemap fetch, including a sitemap-index with
+# several child sitemaps and a dozen spot-checks, normally finishes in a few
+# seconds -- 30s was headroom for a slow-but-live host, not the typical cost.
+# Reduced as part of a GENERAL worst-case-ceiling trim (alongside
+# fetch_rendered_dom.py and check_page_speed_signals.py) after a real audit's
+# worst-case ceiling SUM (documented in audit-orchestrator/SKILL.md) was shown
+# to already sit near the <5min handout budget before any agent/orchestration
+# overhead -- this reduces every audit's worst case uniformly, not a rule
+# targeting any specific host.
+SITEMAP_FETCH_DEADLINE_S = 20.0
 
 # ---------------------------------------------------------------------------
 # Representative page sample. Pages that share a URL structure are almost
@@ -369,11 +413,24 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
             "child_sitemaps_expanded_of_total": None
         },
         "error": None,
+        # Distinct from "missing": a 403/429/5xx or a network timeout means
+        # THIS request failed, not that the sitemap doesn't exist. See
+        # classify_sitemap_failure() -- "not_found" is the only kind that
+        # actually supports "the sitemap is missing" as a claim.
+        "http_status": None,
+        "failure_kind": None,
         "time_budget_exceeded": False,
         # One URL per URL-structure group, for choosing which pages to audit.
         "representative_sample": [],
         "url_groups": {},
     }
+
+    if _gate is not None:
+        _root_decision = _gate.allows(sitemap_url, "*")
+        if not _root_decision.allowed:
+            result.update(skipped_payload(sitemap_url, _root_decision))
+            result["failure_kind"] = "skipped_by_robots"
+            return result
 
     try:
         status, content, ssl_bypassed = fetch_resource(
@@ -382,6 +439,8 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
         result["ssl_verification_bypassed"] = ssl_bypassed
         if status != 200:
             result["error"] = f"HTTP {status}"
+            result["http_status"] = status
+            result["failure_kind"] = classify_sitemap_failure(status_code=status)
             return result
 
         result["exists"] = True
@@ -392,6 +451,8 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
             result["valid_xml"] = True
         except ET.ParseError as e:
             result["error"] = f"XML Parse Error: {str(e)}"
+            result["http_status"] = 200
+            result["failure_kind"] = classify_sitemap_failure(exc_kind="invalid_xml_200")
             return result
 
         page_urls, index_urls = parse_xml_elements(root)
@@ -426,6 +487,12 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
                     result["child_sitemap_errors"].append({
                         "url": child_url, "error": f"skipped: {SITEMAP_FETCH_DEADLINE_S:.0f}s wall-clock budget exceeded"})
                     continue
+                if _gate is not None:
+                    _child_decision = _gate.allows(child_url, "*")
+                    if not _child_decision.allowed:
+                        result["child_sitemap_errors"].append(
+                            skipped_payload(child_url, _child_decision))
+                        continue
                 try:
                     child_status, child_content, child_ssl_bypassed = fetch_resource(
                         child_url, timeout=max(2, min(12, time_left())),
@@ -485,12 +552,16 @@ def check_sitemap(sitemap_url, max_samples=None, conventional_url=None, robots=N
     except HTTPError as e:
         result["exists"] = False
         result["error"] = f"HTTP {e.code}"
+        result["http_status"] = e.code
+        result["failure_kind"] = classify_sitemap_failure(status_code=e.code)
     except (URLError, socket.timeout) as e:
         result["exists"] = False
         result["error"] = f"Network Error: {str(e)}"
+        result["failure_kind"] = classify_sitemap_failure(exc_kind="network")
     except Exception as e:
         result["exists"] = False
         result["error"] = f"Execution Error: {str(e)}"
+        result["failure_kind"] = classify_sitemap_failure(exc_kind="other")
 
     # Rolled-up reachability flag consumed by the orchestrator. A sitemap that
     # exists but failed child traversal is still "found" -- per the SKILL.md
