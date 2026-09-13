@@ -10,6 +10,16 @@ allowed-tools: Bash Read WebFetch WebSearch
 
 Serves as the entrypoint master orchestrator for conducting complete end-to-end Brand AI Readiness Audits across target website domains and URLs.
 
+> [!IMPORTANT]
+> **Execute this now — do not produce an implementation plan.** This document
+> is a runbook, not a spec to design against: everything needed already
+> exists (every script below is written, tested, and ready to invoke). If you
+> were asked to audit a website, follow Steps 1–6 below literally, in this
+> turn, without asking for approval to start — the scripts are all read-only.
+> The task is not done until `synthesize_report.py` (Step 6) has actually
+> written a JSON report file to disk; a plan, a summary, or partial findings
+> in chat do not satisfy the request.
+
 > [!NOTE]
 > **Orchestrator Role**:
 > The `audit-orchestrator` skill coordinates the sequential execution of all 5 specialized sub-skills (`crawl-access-audit`, `crawl-render-audit`, `readability-audit`, `freshness-corroboration`, `engagement-audit`) and synthesizes their raw JSON findings into a unified, authoritative Brand AI Readiness Audit Report.
