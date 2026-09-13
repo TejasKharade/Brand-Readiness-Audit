@@ -1,155 +1,43 @@
-# Brand AI-Readiness Audit Skill Marketplace
+# Brand AI-Readiness Audit — Agent Skill Marketplace
 
-This repository contains an **Agent Skill Marketplace** built according to the **agentskills.io** specification for automated website auditing across **AI Discoverability** and **On-Site Engagement**.
+An agentskills.io marketplace that audits any website for **AI discoverability** (can AI assistants reach, read
+and cite it?) and **on-site engagement** (do arriving visitors stay?), and writes one JSON report of
+evidence-backed findings with prioritized fixes. [`marketplace.json`](marketplace.json) lists six skills;
+`audit-orchestrator` is the single entrypoint.
 
----
+**Requirements:** Python 3 standard library only (nothing to `pip install`) and network access; an installed
+Chrome/Edge/Chromium is optional. To run, invoke the skill `marketplace.json` marks `"entrypoint": true` —
+[`skills/audit-orchestrator/SKILL.md`](skills/audit-orchestrator/SKILL.md) — with the URL to audit. An agent
+that simply opens this folder is pointed to the same skill by [`AGENTS.md`](AGENTS.md).
 
-## Marketplace Manifest (`marketplace.json`)
+## Skills
 
-The top-level [`marketplace.json`](marketplace.json) defines the skill entrypoint and module composition:
+| Skill | What it does |
+|---|---|
+| `audit-orchestrator` *(entrypoint)* | Runs the five sub-skills, turns their raw facts into findings with evidence, severity, confidence and a prioritized suggested action, and writes the report. |
+| `crawl-access-audit` | **Can crawlers get in?** robots.txt per RFC 9309 (live AI-search vs. training crawlers), browser-vs-AI-bot fetches (WAF blocks, redirect chains), TLS, noindex/canonical tags, sitemap health with a representative page sample, crawl depth. |
+| `crawl-render-audit` | **Can a non-JavaScript crawler see the content?** Raw-vs-rendered text gap, schema injected by JavaScript, client-side redirects, links only JavaScript reveals (optional local headless Chrome/Edge). |
+| `readability-audit` | **Can a machine extract the facts?** JSON-LD completeness and errors, heading structure, entity grounding, facts locked in images/SVG/PDFs, FAQ schema vs. visible text, question headings, author and NAP trust signals. |
+| `freshness-corroboration` | **Is it current and corroborated?** Publish/modified dates, copyright year, blog recency, on-site facts checked against web search, Wikipedia/Wikidata presence and `sameAs` links, brand-name ambiguity. |
+| `engagement-audit` | **Will a visitor stay?** Homepage navigation reachability, content depth, mobile viewport, cross-page brand consistency, page weight, readiness of pages visitors land on from AI answers, privacy/terms pages. |
 
-```json
-{
-  "name": "brand-ai-readiness-audit",
-  "version": "1.0.0",
-  "skills": [
-    {
-      "id": "audit-orchestrator",
-      "path": "skills/audit-orchestrator",
-      "entrypoint": true
-    },
-    {
-      "id": "crawl-access-audit",
-      "path": "skills/crawl-access-audit"
-    },
-    {
-      "id": "crawl-render-audit",
-      "path": "skills/crawl-render-audit"
-    },
-    {
-      "id": "freshness-corroboration",
-      "path": "skills/freshness-corroboration"
-    },
-    {
-      "id": "engagement-audit",
-      "path": "skills/engagement-audit"
-    },
-    {
-      "id": "readability-audit",
-      "path": "skills/readability-audit"
-    }
-  ]
-}
-```
+## How the entrypoint composes them
 
----
+1. **Access first.** `check_robots.py` runs before anything else, and every later request is checked against
+   that robots.txt at no extra cost. Each sampled page is fetched once — as a browser and as an AI bot.
+2. **Reuse, don't refetch.** The render, readability, freshness and engagement skills analyse that same HTML.
+   Independent calls within a stage run in parallel and every network script has a hard time limit, so an
+   audit is designed to finish in under 5 minutes.
+3. **Stop on a bot block.** If a WAF blocks or challenges the bot, the on-site content checks are skipped and
+   listed in `categories_not_audited` — never reported as "clean". Off-site web-search checks still run.
+4. **One judgement layer.** Sub-skills only gather facts; `synthesize_report.py` assigns severity and confidence,
+   adds proactive recommendations tied to what was measured, and always writes a schema-valid report.
+   `verify_contracts.py` fails if a sub-skill's output drifts from what the orchestrator reads.
 
-## Marketplace Skills Overview
+## Report
 
-1. **`audit-orchestrator`** *(Entrypoint Master Skill)*: Coordinates the sequential execution of all 5 specialized sub-skills and synthesizes their raw findings into the final report. There is deliberately no score of any kind, per-category or overall — the handout's required report schema never asks for one; each finding's `severity` (`critical`/`high`/`medium`/`low`) plus its **confidence** (how sure the check is the finding is real, distinct from severity) carry that information instead.
-2. **`crawl-access-audit`**: Gathers raw technical accessibility facts — `robots.txt` rules evaluated per RFC 9309 (longest-match, wildcards) and **split by crawler purpose**: live AI-search/assistant retrieval crawlers (`OAI-SearchBot`, `PerplexityBot`, `Claude-SearchBot`, …) versus model-training-only crawlers (`GPTBot`, `ClaudeBot`, `CCBot`, `Google-Extended`, …), verified against each operator's own documentation, so blocking a training crawler is scored very differently from blocking one that feeds live AI search answers; dual-identity browser-vs-bot HTTP fetches (with redirect loop/long-chain detection); **TLS certificate validity** (expired, hostname-mismatched, self-signed, expiring soon); indexing meta tags; XML sitemap health with an adaptive, structurally-grouped **representative page sample** (one URL per URL-structure group, not just the first N listed); and crawl depth.
-3. **`crawl-render-audit`**: Evaluates client-side JavaScript rendering barriers, DOM hydration gaps, trapped JSON-LD structured data, and client-side redirects. When no rendered-DOM tool is otherwise available, it can capture one itself via a **locally installed Chrome/Edge/Chromium** (sandboxed, throwaway profile, hard timeout, nothing bundled or downloaded) so raw-vs-rendered comparisons are measured directly instead of inferred from raw HTML alone. When a rendered DOM is available it also measures **content parity** — which sentences exist only after JavaScript runs, quoted verbatim in the finding, so "raw HTML is thin" becomes "here is the text an AI crawler never sees" — and **link discovery**, the internal links a non-JS crawler cannot follow.
-4. **`readability-audit`**: Audits Schema.org JSON-LD completeness across 9 schema types — including recovering and explicitly reporting genuinely unparseable JSON-LD (distinguishing "no structured data" from "structured data present but broken") — semantic heading hierarchy (`<h1>`-`<h6>`), non-text machine-readable facts, and tabular data consistency. It also checks **entity grounding** — whether the markup actually answers *who publishes this page* (an `Organization`/`Brand`/`Person` identity anchor on the homepage) and *what the page is about*, catching pages whose only valid schema is their own breadcrumb trail — and whether each entity carries a quotable `description` (a presence/length test; the audit never judges wording). Interior pages already parsed during the run can be passed through `readability.additional_pages` at no extra request cost. Three further checks, all deterministic and zero-extra-request: **question-phrased headings** (a heading ending `?`/`؟` or opening with an interrogative word) are checked for real text — however short — immediately following, since a dangling question with nothing under it gives an answer engine a question with no answer to pair it with; **content front-loading** flags a page whose first substantial block of text is buried deep past mostly-filler content (chrome-excluded, and only when there's enough signal to say so — never a guessed verdict); and **FAQ schema is cross-checked against visible text** via vocabulary overlap (tolerant of paraphrasing, not exact matching) so schema left over from a stale edit, or never actually shown to a visitor, is caught rather than trusted at face value. Two E-E-A-T / trust checks round these out: a real named **author byline** is checked against a narrow, high-confidence list of CMS-default placeholders (`admin`, `webmaster`, …) — never against legitimate organizational bylines like "Staff Writer" — and **NAP (Name/Address/Phone) consistency** confirms `LocalBusiness` schema's contact details actually appear in the page's own visible text, not just in JSON-LD or a `tel:`/click-to-chat link.
-5. **`freshness-corroboration`**: Audits content publication/modification dates, copyright year ranges, blog temporal decay, off-site web search citation consistency, and Wikipedia/Wikidata `sameAs` entity links — with confidence-scored candidate matching so a same-named but unrelated entity (a disambiguation page, a namespace page, an unrelated company) is never mistaken for the audited brand. `sameAs` targets are classified: a link to a **public identity registry** (package or code registry, app store, company register, persistent-identifier authority) is a registry-grade anchor of the same kind Wikidata provides, so the optional "no encyclopedia link" nudge is not raised against brands that will never meet encyclopedia notability — while an entry that demonstrably exists off-site but is not linked is reported as the concrete gap it is.
-6. **`engagement-audit`**: Audits human visitor orientation, 1-level homepage navigation reachability, content depth vs. adaptive reference ranges, mobile responsiveness viewport tags, cross-page brand phrase consistency (including detection of an identical meta description reused across different pages), page weight resource signals, cold AI-referral landing-page readiness, and (low-severity, informational) trust-page presence — a linked Privacy Policy or Terms page.
-
----
-
-## How the Entrypoint Composes the Skills
-
-The five sub-skills are **data-gathering only** — they emit raw structured facts and never assign a
-severity, name a root cause, or suggest a fix. All interpretation happens in one place:
-`audit-orchestrator`. That split is the point of the decomposition — a check can be added, corrected or
-re-tuned in its own skill without touching the judgement layer, and every severity decision in the report
-is traceable to one file (`scripts/synthesize_report.py`).
-
-The ordering is a **dependency chain, not a ceremony** — each stage consumes what the previous one already
-fetched:
-
-1. **`crawl-access-audit` runs first** and is the only stage that fetches the page. `check_robots.py` runs
-   before everything else, and its parsed `robots.txt` is passed into every other script in the
-   marketplace, which gate their requests through `crawl-access-audit/scripts/robots_gate.py` — so
-   compliance costs **zero extra HTTP requests**. `fetch_dual_identity.py` then fetches each sampled page
-   twice, once as a browser and once as an AI crawler.
-2. **Every later stage reuses that HTML.** `crawl-render-audit`, `readability-audit`, `engagement-audit`
-   and `freshness-corroboration` all take the already-fetched `browser_fetch.content` as input rather than
-   re-fetching — the page is fetched once and analysed five ways. This is what keeps a full audit inside
-   the handout's <5 minute runtime budget.
-3. **A failed gate short-circuits the gates below it.** If the bot-identity fetch is blocked, soft-blocked
-   or challenged by a WAF/CDN, the orchestrator sets `audit_metadata.coverage_blocked` and **stops** —
-   it does not run the content, rendering or engagement checks, because a headless browser can solve a
-   challenge that stops a real crawler, and grading content a crawler never reaches would report a false
-   "high quality" site. Those categories are listed in `categories_not_audited`: zero findings there means
-   *not evaluated*, not *clean*. The off-site checks (`citation_consistency`, `entity_disambiguation`)
-   still run, since they corroborate via web search rather than via the blocked site.
-4. **`synthesize_report.py` composes the final report**: it normalises each sub-skill's output shape,
-   converts raw facts into findings with an evidence string and a severity, adds proactive recommendations
-   that are each gated on the signal they talk about, sorts findings by impact (`critical` first) and
-   assigns `F-001…` ids in that order. It always emits a schema-valid report — a sub-skill that crashed,
-   timed out or was skipped degrades that category to "not measured" rather than taking the report down.
-
-`scripts/verify_contracts.py` guards the seams: it cross-checks every output key the orchestrator reads
-against the keys the sub-skill scripts actually emit and fails loudly on drift, so a renamed field in a
-sub-skill can never silently disable a finding and make a broken site look clean.
-
----
-
-## Output Report Schema
-
-The marketplace's entrypoint skill (`audit-orchestrator`) emits a single JSON audit report conforming to Adobe's Round 3 problem statement specification:
-
-```json
-{
-  "site": "https://example.com",
-  "audited_at": "2026-09-06T21:28:45Z",
-  "summary": {
-    "total_findings": 3,
-    "critical": 1,
-    "high": 0,
-    "medium": 1,
-    "low": 1
-  },
-  "findings": [
-    {
-      "id": "F-001",
-      "category": "crawl_access",
-      "title": "AI Crawler Blocked From the Site Root by robots.txt (OAI-SearchBot)",
-      "severity": "critical",
-      "evidence": "robots.txt disallows the homepage (/) for OAI-SearchBot [retrieval: search_index]. Blocked crawlers that fetch pages for live AI search / assistant answers: ['OAI-SearchBot'].",
-      "suggested_action": {
-        "summary": "Update robots.txt so OAI-SearchBot may fetch public brand content.",
-        "priority": "critical"
-      },
-      "confidence": 1.0
-    }
-  ],
-  "proactive_recommendations": [
-    "Ensure robots.txt allows access to AI crawler user-agents (GPTBot, PerplexityBot, ClaudeBot).",
-    "Implement Server-Side Rendering (SSR) so raw HTML responses contain full text and JSON-LD schema.",
-    "Add authoritative sameAs references (Wikidata, Wikipedia, LinkedIn) to Organization schema markup."
-  ],
-  "audit_metadata": {
-    "audited_pages_count": 5,
-    "skills_invoked_count": 5,
-    "marketplace_version": "1.0.0"
-  }
-}
-```
-
-`audit_metadata.robots_restricted_fetches` lists every request the audit declined to make because
-`robots.txt` disallowed it (empty when the site permitted everything the audit looked at). All six skills route
-every HTTP request through `crawl-access-audit/scripts/robots_gate.py`, which is built from the `robots.txt`
-already fetched at the start of the run — so compliance costs no extra requests — and evaluates each request
-against **the identity being presented**: the dual-identity fetch's `GPTBot` leg is not sent at all to a site
-whose `robots.txt` disallows `GPTBot`. Per RFC 9309, a `404` means nothing is disallowed, while an unreachable
-or `5xx` `robots.txt` makes the gate **fail closed** and fetch nothing. A refused fetch is reported as refused,
-never as a site defect.
-
-`confidence` (0–1, default 1.0) appears on every finding: how sure the check is the finding is real, as distinct from `severity` (how bad it would be if true).
-
-### No scoring, by design
-
-This report computes no score of any kind — no per-category number, no overall blended figure. The handout's
-required schema is `site`/`audited_at`/a severity-count `summary`/`findings`/`suggested_action`, nothing more, and
-never asks for one. Each finding's `severity` plus `confidence` carry the information a score would otherwise
-compress into a single misleading number.
+Follows the handout schema — `site`, `audited_at`, counts by severity, and `findings[]` with `id`, `title`,
+`severity`, `evidence` and `suggested_action` — plus `confidence`, `proactive_recommendations` and
+`audit_metadata` (pages audited, fetches refused by robots.txt, coverage). Every finding's evidence ends with a
+plain-English *"What This Means"*, and there is deliberately no score. Full schema:
+[`audit_report_schema.json`](skills/audit-orchestrator/references/audit_report_schema.json).
