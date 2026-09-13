@@ -1,0 +1,36 @@
+{
+  "exists": false,
+  "sitemap_found": false,
+  "conventional_path_check": null,
+  "valid_xml": false,
+  "leading_whitespace_before_xml": false,
+  "is_sitemap_index": false,
+  "reclassified_as_index": false,
+  "child_sitemaps_total": 0,
+  "child_sitemaps_checked": 0,
+  "child_sitemaps_sampled": 0,
+  "child_sitemap_errors": [],
+  "url_count": 0,
+  "is_empty": true,
+  "ssl_verification_bypassed": false,
+  "sampled_urls": [],
+  "sampling_strategy": {
+    "method": "adaptive_sqrt_clamped",
+    "url_sample_bounds": [
+      5,
+      15
+    ],
+    "child_sitemap_bounds": [
+      3,
+      6
+    ],
+    "urls_sampled": 0,
+    "child_sitemaps_expanded_of_total": null
+  },
+  "error": "HTTP 403",
+  "http_status": 403,
+  "failure_kind": "blocked",
+  "time_budget_exceeded": false,
+  "representative_sample": [],
+  "url_groups": {}
+}

@@ -1,0 +1,48 @@
+{
+  "content_dates": {
+    "url": "https://www.easemytrip.com/",
+    "checked": true,
+    "fetch_status": 200,
+    "date_published": null,
+    "date_modified": null,
+    "date_published_age_days": null,
+    "date_modified_age_days": null,
+    "effective_content_age_days": 509,
+    "effective_content_age_source": "latest_visible_date",
+    "content_date_issues": [],
+    "explicit_temporal_anchors_found": [],
+    "visible_dates_found": [
+      "2025-04-22",
+      "2023-03-03"
+    ],
+    "visible_dates_count": 2,
+    "latest_visible_date": "2025-04-22",
+    "latest_visible_date_age_days": 509,
+    "copyright_year": 2025,
+    "copyright_years_all": [
+      2025
+    ],
+    "copyright_year_age_years": 1,
+    "scanning_scope": "visible_text_only (script/style/comments stripped)"
+  },
+  "temporal_decay": {
+    "url": "https://www.easemytrip.com/",
+    "checked": true,
+    "fetch_status": 200,
+    "most_recent_post_date_found": "(Revised as of March 3, 2023)",
+    "most_recent_post_date_iso": "2023-03-03",
+    "date_precision": "day",
+    "days_since_last_post": 1290,
+    "is_decayed": true,
+    "decay_threshold_days": 365,
+    "post_count_found": 4,
+    "has_relative_recent_timestamps": false,
+    "detection_confidence": "low",
+    "text_date_snippets": [
+      "Invite Your Friends & Get Up to INR 2000*",
+      "In light of the Pahalgam terror attack on 22nd April 2025 and war-like situations between India & Pakistan. Turkey and Azerbaijan have shown support for Pakistan.",
+      "EaseMyTrip offers 'End to End' travel solutions including air tickets for more than 400 international and domestic airlines, hotel bookings for nearly 1 million hotels in India and abroad, cab booking with 4000+ cab operators, bus tickets with 2000+ bus operators, and railway tickets in India for all major cities.",
+      "(Revised as of March 3, 2023)"
+    ]
+  }
+}

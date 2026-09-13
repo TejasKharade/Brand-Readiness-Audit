@@ -1,0 +1,153 @@
+{
+  "total_json_ld_blocks": 1,
+  "parsed_json_ld_blocks": 1,
+  "microdata_detected": false,
+  "rdfa_detected": false,
+  "recognized_entities_count": 9,
+  "entities": [
+    {
+      "block_index": 0,
+      "types": [
+        "FAQPage"
+      ],
+      "name": null,
+      "extracted_facts": {},
+      "description_quality": {
+        "has_description": false,
+        "length": 0,
+        "too_short": false,
+        "text": ""
+      },
+      "faq_completeness": {
+        "main_entity_present": true,
+        "questions_detected": 4,
+        "questions_complete": 4,
+        "pairs": [
+          {
+            "question": "How do you find the cheapest airfare?",
+            "answer": "To find the cheapest airfare, you can visit our site or download the app and enter your departure and arrival cities and find out the cheapest days to fly with our fare calendar. In compare to full service carriers, low cost airlines offer cheaper fares. By considering budget airlines, you can do great savings on airline tickets."
+          },
+          {
+            "question": "What is the best day of the week to buy plane tickets?",
+            "answer": "As per previous findings, the best day to book cheapest flight tickets was Tuesday, but it\u00e2\u20ac\u2122s not anymore. As more number of business travelers has started booking their flights during the week, the best day to buy those tickets is now Sunday. To avail more savings on flight tickets, try to book on a Sunday that is more than 21 days ahead of your trip."
+          },
+          {
+            "question": "Is it cheaper to book flights last minute?",
+            "answer": "There is a popular belief that if you book flights in advance, your air tickets will be cheaper. However, contrary to the popular belief, booking airline tickets late is often cheaper. As per the research, flight tickets are generally cheaper if booked three weeks before departure than tickets booked 6 months ahead. But, this is not necessary. The price of flights fluctuate daily or even hourly in various cases. Many times, it changes due to the increasing demand of a particular route by the passengers. So, sometimes flights get cheaper while traveling closer to the travel date and in some cases, it gets expensive."
+          },
+          {
+            "question": "How can I fly for free?",
+            "answer": "At present, EaseMyTrip has an offer to avail free flight tickets worth Rs.5000 daily. However, there are many other options like loyalty points, frequent flyer credit cards from different banks and availing free flights with miles that may help you in flying for free."
+          }
+        ]
+      }
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Question"
+      ],
+      "name": "How do you find the cheapest airfare?",
+      "extracted_facts": {
+        "name": "How do you find the cheapest airfare?"
+      }
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Answer"
+      ],
+      "name": null,
+      "extracted_facts": {}
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Question"
+      ],
+      "name": "What is the best day of the week to buy plane tickets?",
+      "extracted_facts": {
+        "name": "What is the best day of the week to buy plane tickets?"
+      }
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Answer"
+      ],
+      "name": null,
+      "extracted_facts": {}
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Question"
+      ],
+      "name": "Is it cheaper to book flights last minute?",
+      "extracted_facts": {
+        "name": "Is it cheaper to book flights last minute?"
+      }
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Answer"
+      ],
+      "name": null,
+      "extracted_facts": {}
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Question"
+      ],
+      "name": "How can I fly for free?",
+      "extracted_facts": {
+        "name": "How can I fly for free?"
+      }
+    },
+    {
+      "block_index": 0,
+      "types": [
+        "Answer"
+      ],
+      "name": null,
+      "extracted_facts": {}
+    }
+  ],
+  "entity_grounding": {
+    "is_site_root": false,
+    "identity_entity_types": [],
+    "subject_entity_types": [
+      "FAQPage"
+    ],
+    "structural_entity_types": [],
+    "unclassified_entity_types": [
+      "Answer",
+      "Question"
+    ],
+    "has_identity_entity": false,
+    "has_subject_entity": true,
+    "structural_only": false
+  },
+  "description_coverage": {
+    "describable_entities": 1,
+    "with_description": 0,
+    "missing_description_types": [
+      "FAQPage"
+    ],
+    "short_description_entities": [],
+    "min_useful_chars": 25
+  },
+  "faq_visible_text_check": {
+    "checked": true,
+    "pairs_checked": 4,
+    "low_overlap_pairs": [],
+    "low_overlap_count": 0
+  },
+  "nap_consistency": {
+    "checked": false,
+    "reason": "no LocalBusiness/Organization telephone or address to compare"
+  },
+  "parse_errors": []
+}

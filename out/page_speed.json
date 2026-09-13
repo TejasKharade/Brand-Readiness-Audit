@@ -1,0 +1,16 @@
+{
+  "url": "https://www.easemytrip.com/",
+  "html_byte_size": 296035,
+  "total_css_js_bytes": 1344972,
+  "css_js_resources_total_found": 54,
+  "css_js_resources_measured": 15,
+  "image_count": 110,
+  "resource_count_total": 164,
+  "resource_fetch_errors": [
+    {
+      "url": "https://tagmanager.easemytrip.com/tag/etm.js?id=EMT-543RTP",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "time_budget_exceeded": false
+}

@@ -1,0 +1,108 @@
+{
+  "url": "https://www.mayoclinic.org/",
+  "bot_fetch_failed_browser_ok": false,
+  "bot_fetch_error": null,
+  "robots_skipped_browser_fetch": false,
+  "robots_skipped_bot_fetch": false,
+  "robots_decisions": {
+    "browser": {
+      "allowed": true,
+      "reason": "no robots.txt published (HTTP 403), so nothing is disallowed",
+      "source": "absent"
+    },
+    "bot": {
+      "allowed": true,
+      "reason": "no robots.txt published (HTTP 403), so nothing is disallowed",
+      "source": "absent"
+    }
+  },
+  "browser_status": 403,
+  "bot_status": 403,
+  "bot_blocked": true,
+  "bot_soft_blocked": false,
+  "bot_challenged": false,
+  "rate_limited": false,
+  "browser_fetch": {
+    "status": 403,
+    "final_url": "https://www.mayoclinic.org/",
+    "redirect_count": 0,
+    "response_time": 0.248,
+    "response_headers": {
+      "Server": "AkamaiGHost",
+      "Mime-Version": "1.0",
+      "Content-Type": "text/html",
+      "Content-Length": "372",
+      "Cache-Control": "max-age=0",
+      "Expires": "Sun, 13 Sep 2026 14:01:00 GMT",
+      "Date": "Sun, 13 Sep 2026 14:01:00 GMT",
+      "Connection": "close",
+      "Set-Cookie": "MAYO_CLINIC_USER_GEO=IN; path=/; secure; SameSite=Strict",
+      "Server-Timing": "cdn-cache; desc=HIT",
+      "mayo-origin-source": "gcp"
+    },
+    "content": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;www&#46;mayoclinic&#46;org&#47;\" on this server.<P>\nReference&#32;&#35;18&#46;121cc517&#46;1789308060&#46;1fd1c185\n<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;121cc517&#46;1789308060&#46;1fd1c185</P>\n</BODY>\n</HTML>\n",
+    "content_fingerprints": {
+      "cloudflare_challenge": false,
+      "cloudflare_signals": [],
+      "captcha": false,
+      "captcha_signals": [],
+      "generic_block": true,
+      "generic_block_signals": [
+        "access denied"
+      ],
+      "login_wall": false,
+      "thin_content": false,
+      "thin_content_reason": "main-body text 212 chars (100% of 212 total) -> adequate",
+      "visible_text_length": 212,
+      "main_text_length": 212,
+      "boilerplate_text_length": 0,
+      "content_to_total_ratio": 1.0,
+      "_fingerprint_error": null
+    },
+    "error": null
+  },
+  "bot_fetch": {
+    "status": 403,
+    "final_url": "https://www.mayoclinic.org/",
+    "redirect_count": 0,
+    "response_time": 0.264,
+    "response_headers": {
+      "Server": "AkamaiGHost",
+      "Mime-Version": "1.0",
+      "Content-Type": "text/html",
+      "Content-Length": "372",
+      "Cache-Control": "max-age=0",
+      "Expires": "Sun, 13 Sep 2026 14:01:02 GMT",
+      "Date": "Sun, 13 Sep 2026 14:01:02 GMT",
+      "Connection": "close",
+      "Set-Cookie": "MAYO_CLINIC_USER_GEO=IN; path=/; secure; SameSite=Strict",
+      "Server-Timing": "cdn-cache; desc=HIT",
+      "mayo-origin-source": "gcp"
+    },
+    "content": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access \"http&#58;&#47;&#47;www&#46;mayoclinic&#46;org&#47;\" on this server.<P>\nReference&#32;&#35;18&#46;121cc517&#46;1789308062&#46;1fd1f1e8\n<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;121cc517&#46;1789308062&#46;1fd1f1e8</P>\n</BODY>\n</HTML>\n",
+    "content_fingerprints": {
+      "cloudflare_challenge": false,
+      "cloudflare_signals": [],
+      "captcha": false,
+      "captcha_signals": [],
+      "generic_block": true,
+      "generic_block_signals": [
+        "access denied"
+      ],
+      "login_wall": false,
+      "thin_content": false,
+      "thin_content_reason": "main-body text 212 chars (100% of 212 total) -> adequate",
+      "visible_text_length": 212,
+      "main_text_length": 212,
+      "boilerplate_text_length": 0,
+      "content_to_total_ratio": 1.0,
+      "_fingerprint_error": null
+    },
+    "error": null
+  },
+  "comparison_metrics": {
+    "status_match": true,
+    "length_diff_bytes": 0,
+    "fingerprint_divergence": false
+  }
+}

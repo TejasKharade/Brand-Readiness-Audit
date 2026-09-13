@@ -1,0 +1,15 @@
+{
+  "url": "https://www.mayoclinic.org/",
+  "depth": 0,
+  "path": [
+    "https://www.mayoclinic.org/"
+  ],
+  "error": null,
+  "pages_crawled": 0,
+  "url_depth": 0,
+  "url_depth_ignored_segments": [],
+  "is_deep_url": false,
+  "deep_url_threshold": 3,
+  "exploration_budget": "max_pages=40, max_depth=3, wall_clock=30s (defaults)",
+  "robots_check_unavailable": true
+}

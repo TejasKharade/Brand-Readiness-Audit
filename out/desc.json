@@ -1,0 +1,24 @@
+{
+  "candidate_brand_phrase": null,
+  "pages_audited": 2,
+  "distinct_pages_audited": 2,
+  "pages": [
+    {
+      "url": "https://www.easemytrip.com/",
+      "title": "EaseMyTrip.com - Book Flights, Hotels, Holidays, Bus & Train Tickets",
+      "h1": "Search Lowest Price",
+      "meta_description": "Discover the best deals on flights, hotels, holiday packages, bus & train tickets. Exclusive offers to make travel dreams a reality at Easemytrip!",
+      "brand_phrase_present_in_title": false,
+      "brand_phrase_present_in_h1": false
+    },
+    {
+      "url": "https://www.easemytrip.com/flights/",
+      "title": "Cheap Flights, Flight Ticket Booking at Lowest Prices in India",
+      "h1": "Flight Ticket Booking",
+      "meta_description": "Find and book cheap domestic and international flights with EaseMyTrip. Compare fares, choose your airline, and save big with exclusive bank & airlines discounts.",
+      "brand_phrase_present_in_title": false,
+      "brand_phrase_present_in_h1": false
+    }
+  ],
+  "duplicate_meta_descriptions": []
+}

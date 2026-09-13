@@ -1,0 +1,145 @@
+{
+  "reachable": false,
+  "malformed": false,
+  "resolved_url": null,
+  "evaluation": "RFC 9309 (longest match wins, Allow wins ties, * and $ wildcards)",
+  "disallowed": {},
+  "matched_rules": {},
+  "root_blocked_agents": [],
+  "blocked_paths_by_agent": {},
+  "agent_classes": {
+    "OAI-SearchBot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "OpenAI",
+      "honors_robots_txt": true
+    },
+    "ChatGPT-User": {
+      "class": "retrieval",
+      "role": "user_fetch",
+      "operator": "OpenAI",
+      "honors_robots_txt": false
+    },
+    "GPTBot": {
+      "class": "training",
+      "role": "training",
+      "operator": "OpenAI",
+      "honors_robots_txt": true
+    },
+    "Claude-SearchBot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Anthropic",
+      "honors_robots_txt": true
+    },
+    "Claude-User": {
+      "class": "retrieval",
+      "role": "user_fetch",
+      "operator": "Anthropic",
+      "honors_robots_txt": true
+    },
+    "ClaudeBot": {
+      "class": "training",
+      "role": "training",
+      "operator": "Anthropic",
+      "honors_robots_txt": true
+    },
+    "anthropic-ai": {
+      "class": "training",
+      "role": "training",
+      "operator": "Anthropic",
+      "honors_robots_txt": true
+    },
+    "PerplexityBot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Perplexity",
+      "honors_robots_txt": true
+    },
+    "Perplexity-User": {
+      "class": "retrieval",
+      "role": "user_fetch",
+      "operator": "Perplexity",
+      "honors_robots_txt": false
+    },
+    "Googlebot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Google",
+      "honors_robots_txt": true
+    },
+    "Google-Extended": {
+      "class": "training",
+      "role": "use_control",
+      "operator": "Google",
+      "honors_robots_txt": true
+    },
+    "Bingbot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Microsoft",
+      "honors_robots_txt": true
+    },
+    "Applebot": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Apple",
+      "honors_robots_txt": true
+    },
+    "Applebot-Extended": {
+      "class": "training",
+      "role": "use_control",
+      "operator": "Apple",
+      "honors_robots_txt": true
+    },
+    "DuckAssistBot": {
+      "class": "retrieval",
+      "role": "user_fetch",
+      "operator": "DuckDuckGo",
+      "honors_robots_txt": true
+    },
+    "Meta-WebIndexer": {
+      "class": "retrieval",
+      "role": "search_index",
+      "operator": "Meta",
+      "honors_robots_txt": true
+    },
+    "Meta-ExternalFetcher": {
+      "class": "retrieval",
+      "role": "user_fetch",
+      "operator": "Meta",
+      "honors_robots_txt": false
+    },
+    "Meta-ExternalAgent": {
+      "class": "training",
+      "role": "training",
+      "operator": "Meta",
+      "honors_robots_txt": true
+    },
+    "CCBot": {
+      "class": "training",
+      "role": "training",
+      "operator": "Common Crawl",
+      "honors_robots_txt": true
+    },
+    "Bytespider": {
+      "class": "training",
+      "role": "training",
+      "operator": "ByteDance",
+      "honors_robots_txt": true
+    },
+    "*": {
+      "class": "wildcard",
+      "role": "all_unlisted_crawlers",
+      "operator": null,
+      "honors_robots_txt": null
+    }
+  },
+  "crawl_delay": null,
+  "sitemap_url": null,
+  "sitemap_urls": [],
+  "error": "All URL variants failed: https://www.mayoclinic.org/robots.txt (HTTP 403), https://mayoclinic.org/robots.txt (HTTP 403), http://www.mayoclinic.org/robots.txt (HTTP 403), http://mayoclinic.org/robots.txt (HTTP 403)",
+  "fetch_deadline_exceeded": false,
+  "robots_txt": "",
+  "fetch_status": 403
+}

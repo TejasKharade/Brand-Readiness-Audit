@@ -1,0 +1,102 @@
+{
+  "rendering_barriers": {
+    "raw_html_present": true,
+    "has_rendered_comparison": true,
+    "word_counts": {
+      "initial_raw_words_total": 1602,
+      "initial_raw_words_main_area": 603,
+      "effective_raw_words": 603,
+      "rendered_dom_words_total": 4,
+      "rendered_dom_words_main_area": 0,
+      "hydration_ratio": 400.5,
+      "main_area_hydration_ratio": 150.75,
+      "hydration_ratio_is_assumed": false
+    },
+    "hydration_gaps": {
+      "thin_initial_content_detected": false,
+      "structural_delta_signals": [],
+      "structural_delta_count": 0,
+      "skeleton_screen_detected": false,
+      "missing_initial_headings_count": 0,
+      "missing_initial_headings": [],
+      "raw_structure": {
+        "paragraphs": 22,
+        "list_items": 54,
+        "headings": 5,
+        "jsonld_blocks": 0
+      },
+      "rendered_structure": {
+        "paragraphs": 0,
+        "list_items": 0,
+        "headings": 0,
+        "jsonld_blocks": 0
+      }
+    },
+    "content_parity": {
+      "rendered_sentence_count": 0,
+      "raw_sentence_count": 70,
+      "missing_from_raw_count": 0,
+      "content_parity_pct": 100.0,
+      "missing_text_samples": [],
+      "comparison_capped": false
+    },
+    "link_discovery": {
+      "raw_internal_links": 58,
+      "rendered_internal_links": 0,
+      "links_only_after_js_count": 0,
+      "links_only_after_js_samples": []
+    },
+    "client_side_rendering_signals": {
+      "spa_mount_points": [],
+      "detected_frameworks": [
+        "Angular"
+      ],
+      "data_islands_detected": [],
+      "custom_web_elements_count": 0,
+      "ssr_custom_elements_count": 0,
+      "inline_framework_signals": [],
+      "skeleton_markers": [
+        "div[skeleton]"
+      ],
+      "noscript_requires_javascript": false,
+      "noscript_text": null,
+      "structurally_empty": false,
+      "content_blocks": 77,
+      "words_per_content_block": 7.83,
+      "low_density_shell": false,
+      "barrier_reasons": [],
+      "likely_client_side_rendering_barrier": false
+    },
+    "waf_interstitial": {
+      "waf_challenge_detected": false,
+      "waf_signals": []
+    }
+  },
+  "structured_data_hydration": {
+    "has_rendered_comparison": true,
+    "initial_raw_html": {
+      "json_ld_blocks_count": 0,
+      "detected_schema_types": []
+    },
+    "rendered_dom": {
+      "json_ld_blocks_count": 0,
+      "detected_schema_types": []
+    },
+    "hydration_analysis": {
+      "js_trapped_schema_types": [],
+      "js_injected_blocks_count": 0,
+      "structured_data_hydration_barrier_detected": false
+    }
+  },
+  "client_side_redirects": {
+    "client_side_redirect_detected": true,
+    "meta_http_equiv_refreshes": [],
+    "meta_refresh_noop_no_url": [],
+    "js_location_redirects": [
+      "https://www.easemytrip.com/initiative-for/armed-forces.html"
+    ],
+    "js_location_redirects_in_event_handlers": [],
+    "spa_client_routing_detected": false,
+    "spa_client_routing_signals": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "candidate_brand_phrase": "Search Lowest Price",
+  "pages_audited": 2,
+  "distinct_pages_audited": 2,
+  "pages": [
+    {
+      "url": "https://www.easemytrip.com/",
+      "title": "EaseMyTrip.com - Book Flights, Hotels, Holidays, Bus & Train Tickets",
+      "h1": "Search Lowest Price",
+      "meta_description": "Discover the best deals on flights, hotels, holiday packages, bus & train tickets. Exclusive offers to make travel dreams a reality at Easemytrip!",
+      "brand_phrase_present_in_title": false,
+      "brand_phrase_present_in_h1": true
+    },
+    {
+      "url": "https://www.easemytrip.com/flights.html",
+      "title": "Flight Ticket Booking, Cheap Flights, Air Tickets at Lowest Airfare | EaseMyTrip",
+      "h1": "Search Lowest Price",
+      "meta_description": "Book flight tickets at the lowest prices with EaseMyTrip.com. Find cheap flights, compare fares & save big on air tickets. Apply coupon code EASEFLY for up to \u20b93,000 off!",
+      "brand_phrase_present_in_title": false,
+      "brand_phrase_present_in_h1": true
+    }
+  ],
+  "duplicate_meta_descriptions": []
+}

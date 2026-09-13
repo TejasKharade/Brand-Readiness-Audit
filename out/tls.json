@@ -1,0 +1,18 @@
+{
+  "host": "www.mayoclinic.org",
+  "port": 443,
+  "checked": true,
+  "https_reachable": true,
+  "certificate_valid": true,
+  "failure_kind": null,
+  "verify_code": null,
+  "verify_message": null,
+  "not_after": "2027-02-23",
+  "days_remaining": 163,
+  "expiring_soon": false,
+  "expiring_soon_threshold_days": 14,
+  "issuer": "DigiCert Inc, DigiCert Global G3 TLS ECC SHA384 2020 CA1",
+  "tls_version": "TLSv1.3",
+  "handshake_ms": 164.7,
+  "error": null
+}
