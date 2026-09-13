@@ -12,14 +12,52 @@ that simply opens this folder is pointed to the same skill by [`AGENTS.md`](AGEN
 
 ## Skills
 
-| Skill | What it does |
-|---|---|
-| `audit-orchestrator` *(entrypoint)* | Runs the five sub-skills, turns their raw facts into findings with evidence, severity, confidence and a prioritized suggested action, and writes the report. |
-| `crawl-access-audit` | **Can crawlers get in?** robots.txt per RFC 9309 (live AI-search vs. training crawlers), browser-vs-AI-bot fetches (WAF blocks, redirect chains), TLS, noindex/canonical tags, sitemap health with a representative page sample, crawl depth. |
-| `crawl-render-audit` | **Can a non-JavaScript crawler see the content?** Raw-vs-rendered text gap, schema injected by JavaScript, client-side redirects, links only JavaScript reveals (optional local headless Chrome/Edge). |
-| `readability-audit` | **Can a machine extract the facts?** JSON-LD completeness and errors, heading structure, entity grounding, facts locked in images/SVG/PDFs, FAQ schema vs. visible text, question headings, author and NAP trust signals. |
-| `freshness-corroboration` | **Is it current and corroborated?** Publish/modified dates, copyright year, blog recency, on-site facts checked against web search, Wikipedia/Wikidata presence and `sameAs` links, brand-name ambiguity. |
-| `engagement-audit` | **Will a visitor stay?** Homepage navigation reachability, content depth, mobile viewport, cross-page brand consistency, page weight, readiness of pages visitors land on from AI answers, privacy/terms pages. |
+**`audit-orchestrator`** *(entrypoint)*
+
+* Runs the five sub-skills below
+* Turns their raw facts into findings with evidence, severity, confidence and a prioritized suggested action
+* Writes the final report
+
+**`crawl-access-audit`** — *Can crawlers get in?*
+
+* robots.txt per RFC 9309 (live AI-search vs. training crawlers)
+* Browser-vs-AI-bot fetches (WAF blocks, redirect chains)
+* TLS certificate validity
+* noindex / canonical tags
+* Sitemap health with a representative page sample
+* Crawl depth
+
+**`crawl-render-audit`** — *Can a non-JavaScript crawler see the content?*
+
+* Raw-vs-rendered text gap
+* Schema injected by JavaScript
+* Client-side redirects
+* Links only JavaScript reveals
+* Optional local headless Chrome/Edge rendering
+
+**`readability-audit`** — *Can a machine extract the facts?*
+
+* JSON-LD completeness and errors
+* Heading structure and entity grounding
+* Facts locked in images, SVG or PDFs
+* FAQ schema vs. visible text, question headings
+* Author and NAP (name/address/phone) trust signals
+
+**`freshness-corroboration`** — *Is it current and corroborated?*
+
+* Publish/modified dates, copyright year, blog recency
+* On-site facts checked against web search
+* Wikipedia/Wikidata presence and `sameAs` links
+* Brand-name ambiguity
+
+**`engagement-audit`** — *Will a visitor stay?*
+
+* Homepage navigation reachability
+* Content depth and mobile viewport
+* Cross-page brand consistency
+* Page weight
+* Readiness of pages visitors land on from AI answers
+* Privacy/terms pages
 
 ## How the entrypoint composes them
 
