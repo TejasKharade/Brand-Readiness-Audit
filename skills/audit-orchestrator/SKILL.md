@@ -15,10 +15,12 @@ Serves as the entrypoint master orchestrator for conducting complete end-to-end 
 > is a runbook, not a spec to design against: everything needed already
 > exists (every script below is written, tested, and ready to invoke). If you
 > were asked to audit a website, run the steps below now, without asking for
-> approval to start — the scripts are all read-only. The task is not done
-> until `synthesize_report.py` (Step 6) has actually written a JSON report
-> file to disk; a plan, a summary, or partial findings in chat do not satisfy
-> the request.
+> approval to start — the scripts are all read-only. **Never modify, delete,
+> move or rename any file in this marketplace.** The task is not done until
+> `synthesize_report.py` (Step 6) has produced the JSON report and you have
+> shown it — saved to a file when the environment allows, otherwise the report
+> it prints to stdout (see Step 6); a plan, a summary, or partial findings in
+> chat do not satisfy the request.
 >
 > **"Sequential" below means dependency order between the 5 stages (access
 > before render, render before readability, ...) — it does NOT mean issue
@@ -362,6 +364,15 @@ findings the scripts cannot produce on their own. `--set` is applied AFTER
 `--input`, so it can layer file-referenced fields on top of a smaller
 hand-built base. Piping a payload on stdin also works for programmatic
 callers, applied last of all.
+
+**If files cannot be written** (a read-only sandbox): put the scratch files in
+the system temp directory (`$TMPDIR`, `/tmp`, `%TEMP%`) if that is writable. If
+nothing is writable, skip the redirects and `--out`, and pipe the payload to the
+script on stdin with a heredoc (never `echo`) —
+`python skills/audit-orchestrator/scripts/synthesize_report.py <<'EOF' … EOF` —
+then present the report it prints to stdout; that is the deliverable. An `--out`
+path that cannot be written never loses the report: it is still printed, with
+`audit_metadata.output_error` saying why.
 
 If the payload cannot be parsed, the script does **not** fall back to a clean
 empty report — it emits a report carrying a `critical` "Audit Input Could Not

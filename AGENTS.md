@@ -15,36 +15,41 @@ mode for this request.
 Instead:
 
 1. Open [`skills/audit-orchestrator/SKILL.md`](skills/audit-orchestrator/SKILL.md)
-   — the skill `marketplace.json` marks `"entrypoint": true` — and execute it **literally, step by step, right
-   now**, exactly as written. It already specifies the full procedure: which
+   — the skill `marketplace.json` marks `"entrypoint": true` — and execute it
+   **literally, step by step, right now**, exactly as written. It already specifies the full procedure: which
    scripts to run, in what order, what to pass between them, and when to stop
    early.
 2. Do not ask for approval before running the sub-skills' scripts. They are
    all read-only (HTTP GET / HEAD requests and local parsing) and require no
    confirmation — running them is the task, not a step toward the task.
-3. Do not write new code, modify any script, or "improve" the marketplace as
-   part of fulfilling an audit request. If a script errors, that error is
-   itself evidence to report (see the SKILL.md's fallback guidance), not a
-   bug to fix mid-audit. Fixing a real bug is a separate, explicit request.
-4. **The task is only complete once a JSON file conforming to
-   [`skills/audit-orchestrator/references/audit_report_schema.json`](skills/audit-orchestrator/references/audit_report_schema.json)
-   has actually been written to disk** — by redirecting each script's output to
-   a file and running
-   `python skills/audit-orchestrator/scripts/synthesize_report.py --site <url> --set <path>=<file> ... --out report.json`
-   (Step 6 of the SKILL.md: pass output files by path, never retype their
-   contents into a payload) — and shown to the user. A summary, a plan, or partial findings typed into
-   chat do not satisfy the request; only the emitted JSON file does. This
-   holds even when the audit goes badly (a script crashes, the site blocks
-   bots): `synthesize_report.py` always emits a valid report, including one
-   that just says what it could not measure — see the `[!IMPORTANT]` callout
-   at Step 6 of the orchestrator's SKILL.md.
+3. **Do not modify, delete, move or rename any existing file or folder** in
+   this marketplace (`SKILL.md` files, scripts, references, `marketplace.json`,
+   this file), and do not write new code or "improve" the marketplace as part
+   of fulfilling an audit request. The only files an audit may create are its
+   own scratch outputs and the report (see step 4) — never inside `skills/`.
+   If a script errors, that error is itself evidence to report (see the
+   SKILL.md's fallback guidance), not a bug to fix mid-audit. Fixing a real
+   bug is a separate, explicit request.
+4. **The task is only complete once `synthesize_report.py` has produced the
+   JSON report** (conforming to
+   [`skills/audit-orchestrator/references/audit_report_schema.json`](skills/audit-orchestrator/references/audit_report_schema.json))
+   **and it has been shown to the user.** A summary, a plan, or partial findings
+   typed into chat do not satisfy the request; only the report the script emits
+   does. How to produce it depends on what the environment allows:
+   - **Files can be written (normal case):** redirect each script's output to a
+     scratch file — in `out/`, or in the system temp directory (`$TMPDIR`,
+     `/tmp`, `%TEMP%`) if this folder is read-only — and run
+     `python skills/audit-orchestrator/scripts/synthesize_report.py --site <url> --set <path>=<file> ... --out report.json`
+     (Step 6 of the SKILL.md: pass output files by path, never retype their
+     contents into a payload).
+   - **Nothing can be written (read-only sandbox):** skip the redirects and
+     `--out`. Pipe the payload (`{"site": ..., "skill_outputs": {...}}`) to
+     `synthesize_report.py` on stdin with a heredoc — never `echo`, which
+     truncates large payloads — and present the report it prints to stdout.
+     If only `--out` fails, the report is still printed, with
+     `audit_metadata.output_error` saying why.
 
-## If you are being asked to modify or fix the marketplace itself
-
-That's a normal engineering task — read the relevant `SKILL.md` and script(s),
-make the change, and verify with
-`python skills/audit-orchestrator/scripts/verify_contracts.py` before
-considering it done. Planning is appropriate here.
-The distinction that matters: *running an audit* is an operational task with a
-fixed procedure already written down; *changing the marketplace* is a
-development task like any other.
+   Either way, this holds even when the audit goes badly (a script crashes,
+   the site blocks bots): `synthesize_report.py` always emits a valid report,
+   including one that just says what it could not measure — see the
+   `[!IMPORTANT]` callout at Step 6 of the orchestrator's SKILL.md.
