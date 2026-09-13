@@ -526,7 +526,7 @@ def _sanitize_explicit_findings(explicit_findings):
     return out
 
 
-def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
+def _synthesize_report_impl(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
     skill_outputs = _sanitize_skill_outputs(skill_outputs)
     explicit_findings = _sanitize_explicit_findings(explicit_findings)
     if proactive_recommendations is None:
@@ -1867,6 +1867,46 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
                     )
                 )
 
+            # --- Category 1b: link/button with NO accessible name at all ---
+            # Distinct from the missing/decorative-alt counts above: those
+            # count EVERY such image, most of which are correctly decorative
+            # (a spacer, a background flourish) -- alt="" on those is the
+            # CORRECT, W3C-recommended choice and must never be treated as a
+            # defect. This is narrower and unambiguous: a link/button whose
+            # ONLY content is an unlabeled image has NO accessible name at
+            # all, for a screen reader or a non-visual AI crawler trying to
+            # understand navigation alike -- an objective WCAG 2.4.4/4.1.2
+            # failure, not a judgment call about alt-text quality.
+            unlabeled = nontext.get("unlabeled_interactive_images", {})
+            unlabeled_count = unlabeled.get("count", 0)
+            unlabeled_details = unlabeled.get("details") or []
+            if unlabeled_count > 0:
+                # No backslash inside an f-string {...} expression -- that is
+                # a SyntaxError before Python 3.12, and "Requires Python 3"
+                # (per this skill's SKILL.md) does not guarantee 3.12+.
+                ALT_EMPTY_LABEL = 'alt=""'
+                example_parts = []
+                for d in unlabeled_details[:3]:
+                    alt_desc = "no alt attribute" if d.get("alt_kind") == "missing" else ALT_EMPTY_LABEL
+                    example_parts.append(f"{d.get('tag')} ({alt_desc}): {d.get('snippet')}")
+                examples = "; ".join(example_parts)
+                add_finding(
+                    findings, "readability",
+                    f"Link/Button With No Accessible Name ({unlabeled_count} found)",
+                    "high",
+                    f"{unlabeled_count} <a>/<button> element(s) have no accessible name at all: their "
+                    f"only content is an <img> with no alt text (empty or absent) and there is no other "
+                    f"text, aria-label, or title on the element. Examples: {examples}.",
+                    "Give each of these elements an accessible name: add real text alongside the image, "
+                    "set aria-label/title on the link or button, or give the image itself a descriptive "
+                    "alt (e.g. alt=\"Shop now\") if it is the only content.",
+                    plain_english="Some of your clickable links/buttons contain only an image with no "
+                    "text description anywhere -- to a screen reader, and to an AI crawler trying to "
+                    "understand your site's navigation, these controls are completely blank and their "
+                    "purpose is unknowable.",
+                    confidence=1.0
+                )
+
             # --- Category 2: Inline SVG accessibility ---
             vec = nontext.get("vector_graphics", {})
             svg_total        = vec.get("total", 0)
@@ -2647,6 +2687,61 @@ def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proa
     }
     return report
 
+
+def synthesize_report(site_url, skill_outputs=None, explicit_findings=None, proactive_recommendations=None):
+    """Public entrypoint. This function's own core contract -- ALWAYS return a
+    schema-valid report -- must hold for every caller, not just the CLI below
+    (whose own try/except only protects `__main__`, not a direct Python
+    import). `_synthesize_report_impl` assumes every value it reads is
+    reasonably well-shaped; `_sanitize_skill_outputs` guards against a wrong
+    type at the CATEGORY level (`skill_outputs["crawl_access"]` itself not a
+    dict) but cannot know that, say, `crawl_access["robots"]` specifically
+    must be a dict and not a list -- many sibling fields (`sampled_pages`,
+    `additional_pages`) are LEGITIMATELY lists, so that check can't be pushed
+    one level deeper without a maintained per-field type table. A caller
+    piecing together `skill_outputs` from several files (`--set`) rather than
+    one already-correctly-shaped object is exactly where a mismatched file
+    lands at the wrong key and produces this shape of error, so the net goes
+    here rather than assuming it can never happen."""
+    try:
+        return _synthesize_report_impl(site_url, skill_outputs, explicit_findings, proactive_recommendations)
+    except Exception as e:
+        return {
+            "site": site_url if isinstance(site_url, str) and site_url else UNKNOWN_SITE,
+            "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "summary": {"total_findings": 1, "critical": 1, "high": 0, "medium": 0, "low": 0},
+            "findings": [{
+                "id": "F-001",
+                "category": "audit_input",
+                "title": "Report Generation Failed - This Report Is Not a Valid Audit",
+                "severity": "critical",
+                "evidence": f"synthesize_report() raised {type(e).__name__}: {e} while processing the "
+                            f"supplied skill_outputs -- most often a value at some nested key is not the "
+                            f"type downstream code expects (e.g. a list where an object was expected). No "
+                            f"site was reliably audited; the absence of findings above is not evidence of "
+                            f"a healthy site.",
+                "suggested_action": {
+                    "summary": "Check that each skill_outputs field matches its documented shape (see the "
+                               "relevant skill's SKILL.md Output section) -- this is the most common cause "
+                               "when skill_outputs was assembled from several files via --set rather than "
+                               "supplied as one already-correct object.",
+                    "priority": "critical"},
+                "confidence": 1.0,
+            }],
+            "proactive_recommendations": [],
+            "audit_metadata": {
+                "audited_pages_count": 1,
+                "skills_invoked_count": 1,
+                "marketplace_version": "1.0.0",
+                "robots_restricted_fetches": [],
+                "robots_compliance": "not evaluated",
+                "coverage_blocked": False,
+                "categories_not_audited": [],
+                "script_error": f"{type(e).__name__}: {e}",
+            },
+        }
+
+
 import threading
 
 def read_stdin_safe(timeout=5.0):
@@ -2666,17 +2761,66 @@ def read_stdin_safe(timeout=5.0):
 UNKNOWN_SITE = "(unknown - audit input could not be read)"
 
 
-def _collect_params(argv):
-    """Gather the run's parameters from (in precedence order) a `--input` file,
-    a positional path/JSON/URL, and stdin. Returns (params, input_errors).
+def _set_nested(container, path, value):
+    """Set `value` at a dotted path inside `container` (a dict), creating
+    dicts -- or lists, for a purely-numeric path segment like the `0` in
+    `crawl_access.sampled_pages.0.url` -- as needed along the way."""
+    parts = path.split(".")
+    cur = container
+    for i, part in enumerate(parts):
+        is_last = i == len(parts) - 1
+        next_is_index = (not is_last) and parts[i + 1].isdigit()
+        if part.isdigit():
+            idx = int(part)
+            while len(cur) <= idx:
+                cur.append(None)
+            if is_last:
+                cur[idx] = value
+            else:
+                if cur[idx] is None:
+                    cur[idx] = [] if next_is_index else {}
+                cur = cur[idx]
+        else:
+            if is_last:
+                cur[part] = value
+            else:
+                if not isinstance(cur.get(part), (dict, list)):
+                    cur[part] = [] if next_is_index else {}
+                cur = cur[part]
 
-    A FILE path is the primary channel and the reason this function exists. A
-    real `skill_outputs` carries the fetched HTML of every sampled page and
-    runs 20 KB - 800 KB; `echo '<json>' | python synthesize_report.py` cannot
-    carry that on Windows (cmd.exe caps a command line at 8 KB, CreateProcess
-    at 32 KB), so on any real site the shell truncated or rejected the payload
-    and the audit produced no usable report. Writing the payload to a file and
-    passing its path has no such ceiling.
+
+def _collect_params(argv):
+    """Gather the run's parameters from (in precedence order) `--set` file
+    references, an `--input` file, a positional path/JSON/URL, and stdin.
+    Returns (params, input_errors).
+
+    `--input <file>` solved payload TRANSPORT (a real `skill_outputs` runs
+    20 KB - 800 KB, past what a shell command line can carry), but left one
+    cost unsolved: something still has to WRITE that file, and if the
+    orchestrating agent is an LLM composing its text -- reading each script's
+    JSON/HTML output into its own context, then re-emitting the same bytes as
+    output tokens to author payload.json -- that regeneration is bounded by
+    the model's own token-generation rate, not by disk or network I/O, and is
+    frequently the slowest single step in the entire audit ("everything else
+    is fast, but creating the payload/report takes forever").
+
+    `--set <dotted.path>=<file>` removes that cost entirely: the agent redirects
+    each script's stdout straight to a file with plain shell `>` (the OS moves
+    the bytes; no LLM tokens involved), then references those files by PATH --
+    a few dozen characters each -- rather than retyping their contents.
+        --set crawl_access.robots=out/robots.json
+        --set crawl_access.dual_identity=out/dual.json
+        --set crawl_render=out/render_all.json          # whole run_all.py output
+        --set crawl_access.sampled_pages.0.url=out/p0_url.json
+    Each file's JSON content is read here and placed at that path inside
+    `skill_outputs` (numeric segments create/index a list). Combine with
+    `--site <url>` for a fully file-referenced invocation that never requires
+    the agent to write large JSON as its own output at all.
+
+    `--input <file>` remains for a caller (or a smaller, hand-assembled
+    payload) that already has the whole object in one place -- both channels
+    merge into the same `skill_outputs`, `--set` applied last so it can layer
+    on top of a partial `--input` base.
 
     Every parse failure is COLLECTED, never swallowed. Silently ignoring a
     truncated payload used to leave `site` defaulting to "https://example.com"
@@ -2704,6 +2848,7 @@ def _collect_params(argv):
 
     args = list(argv[1:])
     out_path = None
+    set_specs = []          # deferred: applied AFTER --input, so --set can layer on top
     positional = []
     i = 0
     while i < len(args):
@@ -2716,10 +2861,44 @@ def _collect_params(argv):
             except OSError as e:
                 errors.append(f"--input {path}: could not be read ({e})")
             continue
+        if a == "--set" and i + 1 < len(args):
+            set_specs.append(args[i + 1]); i += 2
+            continue
+        if a == "--site" and i + 1 < len(args):
+            params.setdefault("site", args[i + 1]); i += 2
+            continue
         if a in ("--out", "-o") and i + 1 < len(args):
             out_path = args[i + 1]; i += 2
             continue
         positional.append(a); i += 1
+
+    for spec in set_specs:
+        if "=" not in spec:
+            errors.append(f"--set {spec}: expected <dotted.path>=<file.json>, no '=' found")
+            continue
+        dotted_path, file_path = spec.split("=", 1)
+        dotted_path = dotted_path.strip()
+        if not dotted_path:
+            errors.append(f"--set {spec}: empty path before '='")
+            continue
+        try:
+            with io.open(file_path, encoding="utf-8") as fh:
+                value = json.load(fh)
+        except OSError as e:
+            errors.append(f"--set {dotted_path}={file_path}: could not be read ({e})")
+            continue
+        except json.JSONDecodeError as e:
+            errors.append(f"--set {dotted_path}={file_path}: not valid JSON ({e})")
+            continue
+        params.setdefault("skill_outputs", {})
+        try:
+            _set_nested(params["skill_outputs"], dotted_path, value)
+        except Exception as e:
+            # One malformed --set path (e.g. clashing with a value already
+            # written by a broader --input) must not take the whole run down
+            # -- matches _sanitize_skill_outputs's "one broken category never
+            # discards the rest" guarantee applied one layer earlier.
+            errors.append(f"--set {dotted_path}={file_path}: could not be placed in skill_outputs ({e})")
 
     for raw_arg in positional:
         raw_arg = raw_arg.strip()

@@ -242,7 +242,24 @@ class NonTextMediaParser(HTMLParser):
         # category 6: linked docs (PDF hrefs)
         self.pdf_links       = []   # list of href strings (deduplicated later)
 
+        # category 7: a link/button whose ONLY accessible content is an <img>
+        # with alt="" -- distinct from a merely-decorative empty alt (correct
+        # when a link/button has other text, an aria-label, or a non-empty-alt
+        # image alongside it). This is an objective WCAG 2.4.4/4.1.2 failure
+        # ("link/button has no discernible text"), not a stylistic judgment
+        # call: the element is unlabeled for a screen reader AND for any
+        # non-visual AI crawler trying to understand navigation, since alt=""
+        # instructs both to treat the image as if it were not there at all.
+        self.unlabeled_interactive_images = []   # list of {tag, snippet}
+
         # --- internal state ---
+        # Stack, not a flat flag, so a nested container (a <button> inside an
+        # <a>, or vice versa -- unusual but not invalid to encounter in the
+        # wild) is judged independently while text/images at any depth still
+        # count toward EVERY enclosing container: a <button>Buy</button>
+        # inside an <a> makes the outer <a> labeled too, even though "Buy" is
+        # only a direct child of the inner element.
+        self._interactive_stack = []
         self._svg_depth           = 0    # depth inside <svg> tags
         self._svg_has_title       = False
         self._svg_has_desc        = False
@@ -319,6 +336,21 @@ class NonTextMediaParser(HTMLParser):
                 "snippet":   _snippet(tag_lower, {"src": src_hint, "alt": alt_val}),
                 "src_hint":  src_hint,
             })
+            # Propagate to every OPEN interactive container (see the stack
+            # comment above for why this is "every", not just the innermost).
+            # "generic"/"descriptive" alt still gives the element SOME
+            # accessible name, even if the wording is poor -- that's a
+            # separate finding (missing/generic alt) handled above. Both
+            # "decorative" (alt="") and "missing" (no alt attribute at all)
+            # provide NO accessible name, so either one leaves a link/button
+            # unlabeled exactly the same way if nothing else does either.
+            for entry in self._interactive_stack:
+                if alt_cls in ("decorative", "missing"):
+                    entry["has_unlabeled_img"] = True
+                    if entry["unlabeled_alt_kind"] is None:
+                        entry["unlabeled_alt_kind"] = alt_cls
+                else:
+                    entry["has_labeling_img"] = True
 
         # ---- category 1: <source> inside <picture> ----
         elif tag_lower == "source" and self._in_picture:
@@ -459,6 +491,25 @@ class NonTextMediaParser(HTMLParser):
                 if path.endswith(".pdf"):
                     self.pdf_links.append(href)
 
+        # ---- category 7: track a candidate link/button for the unlabeled-
+        # interactive-image check. An <a> with no href is a named anchor, not
+        # a link, so it is not tracked; any <button> qualifies regardless.
+        if (tag_lower == "a" and attrs_dict.get("href")) or tag_lower == "button":
+            aria_label = attrs_dict.get("aria-label", "").strip()
+            title_attr = attrs_dict.get("title", "").strip()
+            self._interactive_stack.append({
+                "tag": tag_lower,
+                "has_text": False,
+                "has_label": bool(aria_label) or bool(title_attr),
+                "has_labeling_img": False,
+                "has_unlabeled_img": False,
+                "unlabeled_alt_kind": None,
+                "snippet": _snippet(tag_lower, {
+                    k: v for k, v in attrs_dict.items()
+                    if k in ("href", "class", "aria-label", "title")
+                }),
+            })
+
     def handle_endtag(self, tag):
         tag_lower = tag.lower()
 
@@ -496,9 +547,23 @@ class NonTextMediaParser(HTMLParser):
             self._canvas_depth = 0
             self._flush_canvas(has_fallback=(self._canvas_inner_words > 0))
 
+        if (tag_lower in ("a", "button") and self._interactive_stack
+                and self._interactive_stack[-1]["tag"] == tag_lower):
+            entry = self._interactive_stack.pop()
+            if (entry["has_unlabeled_img"] and not entry["has_text"]
+                    and not entry["has_label"] and not entry["has_labeling_img"]):
+                self.unlabeled_interactive_images.append({
+                    "tag": entry["tag"],
+                    "alt_kind": entry["unlabeled_alt_kind"],
+                    "snippet": entry["snippet"],
+                })
+
     def handle_data(self, data):
         if self._canvas_depth > 0 and data.strip():
             self._canvas_inner_words += len(data.split())
+        if self._interactive_stack and data.strip():
+            for entry in self._interactive_stack:
+                entry["has_text"] = True
 
 
 # ---------------------------------------------------------------------------
@@ -829,6 +894,21 @@ def check_nontext_facts(html_content: str, url: str = "", max_pdfs: int = 3, rob
             "pdf_links_inspected": len(pdf_results),
             "pdf_missing_text_layer": len(pdf_no_text),
             "details":             pdf_results,
+        },
+
+        # ---- Category 7 ----
+        # A link/button whose ONLY content is an <img> with alt="" (or no alt
+        # at all) and no other text/aria-label/title/labeling-image alongside
+        # it. Distinct from `standard_images.decorative_alt_empty`, which
+        # counts EVERY alt="" image, most of which are correctly decorative
+        # (a spacer, a background flourish) -- flagging all of those would be
+        # a false-positive generator penalising sites for following W3C
+        # guidance. This category is narrower and unambiguous: the element
+        # has no accessible name at all, an objective WCAG 2.4.4/4.1.2
+        # failure, not a stylistic judgment call.
+        "unlabeled_interactive_images": {
+            "count":   len(parser.unlabeled_interactive_images),
+            "details": parser.unlabeled_interactive_images[:10],
         },
     }
 

@@ -71,7 +71,14 @@ def script_emitted_keys(root):
 def orchestrator_read_keys(root):
     src = open(os.path.join(root, "skills", "audit-orchestrator", "scripts",
                             "synthesize_report.py"), encoding="utf-8").read()
-    start = src.index("def synthesize_report")
+    # The finding-generation logic lives in _synthesize_report_impl -- the
+    # public synthesize_report() is now just a thin try/except wrapper around
+    # it (added so the function's own "always return a valid report" contract
+    # holds for every caller, not just the CLI). Anchoring on the OLD name
+    # silently scanned an empty region here (the wrapper's def line sorts
+    # AFTER "# Severity Summary Counts" in the file, so start > end produced
+    # src[start:end] == "") and keys_read_by_orchestrator silently went to 0.
+    start = src.index("def _synthesize_report_impl")
     end = src.index("# Severity Summary Counts")
     region = src[start:end]
     keys = set(re.findall(r'\.get\(["\']([a-z_0-9]+)["\']', region))
@@ -698,7 +705,7 @@ def shape_probes(root):
     # timeout cannot bound it (the socket timeout resets on every chunk), so
     # its wall-clock ceiling is what keeps the audit inside the <5 min
     # runtime constraint on a slow host.
-    from check_nontext_facts import PDF_INSPECTION_DEADLINE_S
+    from check_nontext_facts import PDF_INSPECTION_DEADLINE_S, check_nontext_facts
     probe("runtime: linked-PDF inspection declares a wall-clock ceiling",
           isinstance(PDF_INSPECTION_DEADLINE_S, (int, float)) and 0 < PDF_INSPECTION_DEADLINE_S <= 45)
 
@@ -755,6 +762,42 @@ def shape_probes(root):
     probe("synthesize_report.py accepts --input <file> and --out <file>",
           "--input" in open(_sr, encoding="utf-8").read()
           and "--out" in open(_sr, encoding="utf-8").read())
+
+    # ---- --set <path>=<file>: an agent must never have to retype a script's
+    # large JSON/HTML output as its own generated text just to assemble
+    # payload.json -- that regeneration is bounded by token-generation speed,
+    # not I/O, and is frequently the slowest step in the whole audit. --set
+    # lets the agent redirect each script's stdout straight to a file and
+    # reference it by path instead.
+    import tempfile as _tempfile
+    _tmpdir = _tempfile.mkdtemp(prefix="verify_set_")
+    _robots_fp = os.path.join(_tmpdir, "robots.json")
+    with open(_robots_fp, "w", encoding="utf-8") as _fh:
+        json.dump({"reachable": True, "root_blocked_agents": ["OAI-SearchBot"],
+                  "blocked_paths_by_agent": {}, "disallowed": {"/": {"OAI-SearchBot": True}},
+                  "matched_rules": {"/": {"OAI-SearchBot": {"rule": "Disallow: /", "group": "oai-searchbot"}}},
+                  "agent_classes": {"OAI-SearchBot": {"class": "retrieval", "role": "search_index",
+                                                      "honors_robots_txt": True}}}, _fh)
+    set_rep = _cli(["--site", "https://probe.example/", "--set", f"crawl_access.robots={_robots_fp}"])
+    probe("--set <path>=<file> places a script's file output at the right nested key",
+          bool(set_rep) and any("robots.txt" in f["title"] for f in set_rep.get("findings", [])))
+    missing_file_rep = _cli(["--site", "https://probe.example/",
+                             "--set", "crawl_access.robots=/no/such/file.json"])
+    probe("--set referencing a missing file -> report still emitted, flagged, not a crash",
+          bool(missing_file_rep) and "input_error" in missing_file_rep.get("audit_metadata", {}))
+    malformed_rep = _cli(["--site", "https://probe.example/", "--set", "no-equals-sign-here"])
+    probe("--set with malformed syntax (no '=') -> report still emitted, flagged, not a crash",
+          bool(malformed_rep) and "input_error" in malformed_rep.get("audit_metadata", {}))
+
+    # ---- synthesize_report() itself must never raise, for ANY caller -- not
+    # just the CLI (whose own try/except only protects __main__, not a direct
+    # Python import). A value at some nested skill_outputs key having the
+    # wrong type (found via --set stress-testing: a list where downstream
+    # code calls .get() expecting a dict) must degrade to a schema-valid
+    # critical finding, never propagate out of the function.
+    probe("synthesize_report() never raises even on a deeply malformed skill_outputs shape",
+          (lambda: (lambda r: isinstance(r, dict) and r.get("summary", {}).get("critical", 0) >= 1)(
+              synthesize_report("https://probe.example/", {"crawl_access": {"robots": [1, 2, 3]}})))())
 
     # ---- Sitemap: "blocked" vs "missing" are different claims. A 403/429/5xx
     # or a network failure means THIS request failed -- it says nothing about
@@ -829,6 +872,25 @@ def shape_probes(root):
                             robots={"robots_txt": "", "status": 404})
     probe("fetch_rendered_dom.py itself sets unavailable_reason='no_browser_installed' when none is found",
           fr.get("available") is False and fr.get("unavailable_reason") == "no_browser_installed")
+
+    # ---- Unlabeled interactive images: an <img alt=""> that is the SOLE
+    # content of a link/button has no accessible name at all -- objectively
+    # broken (WCAG 2.4.4/4.1.2), distinct from every OTHER alt="" image, most
+    # of which are correctly decorative and must never be flagged.
+    def nontext_findings(html):
+        nt = check_nontext_facts(html, "https://probe.example/")
+        rep = synthesize_report("https://probe.example/", {"readability": {"nontext_facts": nt}})
+        return [f["title"] for f in rep["findings"]]
+
+    bad_link_titles = nontext_findings('<a href="/shop"><img src="icon.png" alt=""></a>')
+    probe("unlabeled link (empty-alt image, nothing else) -> 'No Accessible Name' finding fires",
+          any("No Accessible Name" in t for t in bad_link_titles))
+    healthy_titles = nontext_findings('<a href="/shop"><img src="icon.png" alt="">Shop Now</a>')
+    probe("empty-alt image WITH real link text alongside it -> NOT flagged (correct W3C usage)",
+          not any("No Accessible Name" in t for t in healthy_titles))
+    standalone_titles = nontext_findings('<main><p>Text</p><img src="spacer.png" alt=""><p>More</p></main>')
+    probe("standalone decorative empty-alt image outside any link -> NOT flagged",
+          not any("No Accessible Name" in t for t in standalone_titles))
     return failures
 
 

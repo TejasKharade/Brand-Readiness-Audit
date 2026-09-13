@@ -287,17 +287,53 @@ Run visitor orientation and engagement scripts:
 > what it could not measure is the correct output; prose in the chat is not a
 > deliverable, and neither is stopping after collecting evidence.
 >
-> **Write the payload to a file and pass its path — never `echo` it.** A real
+> **Never `echo` a payload, and never author it as your own generated text
+> either — redirect scripts' output straight to files instead.** A real
 > `skill_outputs` contains the fetched HTML of every sampled page and runs
-> **20 KB–800 KB**. A shell command line caps out far below that (cmd.exe at
-> 8 KB, `CreateProcess` at 32 KB), so `echo '<json>' | python …` silently
-> truncates a real payload, and the report then describes nothing. Use a file:
+> **20 KB–800 KB**. `echo '<json>' | python …` truncates it outright (cmd.exe
+> caps a command line at 8 KB, `CreateProcess` at 32 KB) — but even writing
+> `payload.json` yourself avoids only THAT problem, not the real cost: you'd
+> still have to read every script's output into your own context and then
+> re-emit those same bytes as generated output tokens to compose the file.
+> That regeneration is bounded by your own token-generation rate, not by
+> disk or network I/O, and is routinely the single slowest step in an
+> otherwise-fast audit. Redirect each script's stdout straight to a file with
+> plain shell `>` — the OS moves the bytes, no tokens involved — then
+> reference those files **by path** with `--set`:
+
+```bash
+python skills/crawl-access-audit/scripts/check_robots.py '{"domain":"example.com"}' > out/robots.json
+python skills/crawl-access-audit/scripts/fetch_dual_identity.py '{"url":"...", "robots": ...}' > out/dual.json
+# ... every other script, each redirected to its own file ...
+
+python skills/audit-orchestrator/scripts/synthesize_report.py \
+  --site https://example.com \
+  --set crawl_access.robots=out/robots.json \
+  --set crawl_access.dual_identity=out/dual.json \
+  --set crawl_render=out/render_all.json \
+  --set readability=out/readability_all.json \
+  --set freshness_corroboration.content_dates_and_decay=out/freshness_all.json \
+  --set engagement.single_page=out/engagement_all.json \
+  --out report.json
+```
+
+Each `--set <dotted.path>=<file>` reads that file's JSON and places it at
+`skill_outputs.<dotted.path>` — a bare key (`crawl_render=...`) merges a whole
+category at once (exactly what the `run_all.py` aggregators already return),
+while a dotted path (`crawl_access.robots=...`) nests one field. A numeric
+segment builds a list index, for a second sampled page:
+`--set crawl_access.sampled_pages.1.url=out/p1_url.json`. Repeat `--set` as
+many times as you have output files — every argument is a short file path,
+never file content, so this command costs the same handful of tokens to issue
+whether the underlying data is 20 KB or 800 KB.
+
+`payload.json` (`--input`) is still supported for a caller that already has
+the whole object assembled in one place — a programmatic caller, or a smaller
+hand-built payload where the regeneration cost above doesn't apply:
 
 ```bash
 python skills/audit-orchestrator/scripts/synthesize_report.py --input payload.json --out report.json
 ```
-
-`payload.json` is written by you and has this shape:
 
 ```json
 {
@@ -316,8 +352,10 @@ python skills/audit-orchestrator/scripts/synthesize_report.py --input payload.js
 
 `--out` writes the report to disk (it is also printed to stdout). `findings`
 and `proactive_recommendations` are optional: use them to inject agent-judged
-findings the scripts cannot produce on their own. Piping the payload on stdin
-also works for programmatic callers, and a `--input` file always wins over it.
+findings the scripts cannot produce on their own. `--set` is applied AFTER
+`--input`, so it can layer file-referenced fields on top of a smaller
+hand-built base. Piping a payload on stdin also works for programmatic
+callers, applied last of all.
 
 If the payload cannot be parsed, the script does **not** fall back to a clean
 empty report — it emits a report carrying a `critical` "Audit Input Could Not
