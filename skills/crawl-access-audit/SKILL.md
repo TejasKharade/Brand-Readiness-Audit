@@ -26,7 +26,9 @@ that consumes this skill's output.
 
 ## Inputs
 - `domain`: Target site domain or URL (e.g., `example.com` or
-  `https://example.com`).
+  `https://example.com`). `site` is accepted as an alias (robots.txt and the
+  sitemap are resolved at its host root). A target is required: with none,
+  a script returns an `error` instead of guessing one.
 - `sampled_pages`: A list of specific page URLs to audit (e.g.,
   `["https://example.com/about", "https://example.com/product/1"]`).
 - `target_page` (optional): A page URL to measure crawl depth against, for

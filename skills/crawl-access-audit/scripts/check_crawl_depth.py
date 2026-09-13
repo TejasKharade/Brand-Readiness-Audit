@@ -320,7 +320,7 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
 
 if __name__ == "__main__":
     try:
@@ -333,7 +333,7 @@ if __name__ == "__main__":
             if raw1.startswith("{"):
                 try:
                     params = json.loads(raw1)
-                    start_url = params.get("start_url") or params.get("url") or params.get("domain")
+                    start_url = params.get("start_url") or params.get("url") or params.get("domain") or params.get("site")
                     target_url = params.get("target_url") or params.get("target_page")
                 except json.JSONDecodeError:
                     start_url = raw1
@@ -353,7 +353,9 @@ if __name__ == "__main__":
                 pass
 
         if not start_url:
-            start_url = params.get("start_url") or params.get("url") or params.get("domain") or "https://example.com"
+            start_url = params.get("start_url") or params.get("url") or params.get("domain") or params.get("site")
+        if not start_url:
+            raise ValueError("no target given: pass start_url, url, domain or site")
         if not target_url:
             target_url = params.get("target_url") or params.get("target_page") or start_url
 

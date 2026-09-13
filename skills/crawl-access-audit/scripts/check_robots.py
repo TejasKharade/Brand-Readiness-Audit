@@ -417,7 +417,15 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
+
+def _host_from_site(site):
+    """Host of a `site` URL -- robots.txt only ever lives at the host root."""
+    if not isinstance(site, str) or not site.strip():
+        return None
+    s = site.strip() if "://" in site else "https://" + site.strip()
+    return urllib.parse.urlparse(s).netloc or None
+
 
 if __name__ == "__main__":
     try:
@@ -430,7 +438,7 @@ if __name__ == "__main__":
             if raw_arg.startswith("{"):
                 try:
                     params = json.loads(raw_arg)
-                    domain_arg = params.get("domain") or params.get("url")
+                    domain_arg = params.get("domain") or params.get("url") or _host_from_site(params.get("site"))
                 except json.JSONDecodeError:
                     domain_arg = raw_arg
             else:
@@ -447,7 +455,9 @@ if __name__ == "__main__":
                 pass
 
         if not domain_arg:
-            domain_arg = params.get("domain") or params.get("url") or "example.com"
+            domain_arg = params.get("domain") or params.get("url") or _host_from_site(params.get("site"))
+        if not domain_arg:
+            raise ValueError("no target given: pass domain, url or site")
 
         # Default: every token in references/ai_crawler_classes.json (retrieval
         # AND training) plus "*", so a training-only block can be told apart

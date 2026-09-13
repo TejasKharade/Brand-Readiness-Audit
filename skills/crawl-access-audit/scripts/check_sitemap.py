@@ -159,7 +159,7 @@ def parse_sitemap_xml(content):
         if isinstance(content, bytes):
             stripped = content.lstrip(b"\xef\xbb\xbf \t\r\n")
         else:
-            stripped = content.lstrip("﻿ \t\r\n")
+            stripped = content.lstrip("\ufeff \t\r\n")
         if stripped and stripped != content:
             try:
                 return ET.fromstring(stripped), True
@@ -616,7 +616,16 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
+
+def _sitemap_from_site(site):
+    """`site` names the audited site, not a sitemap: use its host root /sitemap.xml."""
+    if not isinstance(site, str) or not site.strip():
+        return None
+    s = site.strip() if "://" in site else "https://" + site.strip()
+    p = urllib.parse.urlparse(s)
+    return f"{p.scheme}://{p.netloc}/sitemap.xml" if p.netloc else None
+
 
 if __name__ == "__main__":
     try:
@@ -628,7 +637,7 @@ if __name__ == "__main__":
             if raw_arg.startswith("{"):
                 try:
                     params = json.loads(raw_arg)
-                    sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain")
+                    sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain") or _sitemap_from_site(params.get("site"))
                 except json.JSONDecodeError:
                     sitemap_url = raw_arg
             else:
@@ -644,7 +653,9 @@ if __name__ == "__main__":
                 pass
 
         if not sitemap_url:
-            sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain") or "https://example.com/sitemap.xml"
+            sitemap_url = params.get("sitemap_url") or params.get("url") or params.get("domain") or _sitemap_from_site(params.get("site"))
+        if not sitemap_url:
+            raise ValueError("no target given: pass sitemap_url, url, domain or site")
 
         if not sitemap_url.startswith("http://") and not sitemap_url.startswith("https://"):
             sitemap_url = "https://" + sitemap_url

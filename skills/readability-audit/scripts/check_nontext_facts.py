@@ -932,7 +932,7 @@ def read_stdin_safe(timeout: float = 0.2) -> str:
     t = threading.Thread(target=_target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
 
 
 if __name__ == "__main__":

@@ -2868,9 +2868,19 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
 
 UNKNOWN_SITE = "(unknown - audit input could not be read)"
+
+
+def _read_text_file(path):
+    """Read a payload/output file whatever the shell that wrote it used: UTF-8,
+    UTF-8 with a BOM, or UTF-16 (Windows PowerShell 5.1's `>` redirect)."""
+    with io.open(path, "rb") as fh:
+        data = fh.read()
+    if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return data.decode("utf-16", errors="replace")
+    return data.decode("utf-8-sig", errors="replace")
 
 
 def _set_nested(container, path, value):
@@ -2968,8 +2978,7 @@ def _collect_params(argv):
         if a in ("--input", "-i", "--payload") and i + 1 < len(args):
             path = args[i + 1]; i += 2
             try:
-                with io.open(path, encoding="utf-8") as fh:
-                    merge(fh.read(), f"--input {path}")
+                merge(_read_text_file(path), f"--input {path}")
             except OSError as e:
                 errors.append(f"--input {path}: could not be read ({e})")
             continue
@@ -2994,8 +3003,7 @@ def _collect_params(argv):
             errors.append(f"--set {spec}: empty path before '='")
             continue
         try:
-            with io.open(file_path, encoding="utf-8") as fh:
-                value = json.load(fh)
+            value = json.loads(_read_text_file(file_path))
         except OSError as e:
             errors.append(f"--set {dotted_path}={file_path}: could not be read ({e})")
             continue
@@ -3018,8 +3026,7 @@ def _collect_params(argv):
             merge(raw_arg, "command-line JSON argument")
         elif raw_arg.lower().endswith(".json") and os.path.exists(raw_arg):
             try:
-                with io.open(raw_arg, encoding="utf-8") as fh:
-                    merge(fh.read(), f"payload file {raw_arg}")
+                merge(_read_text_file(raw_arg), f"payload file {raw_arg}")
             except OSError as e:
                 errors.append(f"payload file {raw_arg}: could not be read ({e})")
         else:

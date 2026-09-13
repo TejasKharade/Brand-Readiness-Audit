@@ -110,7 +110,7 @@ def fetch_content_length(url, timeout=3, gate=None):
 
 def check_page_speed_signals(params):
     html_content = params.get("html", "") or ""
-    url = params.get("url", "") or "https://example.com"
+    url = params.get("url") or params.get("site") or ""
 
     html_bytes = len(html_content.encode("utf-8")) if isinstance(html_content, str) else 0
 
@@ -122,7 +122,9 @@ def check_page_speed_signals(params):
         pass
 
     css_js_total_found = len(parser.css_js_urls)
-    measured_urls = parser.css_js_urls[:15]
+    # Without the page's own URL, relative resources cannot be resolved (guessing a
+    # base would measure some other site), so nothing is fetched.
+    measured_urls = parser.css_js_urls[:15] if url else []
     css_js_measured_count = len(measured_urls)
 
     total_css_js_bytes = 0
@@ -137,7 +139,7 @@ def check_page_speed_signals(params):
     # check_sitemap.py's SITEMAP_FETCH_DEADLINE_S comment for the full reasoning.
     RESOURCE_FETCH_DEADLINE_S = 15.0
     deadline_start = time.time()
-    gate = RobotsGate.for_url(url, robots=params.get("robots")) if RobotsGate else None
+    gate = RobotsGate.for_url(url, robots=params.get("robots")) if (RobotsGate and url) else None
 
     for res_url in measured_urls:
         if time.time() - deadline_start > RESOURCE_FETCH_DEADLINE_S:
@@ -168,7 +170,8 @@ def check_page_speed_signals(params):
         "image_count": image_count,
         "resource_count_total": resource_count_total,
         "resource_fetch_errors": resource_fetch_errors,
-        "time_budget_exceeded": time_budget_exceeded
+        "time_budget_exceeded": time_budget_exceeded,
+        **({} if url else {"error": "no page url given (url or site): resources were not measured"}),
     }
 
 import threading
@@ -185,7 +188,7 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
 
 if __name__ == "__main__":
     try:

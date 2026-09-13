@@ -138,7 +138,7 @@ def read_stdin_safe(timeout=5.0):
     t = threading.Thread(target=target, daemon=True)
     t.start()
     t.join(timeout=timeout)
-    return res[0] if res else ""
+    return res[0].lstrip("\ufeff") if res else ""
 
 
 if __name__ == "__main__":
@@ -161,7 +161,7 @@ if __name__ == "__main__":
                     params.update(stdin_params)
             except json.JSONDecodeError:
                 pass
-        target = params.get("url") or params.get("domain") or ""
+        target = params.get("url") or params.get("domain") or params.get("site") or ""
         try:
             timeout = max(2.0, min(10.0, float(params.get("timeout", 6.0))))
         except (TypeError, ValueError):
